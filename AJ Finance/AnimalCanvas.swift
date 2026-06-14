@@ -7,32 +7,41 @@ struct AnimalCanvas: View {
     var mood: AJMood
     var size: CGFloat
     var outfit: OutfitItem? = nil
+    var isWalking: Bool = false
 
     var body: some View {
-        if type == .tiger {
-            AJTiger(mood: mood, size: size)
-        } else {
-            CuteAnimalFigure(type: type, mood: mood, size: size, outfit: outfit)
-        }
+        AnimalFigure(type: type, mood: mood, size: size, outfit: outfit, isWalking: isWalking)
     }
 }
 
-// MARK: - Cute Emoji Animal Figure (state-driven animations)
+// MARK: - Full-body Pokémon-style figure with mood particles
 
-struct CuteAnimalFigure: View {
+struct AnimalFigure: View {
     var type: AnimalType
     var mood: AJMood
     var size: CGFloat
     var outfit: OutfitItem? = nil
+    var isWalking: Bool = false
 
-    @State private var glowPulse: Bool = false
+    @State private var glowPulse:    Bool = false
     @State private var sparklePhase: Bool = false
+
+    // Head is at ~30% down from top of the frame (headY = size * 0.30)
+    // Center offset from mid:  -(size * 0.20)
+    private var headOffsetY: CGFloat { -(size * 0.20) }
 
     var body: some View {
         ZStack {
+            // Ground glow shadow
             moodGlowEllipse
-            emojiBody
+
+            // Full drawn Pokémon-style body
+            AnimalBodyView(type: type, mood: mood, size: size, isWalking: isWalking)
+
+            // Outfit accessories (positioned relative to body proportions)
             if let outfit = outfit { outfitLayer(outfit) }
+
+            // Mood effect particles
             moodAccent
         }
         .frame(width: size, height: size)
@@ -46,96 +55,84 @@ struct CuteAnimalFigure: View {
         }
     }
 
-    // MARK: - Sub-views
-
-    private var emojiBody: some View {
-        Text(type.emoji)
-            .font(.system(size: size * 0.58))
-            .shadow(color: type.bodyColor.opacity(0.55), radius: 18)
-            .scaleEffect(bodyScale)
-            .rotationEffect(.degrees(bodyRotation))
-            .animation(.easeInOut(duration: 0.25), value: mood)
-    }
+    // MARK: - Glow
 
     private var moodGlowEllipse: some View {
         Ellipse()
             .fill(glowColor.opacity(glowOpacity))
-            .frame(width: size * 0.68, height: size * 0.16)
+            .frame(width: size * 0.68, height: size * 0.12)
             .blur(radius: 10)
-            .offset(y: size * 0.36)
+            .offset(y: size * 0.40)
     }
 
-    @ViewBuilder
-    private var moodAccent: some View {
-        switch mood {
-        case .hype:
-            ZStack {
-                ForEach(0..<5) { i in
-                    sparkleView(index: i)
-                }
-            }
-        case .angry:
-            ZStack {
-                angerMark(offsetX: -size * 0.34, offsetY: -size * 0.48)
-                angerMark(offsetX: size * 0.31, offsetY: -size * 0.40)
-                angerMark(offsetX: -size * 0.27, offsetY: -size * 0.60)
-            }
-        case .sad:
-            ZStack {
-                dropView(offsetX: -size * 0.18, delay: 0.0)
-                dropView(offsetX: size * 0.14, delay: 0.4)
-                dropView(offsetX: -size * 0.06, delay: 0.8)
-            }
-        case .sleep:
-            ZStack {
-                sleepZView(scale: 0.9, offsetX: size * 0.28, offsetY: -size * 0.30, delay: 0.0)
-                sleepZView(scale: 1.2, offsetX: size * 0.38, offsetY: -size * 0.42, delay: 0.5)
-            }
-        default:
-            EmptyView()
-        }
-    }
+    // MARK: - Outfit (adjusted for full-body proportions)
 
     @ViewBuilder
     private func outfitLayer(_ outfit: OutfitItem) -> some View {
         switch outfit.slot {
         case .hat:
             Text(outfit.emoji)
-                .font(.system(size: size * 0.27))
-                .offset(y: -size * 0.29)
+                .font(.system(size: size * 0.25))
+                .offset(y: headOffsetY - size * 0.22)
                 .rotationEffect(.degrees(-8))
         case .glasses:
             Text(outfit.emoji)
-                .font(.system(size: size * 0.19))
-                .offset(y: -size * 0.07)
+                .font(.system(size: size * 0.16))
+                .offset(y: headOffsetY - size * 0.02)
         case .collar:
             Text(outfit.emoji)
-                .font(.system(size: size * 0.19))
-                .offset(y: size * 0.21)
+                .font(.system(size: size * 0.16))
+                .offset(y: headOffsetY + size * 0.16)
         case .cape:
             Text(outfit.emoji)
-                .font(.system(size: size * 0.24))
-                .offset(x: -size * 0.05, y: size * 0.10)
+                .font(.system(size: size * 0.22))
+                .offset(x: -size * 0.04, y: headOffsetY + size * 0.10)
         }
     }
 
-    // MARK: - Particle helpers
+    // MARK: - Mood particles
+
+    @ViewBuilder
+    private var moodAccent: some View {
+        switch mood {
+        case .hype:
+            ZStack {
+                ForEach(0..<5) { i in sparkleView(index: i) }
+            }
+        case .angry:
+            ZStack {
+                angerMark(offsetX: -size * 0.34, offsetY: headOffsetY - size * 0.28)
+                angerMark(offsetX:  size * 0.31, offsetY: headOffsetY - size * 0.20)
+                angerMark(offsetX: -size * 0.27, offsetY: headOffsetY - size * 0.36)
+            }
+        case .sad:
+            ZStack {
+                dropView(offsetX: -size * 0.10, delay: 0.0)
+                dropView(offsetX:  size * 0.10, delay: 0.4)
+                dropView(offsetX: -size * 0.02, delay: 0.8)
+            }
+        case .sleep:
+            ZStack {
+                sleepZView(scale: 0.9,  offsetX:  size * 0.28, offsetY: headOffsetY - size * 0.08, delay: 0.0)
+                sleepZView(scale: 1.15, offsetX:  size * 0.38, offsetY: headOffsetY - size * 0.22, delay: 0.5)
+            }
+        default:
+            EmptyView()
+        }
+    }
 
     private func sparkleView(index: Int) -> some View {
-        let xOffsets: [CGFloat] = [-size*0.44, size*0.41, -size*0.37, size*0.34, 0]
-        let yOffsets: [CGFloat] = [-size*0.39, -size*0.37, -size*0.54, -size*0.51, -size*0.60]
+        let xOffsets: [CGFloat] = [-size*0.42, size*0.40, -size*0.36, size*0.33, 0]
+        let yOffsets: [CGFloat] = [headOffsetY - size*0.18, headOffsetY - size*0.16,
+                                   headOffsetY - size*0.34, headOffsetY - size*0.30,
+                                   headOffsetY - size*0.40]
         let emojis = ["✨", "⭐", "💫", "🌟", "✨"]
         return Text(emojis[index])
-            .font(.system(size: 15))
-            .offset(
-                x: xOffsets[index],
-                y: yOffsets[index] + (sparklePhase ? -4 : 4)
-            )
+            .font(.system(size: 14))
+            .offset(x: xOffsets[index], y: yOffsets[index] + (sparklePhase ? -4 : 4))
             .opacity(sparklePhase ? 0.9 : 0.4)
-            .animation(
-                .easeInOut(duration: 0.7 + Double(index) * 0.15).repeatForever(autoreverses: true),
-                value: sparklePhase
-            )
+            .animation(.easeInOut(duration: 0.7 + Double(index) * 0.15).repeatForever(autoreverses: true),
+                       value: sparklePhase)
     }
 
     private func angerMark(offsetX: CGFloat, offsetY: CGFloat) -> some View {
@@ -148,42 +145,22 @@ struct CuteAnimalFigure: View {
     private func dropView(offsetX: CGFloat, delay: Double) -> some View {
         Text("💧")
             .font(.system(size: 12))
-            .offset(x: offsetX, y: glowPulse ? size * 0.25 : size * 0.05)
-            .opacity(0.5)
-            .animation(
-                .easeIn(duration: 0.8 + delay).repeatForever(autoreverses: false).delay(delay),
-                value: glowPulse
-            )
+            .offset(x: offsetX, y: glowPulse ? headOffsetY + size * 0.28 : headOffsetY + size * 0.08)
+            .opacity(0.55)
+            .animation(.easeIn(duration: 0.8 + delay).repeatForever(autoreverses: false).delay(delay),
+                       value: glowPulse)
     }
 
     private func sleepZView(scale: CGFloat, offsetX: CGFloat, offsetY: CGFloat, delay: Double) -> some View {
         Text("💤")
             .font(.system(size: 13 * scale))
-            .offset(x: offsetX, y: offsetY + (sparklePhase ? -5 : 5))
-            .opacity(sparklePhase ? 0.8 : 0.3)
-            .animation(
-                .easeInOut(duration: 1.2 + delay).repeatForever(autoreverses: true).delay(delay),
-                value: sparklePhase
-            )
+            .offset(x: offsetX, y: offsetY + (sparklePhase ? -6 : 6))
+            .opacity(sparklePhase ? 0.85 : 0.30)
+            .animation(.easeInOut(duration: 1.2 + delay).repeatForever(autoreverses: true).delay(delay),
+                       value: sparklePhase)
     }
 
-    // MARK: - Computed animation values
-
-    private var bodyScale: CGFloat {
-        switch mood {
-        case .sad:   return 0.91
-        case .sleep: return 0.87
-        default:     return 1.0
-        }
-    }
-
-    private var bodyRotation: Double {
-        switch mood {
-        case .hype:  return glowPulse ? 3 : -3
-        case .angry: return glowPulse ? 2 : -2
-        default:     return 0
-        }
-    }
+    // MARK: - Mood glow
 
     private var glowColor: Color {
         switch mood {
