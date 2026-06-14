@@ -12,9 +12,10 @@ struct HomeView: View {
     @Environment(AppState.self) private var appState
 
     // Sheets
-    @State private var showScanner = false
-    @State private var showAddGoal = false
-    @State private var showShop    = false
+    @State private var showScanner        = false
+    @State private var showAddGoal        = false
+    @State private var showShop           = false
+    @State private var showDailyFoodCheck = false
 
     // Speech
     @State private var showSpeech    = true
@@ -187,12 +188,16 @@ struct HomeView: View {
             }
         }
         .ignoresSafeArea(edges: .top)
-        .sheet(isPresented: $showScanner) { ReceiptScannerView() }
-        .sheet(isPresented: $showAddGoal) { AddGoalView() }
-        .sheet(isPresented: $showShop)    { OutfitShopView() }
+        .sheet(isPresented: $showScanner)        { ReceiptScannerView() }
+        .sheet(isPresented: $showAddGoal)        { AddGoalView() }
+        .sheet(isPresented: $showShop)           { OutfitShopView() }
+        .sheet(isPresented: $showDailyFoodCheck) {
+            DailyFoodCheckView().environment(appState)
+        }
         .onAppear {
             currentHour = Calendar.current.component(.hour, from: Date())
             appState.checkHealthDecay()
+            appState.checkFoodDecay()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 startIdleSway()
                 scheduleBehavior(after: 2.0)
@@ -200,6 +205,12 @@ struct HomeView: View {
             }
             // Auto-hide initial speech
             scheduleSpeechHide(after: 5.0)
+            // Trigger daily food check if needed (slight delay for smooth UX)
+            if appState.needsDailyFoodCheck {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+                    showDailyFoodCheck = true
+                }
+            }
         }
     }
 
@@ -513,42 +524,73 @@ struct HomeView: View {
     // MARK: - Top HUD
 
     private var topHUD: some View {
-        HStack(spacing: 7) {
-            healthBar
+        HStack(spacing: 6) {
+            vitalsPill
             Spacer()
             hudChip("🪙", "\(appState.animalCoins)", .ajGold)
             hudChip("🔥", "\(appState.streak)",      .white)
-            hudChip("⭐", "L\(appState.level)",       .ajOrange)
+            evolutionChip
         }
+    }
+
+    private var evolutionChip: some View {
+        HStack(spacing: 3) {
+            Text(appState.evolutionEmoji).font(.system(size: 11))
+            Text("L\(appState.level)").font(.system(size: 11, weight: .black)).foregroundColor(.ajOrange)
+        }
+        .padding(.horizontal, 7).padding(.vertical, 5)
+        .background(Capsule().fill(Color.black.opacity(0.44)))
     }
 
     private func hudChip(_ icon: String, _ text: String, _ color: Color) -> some View {
         HStack(spacing: 3) {
-            Text(icon).font(.system(size: 12))
-            Text(text).font(.system(size: 12, weight: .black)).foregroundColor(color)
+            Text(icon).font(.system(size: 11))
+            Text(text).font(.system(size: 11, weight: .black)).foregroundColor(color)
         }
-        .padding(.horizontal, 8).padding(.vertical, 5)
+        .padding(.horizontal, 7).padding(.vertical, 5)
         .background(Capsule().fill(Color.black.opacity(0.44)))
     }
 
-    private var healthBar: some View {
-        HStack(spacing: 4) {
-            Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 12))
+    private var vitalsPill: some View {
+        HStack(spacing: 5) {
+            Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 11))
             GeometryReader { g in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 4).fill(Color.black.opacity(0.34))
-                    RoundedRectangle(cornerRadius: 4)
+                    RoundedRectangle(cornerRadius: 3).fill(Color.black.opacity(0.34))
+                    RoundedRectangle(cornerRadius: 3)
                         .fill(hpGradient)
-                        .frame(width: g.size.width * CGFloat(appState.animalHealth / 100))
+                        .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalHealth / 100))))
                         .animation(.spring(response: 0.6), value: appState.animalHealth)
                 }
             }
-            .frame(width: 78, height: 8)
-            Text("\(Int(appState.animalHealth))%")
-                .font(.system(size: 10, weight: .bold)).foregroundColor(.white.opacity(0.8))
+            .frame(width: 54, height: 7)
+
+            Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1, height: 12)
+
+            Text(appState.animalFood > 30 ? appState.selectedAnimal.foodEmoji : "🍖")
+                .font(.system(size: 11))
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 3).fill(Color.black.opacity(0.34))
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(foodGradient)
+                        .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalFood / 100))))
+                        .animation(.spring(response: 0.6), value: appState.animalFood)
+                }
+            }
+            .frame(width: 44, height: 7)
         }
-        .padding(.horizontal, 8).padding(.vertical, 5)
+        .padding(.horizontal, 8).padding(.vertical, 6)
         .background(Capsule().fill(Color.black.opacity(0.44)))
+        .onTapGesture { showDailyFoodCheck = true }
+    }
+
+    private var foodGradient: LinearGradient {
+        appState.animalFood > 60
+            ? LinearGradient(colors: [Color(red:0.96,green:0.60,blue:0.10), Color.ajGold], startPoint: .leading, endPoint: .trailing)
+            : appState.animalFood > 20
+                ? LinearGradient(colors: [Color(red:1.0,green:0.45,blue:0.10), Color(red:1.0,green:0.65,blue:0.10)], startPoint: .leading, endPoint: .trailing)
+                : LinearGradient(colors: [Color(red:0.80,green:0.10,blue:0.10), Color(red:1.0,green:0.20,blue:0.20)], startPoint: .leading, endPoint: .trailing)
     }
 
     private var hpGradient: LinearGradient {

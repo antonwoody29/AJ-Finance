@@ -278,6 +278,9 @@ struct AnimalWorldBackground: View {
                 }
                 .ignoresSafeArea()
 
+                // ── Habitat life layer (animated creatures & plants) ──
+                HabitatLifeLayer(habitat: habitat, isAlive: isAlive, W: W, H: H)
+
                 // ── Near parallax layer: ground objects (65% speed) ───
                 // These move the most — feel closest to camera
                 let nearItems: [(Int, CGFloat, CGFloat, CGFloat, Bool)] = [
@@ -316,5 +319,337 @@ struct AnimalWorldBackground: View {
                 floatPhase = true
             }
         }
+    }
+}
+
+// MARK: - Habitat Life Layer
+
+struct HabitatLifeLayer: View {
+    var habitat: AnimalHabitat
+    var isAlive: Bool
+    var W: CGFloat
+    var H: CGFloat
+
+    var body: some View {
+        ZStack {
+            if isAlive {
+                switch habitat {
+                case .ocean:     HabitatOcean(W: W, H: H)
+                case .meadow:    HabitatMeadow(W: W, H: H)
+                case .forest:    HabitatForest(W: W, H: H)
+                case .jungle:    HabitatJungle(W: W, H: H)
+                case .arctic:    HabitatArctic(W: W, H: H)
+                case .savanna:   HabitatSavanna(W: W, H: H)
+                case .bamboo:    HabitatBamboo(W: W, H: H)
+                case .cloudland: HabitatCloudland(W: W, H: H)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// MARK: Ocean — fish, bubbles, seaweed, coral
+
+private struct HabitatOcean: View {
+    let W: CGFloat; let H: CGFloat
+    private var gY: CGFloat { H * 0.75 - H/2 }
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: [Color.cyan.opacity(0.07), Color.blue.opacity(0.18)],
+                           startPoint: .init(x: 0.5, y: 0.35), endPoint: .bottom)
+            // Seaweed swaying at ground
+            HabSway(emoji:"🌿", x:W*0.09-W/2, y:gY, sz:20, ang:14, dur:2.1, dly:0.0)
+            HabSway(emoji:"🌿", x:W*0.26-W/2, y:gY, sz:22, ang:10, dur:2.6, dly:0.5)
+            HabSway(emoji:"🌿", x:W*0.50-W/2, y:gY, sz:18, ang:16, dur:1.9, dly:1.0)
+            HabSway(emoji:"🌿", x:W*0.72-W/2, y:gY, sz:20, ang:12, dur:2.4, dly:0.3)
+            HabSway(emoji:"🌿", x:W*0.88-W/2, y:gY, sz:18, ang:14, dur:2.2, dly:0.8)
+            // Coral & shell
+            Text("🪸").font(.system(size: 22)).offset(x:W*0.18-W/2, y:gY+H*0.03).opacity(0.88)
+            Text("🪸").font(.system(size: 16)).offset(x:W*0.66-W/2, y:gY+H*0.02).opacity(0.82)
+            Text("🐚").font(.system(size: 14)).offset(x:W*0.44-W/2, y:gY+H*0.04).opacity(0.75)
+            // Fish swimming across
+            HabMover(emoji:"🐟", y:H*0.38-H/2, fromLeft:true,  sz:20, dur:7.0, dly:0.0, W:W)
+            HabMover(emoji:"🐠", y:H*0.50-H/2, fromLeft:false, sz:16, dur:9.0, dly:1.8, W:W)
+            HabMover(emoji:"🐡", y:H*0.32-H/2, fromLeft:true,  sz:14, dur:11.5, dly:3.5, W:W)
+            HabMover(emoji:"🐟", y:H*0.58-H/2, fromLeft:false, sz:18, dur:7.8, dly:5.5, W:W)
+            HabMover(emoji:"🦑", y:H*0.44-H/2, fromLeft:true,  sz:16, dur:13.0, dly:2.5, W:W)
+            // Bubbles rising
+            HabBubble(x:W*0.13-W/2, startY:gY+H*0.03, endY:H*0.17-H/2, sz:5, dur:4.2, dly:0.0)
+            HabBubble(x:W*0.29-W/2, startY:gY+H*0.02, endY:H*0.14-H/2, sz:4, dur:5.5, dly:1.3)
+            HabBubble(x:W*0.45-W/2, startY:gY+H*0.04, endY:H*0.20-H/2, sz:6, dur:3.8, dly:2.7)
+            HabBubble(x:W*0.61-W/2, startY:gY+H*0.01, endY:H*0.18-H/2, sz:4, dur:6.0, dly:0.9)
+            HabBubble(x:W*0.77-W/2, startY:gY+H*0.03, endY:H*0.15-H/2, sz:5, dur:4.8, dly:3.5)
+            HabBubble(x:W*0.91-W/2, startY:gY+H*0.02, endY:H*0.19-H/2, sz:7, dur:5.3, dly:1.8)
+        }
+    }
+}
+
+// MARK: Meadow — flowers, butterflies, grass
+
+private struct HabitatMeadow: View {
+    let W: CGFloat; let H: CGFloat
+    private let fRow1: [(CGFloat,String)] = [(0.05,"🌸"),(0.14,"🌼"),(0.24,"🌻"),(0.34,"🌸"),(0.45,"🌼"),
+                                              (0.56,"🌺"),(0.66,"🌸"),(0.76,"🌼"),(0.86,"🌻"),(0.94,"🌸")]
+    private let fRow2: [(CGFloat,String)] = [(0.10,"🌼"),(0.32,"🌸"),(0.54,"🌺"),(0.73,"🌼"),(0.90,"🌸")]
+    var body: some View {
+        ZStack {
+            // Ground flower rows
+            ForEach(0..<fRow1.count, id: \.self) { i in
+                Text(fRow1[i].1).font(.system(size: i % 3 == 0 ? 20 : 15))
+                    .offset(x: W*fRow1[i].0-W/2, y: H*0.74-H/2).opacity(0.92)
+            }
+            ForEach(0..<fRow2.count, id: \.self) { i in
+                Text(fRow2[i].1).font(.system(size: 13))
+                    .offset(x: W*fRow2[i].0-W/2, y: H*0.69-H/2).opacity(0.60)
+            }
+            // Grass tufts
+            Text("🌿").font(.system(size: 22)).offset(x:W*0.22-W/2, y:H*0.76-H/2).opacity(0.70)
+            Text("🌾").font(.system(size: 20)).offset(x:W*0.62-W/2, y:H*0.75-H/2).opacity(0.65)
+            Text("🌿").font(.system(size: 18)).offset(x:W*0.80-W/2, y:H*0.74-H/2).opacity(0.60)
+            // Butterflies
+            HabMover(emoji:"🦋", y:H*0.45-H/2, fromLeft:true,  sz:18, dur:9.5, dly:0.0, W:W)
+            HabMover(emoji:"🦋", y:H*0.38-H/2, fromLeft:false, sz:14, dur:13.0, dly:4.5, W:W)
+        }
+    }
+}
+
+// MARK: Forest — mushrooms, leaves, bird
+
+private struct HabitatForest: View {
+    let W: CGFloat; let H: CGFloat
+    var body: some View {
+        ZStack {
+            // Ground mushrooms & ferns
+            Text("🍄").font(.system(size: 22)).offset(x:W*0.17-W/2, y:H*0.74-H/2).opacity(0.88)
+            Text("🍄").font(.system(size: 16)).offset(x:W*0.23-W/2, y:H*0.76-H/2).opacity(0.75)
+            Text("🍄").font(.system(size: 20)).offset(x:W*0.75-W/2, y:H*0.74-H/2).opacity(0.84)
+            Text("🌿").font(.system(size: 22)).offset(x:W*0.43-W/2, y:H*0.73-H/2).opacity(0.72)
+            Text("🌿").font(.system(size: 18)).offset(x:W*0.87-W/2, y:H*0.75-H/2).opacity(0.65)
+            Text("🍂").font(.system(size: 16)).offset(x:W*0.58-W/2, y:H*0.76-H/2).opacity(0.70)
+            // Falling leaves
+            HabFaller(emoji:"🍂", sx:W*0.22-W/2, sy:H*0.05-H/2, ex:W*0.30-W/2, ey:H*0.78-H/2, dur:5.5, dly:0.0)
+            HabFaller(emoji:"🍁", sx:W*0.56-W/2, sy:H*0.08-H/2, ex:W*0.46-W/2, ey:H*0.80-H/2, dur:7.0, dly:1.5)
+            HabFaller(emoji:"🍂", sx:W*0.82-W/2, sy:H*0.04-H/2, ex:W*0.72-W/2, ey:H*0.77-H/2, dur:6.2, dly:3.0)
+            HabFaller(emoji:"🍃", sx:W*0.40-W/2, sy:H*0.06-H/2, ex:W*0.32-W/2, ey:H*0.79-H/2, dur:8.0, dly:4.5)
+            // Bird flying across sky
+            HabMover(emoji:"🐦", y:H*0.18-H/2, fromLeft:true, sz:16, dur:9.0, dly:2.0, W:W)
+        }
+    }
+}
+
+// MARK: Jungle — vines, tropical flowers, parrot
+
+private struct HabitatJungle: View {
+    let W: CGFloat; let H: CGFloat
+    var body: some View {
+        ZStack {
+            // Hanging vines from top
+            Text("🌿").font(.system(size: 30)).offset(x:W*0.08-W/2, y:H*0.16-H/2).opacity(0.82)
+            Text("🌿").font(.system(size: 26)).offset(x:W*0.90-W/2, y:H*0.20-H/2).opacity(0.78)
+            Text("🍃").font(.system(size: 22)).offset(x:W*0.04-W/2, y:H*0.12-H/2).opacity(0.72)
+            Text("🍃").font(.system(size: 20)).offset(x:W*0.94-W/2, y:H*0.14-H/2).opacity(0.68)
+            Text("🌿").font(.system(size: 22)).offset(x:W*0.50-W/2, y:H*0.14-H/2).opacity(0.62)
+            // Tropical ground flowers
+            Text("🌺").font(.system(size: 24)).offset(x:W*0.13-W/2, y:H*0.73-H/2).opacity(0.92)
+            Text("🌺").font(.system(size: 20)).offset(x:W*0.72-W/2, y:H*0.74-H/2).opacity(0.88)
+            Text("🌸").font(.system(size: 18)).offset(x:W*0.44-W/2, y:H*0.72-H/2).opacity(0.82)
+            Text("🌿").font(.system(size: 22)).offset(x:W*0.30-W/2, y:H*0.74-H/2).opacity(0.74)
+            Text("🌿").font(.system(size: 20)).offset(x:W*0.87-W/2, y:H*0.73-H/2).opacity(0.68)
+            // Parrot & butterfly
+            HabMover(emoji:"🦜", y:H*0.28-H/2, fromLeft:false, sz:22, dur:9.5, dly:1.0, W:W)
+            HabMover(emoji:"🦋", y:H*0.48-H/2, fromLeft:true,  sz:16, dur:11.0, dly:4.5, W:W)
+        }
+    }
+}
+
+// MARK: Arctic — snowfall, ice crystals, snowman
+
+private struct HabitatArctic: View {
+    let W: CGFloat; let H: CGFloat
+    private let flakes: [(CGFloat,CGFloat,Double,Double,CGFloat)] = [
+        (0.08,0.03,4.5,0.0,6),(0.22,0.01,5.5,0.8,4),(0.37,0.06,4.0,1.5,5),
+        (0.53,0.02,6.0,0.4,7),(0.68,0.05,4.8,2.0,4),(0.82,0.01,5.2,1.2,6),
+        (0.14,0.08,5.8,3.0,5),(0.46,0.07,4.2,2.5,4),(0.75,0.03,6.5,0.7,6),
+        (0.92,0.09,4.0,3.5,5),(0.30,0.04,5.0,1.8,7),(0.60,0.02,4.6,4.2,4),
+    ]
+    var body: some View {
+        ZStack {
+            ForEach(0..<flakes.count, id: \.self) { i in
+                let (rx,ry,dur,dly,sz) = flakes[i]
+                HabSnow(x:W*rx-W/2, startY:H*ry-H/2, endY:H*0.80-H/2, sz:sz, dur:dur, dly:dly)
+            }
+            // Ice crystals at ground
+            Text("❄️").font(.system(size: 22)).offset(x:W*0.14-W/2, y:H*0.74-H/2).opacity(0.88)
+            Text("❄️").font(.system(size: 18)).offset(x:W*0.40-W/2, y:H*0.76-H/2).opacity(0.76)
+            Text("❄️").font(.system(size: 24)).offset(x:W*0.68-W/2, y:H*0.73-H/2).opacity(0.90)
+            Text("❄️").font(.system(size: 16)).offset(x:W*0.85-W/2, y:H*0.75-H/2).opacity(0.72)
+            Text("⛄").font(.system(size: 28)).offset(x:W*0.83-W/2, y:H*0.70-H/2).opacity(0.82)
+        }
+    }
+}
+
+// MARK: Savanna — tall grass, acacia, eagle
+
+private struct HabitatSavanna: View {
+    let W: CGFloat; let H: CGFloat
+    private let grassXs: [CGFloat] = [0.06,0.18,0.30,0.48,0.61,0.76,0.88]
+    private let grass2Xs: [CGFloat] = [0.12,0.36,0.54,0.70,0.84]
+    var body: some View {
+        ZStack {
+            ForEach(0..<grassXs.count, id: \.self) { i in
+                HabSway(emoji:"🌾", x:W*grassXs[i]-W/2, y:H*0.70-H/2, sz:26, ang:10, dur:1.8+Double(i)*0.14, dly:Double(i)*0.22)
+            }
+            ForEach(0..<grass2Xs.count, id: \.self) { i in
+                HabSway(emoji:"🌾", x:W*grass2Xs[i]-W/2, y:H*0.73-H/2, sz:20, ang:14, dur:2.0+Double(i)*0.18, dly:Double(i)*0.30)
+            }
+            Text("🌴").font(.system(size: 38)).offset(x:W*0.88-W/2, y:H*0.56-H/2).opacity(0.74)
+            Text("🌵").font(.system(size: 28)).offset(x:W*0.06-W/2, y:H*0.63-H/2).opacity(0.70)
+            HabMover(emoji:"🦅", y:H*0.16-H/2, fromLeft:true, sz:22, dur:11.0, dly:1.5, W:W)
+        }
+    }
+}
+
+// MARK: Bamboo — bamboo stalks, petals
+
+private struct HabitatBamboo: View {
+    let W: CGFloat; let H: CGFloat
+    private let stalkXs: [CGFloat] = [0.07,0.18,0.37,0.55,0.73,0.90]
+    var body: some View {
+        ZStack {
+            // Subtle mist
+            Color.white.opacity(0.04).blur(radius: 24)
+            ForEach(0..<stalkXs.count, id: \.self) { i in
+                HabSway(emoji:"🎋", x:W*stalkXs[i]-W/2, y:H*0.52-H/2, sz:42, ang:5, dur:2.5+Double(i)*0.14, dly:Double(i)*0.28)
+            }
+            // Falling petals
+            HabFaller(emoji:"🌸", sx:W*0.30-W/2, sy:H*0.04-H/2, ex:W*0.22-W/2, ey:H*0.80-H/2, dur:5.0, dly:0.0)
+            HabFaller(emoji:"🌸", sx:W*0.65-W/2, sy:H*0.07-H/2, ex:W*0.56-W/2, ey:H*0.78-H/2, dur:6.5, dly:2.0)
+            HabFaller(emoji:"🍃", sx:W*0.80-W/2, sy:H*0.05-H/2, ex:W*0.70-W/2, ey:H*0.76-H/2, dur:5.8, dly:3.5)
+        }
+    }
+}
+
+// MARK: Cloudland — clouds, rainbow, stars
+
+private struct HabitatCloudland: View {
+    let W: CGFloat; let H: CGFloat
+    private let starXs: [CGFloat] = [0.10,0.32,0.58,0.78,0.92]
+    var body: some View {
+        ZStack {
+            // Floating clouds in sky
+            HabFloat(emoji:"☁️", x:W*0.20-W/2, y:H*0.14-H/2, dx:18, dy:6, sz:30, dur:5.0, dly:0.0)
+            HabFloat(emoji:"☁️", x:W*0.75-W/2, y:H*0.22-H/2, dx:14, dy:8, sz:24, dur:6.5, dly:1.5)
+            HabFloat(emoji:"☁️", x:W*0.48-W/2, y:H*0.09-H/2, dx:16, dy:5, sz:26, dur:5.8, dly:2.5)
+            // Rainbow
+            Text("🌈").font(.system(size: 46)).offset(x:W*0.50-W/2, y:H*0.34-H/2).opacity(0.62)
+            // Twinkling stars
+            ForEach(0..<starXs.count, id: \.self) { i in
+                HabTwinkle(x:W*starXs[i]-W/2, y:H*0.10-H/2, sz:16, dur:1.4+Double(i)*0.28, dly:Double(i)*0.36)
+            }
+            // Cloud ground floor
+            Text("☁️").font(.system(size: 42)).offset(x:W*0.14-W/2, y:H*0.72-H/2).opacity(0.82)
+            Text("☁️").font(.system(size: 36)).offset(x:W*0.64-W/2, y:H*0.74-H/2).opacity(0.76)
+            Text("☁️").font(.system(size: 30)).offset(x:W*0.40-W/2, y:H*0.76-H/2).opacity(0.68)
+        }
+    }
+}
+
+// MARK: - Habitat Animation Helpers (file-private)
+
+private struct HabMover: View {
+    let emoji: String; let y: CGFloat; let fromLeft: Bool
+    let sz: CGFloat; let dur: Double; let dly: Double; let W: CGFloat
+    @State private var moved = false
+    var body: some View {
+        Text(emoji).font(.system(size: sz))
+            .scaleEffect(x: fromLeft ? 1 : -1, y: 1)
+            .offset(x: moved ? (fromLeft ? W*0.76 : -W*0.76) : (fromLeft ? -W*0.76 : W*0.76), y: y)
+            .animation(.linear(duration: dur).repeatForever(autoreverses: false).delay(dly), value: moved)
+            .onAppear { moved = true }
+    }
+}
+
+private struct HabBubble: View {
+    let x: CGFloat; let startY: CGFloat; let endY: CGFloat
+    let sz: CGFloat; let dur: Double; let dly: Double
+    @State private var risen = false
+    var body: some View {
+        Circle()
+            .fill(Color.white.opacity(risen ? 0.04 : 0.46))
+            .overlay(Circle().stroke(Color.white.opacity(0.50), lineWidth: 0.8))
+            .frame(width: sz, height: sz)
+            .offset(x: x, y: risen ? endY : startY)
+            .animation(.easeIn(duration: dur).repeatForever(autoreverses: false).delay(dly), value: risen)
+            .onAppear { risen = true }
+    }
+}
+
+private struct HabSway: View {
+    let emoji: String; let x: CGFloat; let y: CGFloat
+    let sz: CGFloat; let ang: Double; let dur: Double; let dly: Double
+    @State private var swaying = false
+    var body: some View {
+        Text(emoji).font(.system(size: sz))
+            .rotationEffect(.degrees(swaying ? ang : -ang * 0.6), anchor: .bottom)
+            .offset(x: x, y: y)
+            .opacity(0.80)
+            .animation(.easeInOut(duration: dur).repeatForever(autoreverses: true).delay(dly), value: swaying)
+            .onAppear { swaying = true }
+    }
+}
+
+private struct HabFaller: View {
+    let emoji: String
+    let sx: CGFloat; let sy: CGFloat; let ex: CGFloat; let ey: CGFloat
+    let dur: Double; let dly: Double
+    @State private var fallen = false
+    var body: some View {
+        Text(emoji).font(.system(size: 14))
+            .rotationEffect(.degrees(fallen ? 360 : 0))
+            .offset(x: fallen ? ex : sx, y: fallen ? ey : sy)
+            .opacity(fallen ? 0.1 : 0.78)
+            .animation(.easeIn(duration: dur).repeatForever(autoreverses: false).delay(dly), value: fallen)
+            .onAppear { fallen = true }
+    }
+}
+
+private struct HabSnow: View {
+    let x: CGFloat; let startY: CGFloat; let endY: CGFloat
+    let sz: CGFloat; let dur: Double; let dly: Double
+    @State private var fallen = false
+    var body: some View {
+        Circle().fill(Color.white.opacity(0.82))
+            .frame(width: sz, height: sz)
+            .offset(x: x + (fallen ? 10 : -10), y: fallen ? endY : startY)
+            .opacity(fallen ? 0.05 : 0.82)
+            .animation(.linear(duration: dur).repeatForever(autoreverses: false).delay(dly), value: fallen)
+            .onAppear { fallen = true }
+    }
+}
+
+private struct HabFloat: View {
+    let emoji: String; let x: CGFloat; let y: CGFloat
+    let dx: CGFloat; let dy: CGFloat; let sz: CGFloat; let dur: Double; let dly: Double
+    @State private var floating = false
+    var body: some View {
+        Text(emoji).font(.system(size: sz))
+            .offset(x: x + (floating ? dx : -dx), y: y + (floating ? -dy : dy))
+            .opacity(0.84)
+            .animation(.easeInOut(duration: dur).repeatForever(autoreverses: true).delay(dly), value: floating)
+            .onAppear { floating = true }
+    }
+}
+
+private struct HabTwinkle: View {
+    let x: CGFloat; let y: CGFloat; let sz: CGFloat; let dur: Double; let dly: Double
+    @State private var twinkling = false
+    var body: some View {
+        Text("⭐").font(.system(size: sz))
+            .scaleEffect(twinkling ? 1.35 : 0.65)
+            .opacity(twinkling ? 0.92 : 0.25)
+            .offset(x: x, y: y)
+            .animation(.easeInOut(duration: dur).repeatForever(autoreverses: true).delay(dly), value: twinkling)
+            .onAppear { twinkling = true }
     }
 }

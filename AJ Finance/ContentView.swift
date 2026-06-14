@@ -22,7 +22,10 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if !appState.hasCompletedOnboarding {
+            if !appState.hasSeenAgeWarning {
+                AgeVerificationView()
+                    .environment(appState)
+            } else if !appState.hasCompletedOnboarding {
                 OnboardingView()
                     .environment(appState)
             } else {
@@ -51,6 +54,9 @@ struct ContentView: View {
                     NavigationStack { SpendView() }
                         .transition(.opacity)
                 case 3:
+                    NavigationStack { MarketsView() }
+                        .transition(.opacity)
+                case 4:
                     NavigationStack { GamesView() }
                         .transition(.opacity)
                 default:
@@ -106,11 +112,12 @@ private struct AJTabBar: View {
     }
 
     private let items: [TabItem] = [
-        .init(label: "Home",     icon: "house",           activeIcon: "house.fill"),
-        .init(label: "Goals",    icon: "target",          activeIcon: "target"),
-        .init(label: "Spend",    icon: "creditcard",      activeIcon: "creditcard.fill"),
-        .init(label: "Games",    icon: "gamecontroller",  activeIcon: "gamecontroller.fill"),
-        .init(label: "Settings", icon: "gearshape",       activeIcon: "gearshape.fill")
+        .init(label: "Home",     icon: "house",                     activeIcon: "house.fill"),
+        .init(label: "Goals",    icon: "target",                    activeIcon: "target"),
+        .init(label: "Spend",    icon: "creditcard",                activeIcon: "creditcard.fill"),
+        .init(label: "Markets",  icon: "chart.line.uptrend.xyaxis", activeIcon: "chart.line.uptrend.xyaxis"),
+        .init(label: "Games",    icon: "gamecontroller",            activeIcon: "gamecontroller.fill"),
+        .init(label: "Settings", icon: "gearshape",                 activeIcon: "gearshape.fill")
     ]
 
     var body: some View {

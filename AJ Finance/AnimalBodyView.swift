@@ -17,12 +17,12 @@ struct CharConfig {
     var eyeKind:    EyeKind     = .standard
     var bodyKind:   BodyKind    = .standard
 
-    enum EarKind   { case round, pointy, floppy, giant, tiny, none }
+    enum EarKind   { case round, pointy, floppy, giant, huge, tiny, none }
     enum TailKind  { case round, long, fluffy, ringed, flat, tuft, curled, fan, none }
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe }
 
     // MARK: - Per-animal configs
 
@@ -211,6 +211,33 @@ struct CharConfig {
                          iris: Color(red:0.58,green:0.14,blue:0.14),
                          nose: Color(red:0.22,green:0.54,blue:0.22),
                          ear: .none, tail: .curled, special: .crest, eyeKind: .bulgyTop)
+        case .turtle:
+            return .init(body: Color(red:0.28,green:0.62,blue:0.22),
+                         belly: Color(red:0.44,green:0.80,blue:0.36),
+                         accent: Color(red:0.16,green:0.44,blue:0.14),
+                         iris: Color(red:0.22,green:0.54,blue:0.20),
+                         nose: Color(red:0.22,green:0.48,blue:0.18),
+                         ear: .none, tail: .flat, bodyKind: .turtle)
+        case .hippo:
+            return .init(body: Color(red:0.62,green:0.54,blue:0.74),
+                         belly: Color(red:0.84,green:0.76,blue:0.92),
+                         accent: Color(red:0.50,green:0.42,blue:0.62),
+                         iris: Color(red:0.30,green:0.18,blue:0.52),
+                         nose: Color(red:0.72,green:0.62,blue:0.84),
+                         ear: .none, tail: .flat, bodyKind: .hippo)
+        case .giraffe:
+            return .init(body: Color(red:0.96,green:0.80,blue:0.36),
+                         belly: Color(red:1.0,green:0.94,blue:0.68),
+                         accent: Color(red:0.56,green:0.34,blue:0.10),
+                         iris: Color(red:0.42,green:0.28,blue:0.08),
+                         ear: .round, tail: .tuft, bodyKind: .giraffe)
+        case .mouse:
+            return .init(body: Color(red:0.70,green:0.68,blue:0.72),
+                         belly: Color(red:0.92,green:0.88,blue:0.92),
+                         accent: Color(red:0.90,green:0.74,blue:0.78),
+                         iris: Color(red:0.22,green:0.18,blue:0.28),
+                         nose: Color(red:0.92,green:0.44,blue:0.58),
+                         ear: .huge, tail: .long, cheekBlush: true)
         }
     }
 }
@@ -285,6 +312,9 @@ struct AnimalBodyView: View {
         case .frog:     drawFrogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .flamingo: drawFlamingoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .crab:     drawCrabBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .turtle:   drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .hippo:    drawHippoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .giraffe:  drawGiraffeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .standard: drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         }
     }
@@ -636,15 +666,17 @@ struct AnimalBodyView: View {
 
         case .floppy:
             for side: CGFloat in [-1, 1] {
-                let ex = hx + side * u * 0.210
-                let ey = hy - u * 0.06
+                // Ear attaches at top-side of head and droops downward
+                let ex = hx + side * u * 0.205
+                let ey = hy - u * 0.22        // near top of head (head radius = u*0.27)
                 let t = CGAffineTransform(translationX: ex, y: ey)
-                    .rotated(by: side * 0.52)
+                    .rotated(by: side * 0.16) // gentle outward lean only
                     .translatedBy(x: -ex, y: -ey)
-                var ear = Path(ellipseIn: CGRect(x: ex - u*0.082, y: ey - u*0.018, width: u*0.164, height: u*0.26))
+                // Ear starts at ey and hangs DOWN from the attachment point
+                var ear = Path(ellipseIn: CGRect(x: ex - u*0.082, y: ey, width: u*0.164, height: u*0.265))
                 ctx.fill(ear.applying(t), with: .color(cfg.body))
                 ctx.stroke(ear.applying(t), with: .color(cfg.outline), lineWidth: u*0.028)
-                var inner = Path(ellipseIn: CGRect(x: ex - u*0.052, y: ey + u*0.010, width: u*0.104, height: u*0.18))
+                var inner = Path(ellipseIn: CGRect(x: ex - u*0.052, y: ey + u*0.018, width: u*0.104, height: u*0.185))
                 ctx.fill(inner.applying(t), with: .color(cfg.accent.opacity(0.75)))
             }
 
@@ -668,6 +700,19 @@ struct AnimalBodyView: View {
                 ctx.stroke(outer, with: .color(cfg.outline), lineWidth: u*0.024)
                 var inner = Path(ellipseIn: CGRect(x: ex - u*0.032, y: ey - u*0.032, width: u*0.064, height: u*0.064))
                 ctx.fill(inner, with: .color(cfg.accent.opacity(0.72)))
+            }
+
+        case .huge:
+            // Mickey Mouse style — big round circles sitting on top of head
+            for side: CGFloat in [-1, 1] {
+                let ex = hx + side * u * 0.195
+                let ey = hy - u * 0.335
+                let er = u * 0.152
+                var outer = Path(ellipseIn: CGRect(x: ex - er, y: ey - er, width: er*2, height: er*2))
+                ctx.fill(outer, with: .color(cfg.body))
+                ctx.stroke(outer, with: .color(cfg.outline), lineWidth: u*0.028)
+                var inner = Path(ellipseIn: CGRect(x: ex - er*0.64, y: ey - er*0.64, width: er*1.28, height: er*1.28))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.68)))
             }
 
         case .none: break
@@ -1008,5 +1053,220 @@ struct AnimalBodyView: View {
 
         case .none: break
         }
+    }
+
+    // MARK: - Turtle body (shell + flippers + short neck)
+
+    func drawTurtleBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                        cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let bodyY = sz.height * 0.66 + bob
+        let headY = sz.height * 0.34 + bob
+        let feetY = sz.height * 0.90
+
+        // 4 short flipper legs (behind shell)
+        for side: CGFloat in [-1, 1] {
+            var ff = Path(ellipseIn: CGRect(x: cx + side*u*0.205 - u*0.075, y: bodyY - u*0.13, width: u*0.155, height: u*0.090))
+            ctx.fill(ff, with: .color(cfg.body))
+            ctx.stroke(ff, with: .color(cfg.outline), lineWidth: u*0.022)
+            var bf = Path(ellipseIn: CGRect(x: cx + side*u*0.185 - u*0.065, y: bodyY + u*0.04, width: u*0.135, height: u*0.078))
+            ctx.fill(bf, with: .color(cfg.body))
+            ctx.stroke(bf, with: .color(cfg.outline), lineWidth: u*0.020)
+        }
+
+        // Shell rim (wider base oval, darker)
+        var rim = Path(ellipseIn: CGRect(x: cx - u*0.245, y: bodyY - u*0.155, width: u*0.49, height: u*0.28))
+        ctx.fill(rim, with: .color(cfg.accent))
+        ctx.stroke(rim, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Shell dome (carapace — elevated lighter oval)
+        var shell = Path(ellipseIn: CGRect(x: cx - u*0.215, y: bodyY - u*0.30, width: u*0.43, height: u*0.27))
+        ctx.fill(shell, with: .color(cfg.body))
+        ctx.stroke(shell, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Shell scute pattern
+        var cScute = Path(ellipseIn: CGRect(x: cx - u*0.082, y: bodyY - u*0.255, width: u*0.164, height: u*0.142))
+        ctx.stroke(cScute, with: .color(cfg.accent.opacity(0.72)), lineWidth: u*0.018)
+        for side: CGFloat in [-1, 1] {
+            var s1 = Path(ellipseIn: CGRect(x: cx + side*u*0.056, y: bodyY - u*0.235, width: u*0.110, height: u*0.100))
+            ctx.stroke(s1, with: .color(cfg.accent.opacity(0.52)), lineWidth: u*0.014)
+            var s2 = Path(ellipseIn: CGRect(x: cx + side*u*0.110, y: bodyY - u*0.200, width: u*0.088, height: u*0.076))
+            ctx.stroke(s2, with: .color(cfg.accent.opacity(0.38)), lineWidth: u*0.012)
+        }
+
+        // Short neck
+        var neck = Path()
+        neck.move(to:    CGPoint(x: cx - u*0.048, y: bodyY - u*0.24))
+        neck.addLine(to: CGPoint(x: cx + u*0.048, y: bodyY - u*0.24))
+        neck.addLine(to: CGPoint(x: cx + u*0.040, y: headY + u*0.17))
+        neck.addLine(to: CGPoint(x: cx - u*0.040, y: headY + u*0.17))
+        neck.closeSubpath()
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Small round head
+        let hr = u * 0.205
+        var head = Path(ellipseIn: CGRect(x: cx - hr, y: headY - hr*0.96, width: hr*2, height: hr*1.92))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+    }
+
+    // MARK: - Hippo body (wide body, raised-eye head, massive muzzle)
+
+    func drawHippoBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                       cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let bodyY = sz.height * 0.64 + bob
+        let headY = sz.height * 0.30 + bob
+        let feetY = sz.height * 0.90
+
+        // Tail
+        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: 0)
+
+        // Back leg
+        drawLeg(ctx, x: cx + u*0.15, y: feetY, u: u, cfg: cfg, angle: -legSwing*0.55, back: true)
+
+        // Very wide round body
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.305, y: bodyY - u*0.190, width: u*0.610, height: u*0.340))
+        ctx.fill(body, with: .color(cfg.body))
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.205, y: bodyY - u*0.120, width: u*0.410, height: u*0.230))
+        ctx.fill(belly, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Front leg
+        drawLeg(ctx, x: cx - u*0.15, y: feetY, u: u, cfg: cfg, angle: legSwing*0.55, back: false)
+
+        // Arms
+        drawArm(ctx, x: cx - u*0.26, y: bodyY - u*0.04, u: u, cfg: cfg, angle: legSwing*0.28)
+        drawArm(ctx, x: cx + u*0.26, y: bodyY - u*0.04, u: u, cfg: cfg, angle: -legSwing*0.28)
+
+        // Very wide hippo head
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.285, y: headY - u*0.205, width: u*0.570, height: u*0.400))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Tiny ears directly on top of head
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.230
+            let ey = headY - u * 0.195
+            var eo = Path(ellipseIn: CGRect(x: ex - u*0.058, y: ey - u*0.058, width: u*0.116, height: u*0.116))
+            ctx.fill(eo, with: .color(cfg.body))
+            ctx.stroke(eo, with: .color(cfg.outline), lineWidth: u*0.022)
+            var ei = Path(ellipseIn: CGRect(x: ex - u*0.034, y: ey - u*0.034, width: u*0.068, height: u*0.068))
+            ctx.fill(ei, with: .color(cfg.accent.opacity(0.62)))
+        }
+
+        // Wide flat muzzle at bottom of head
+        var muzzle = Path(ellipseIn: CGRect(x: cx - u*0.225, y: headY + u*0.020, width: u*0.450, height: u*0.215))
+        ctx.fill(muzzle, with: .color(cfg.belly))
+        ctx.stroke(muzzle, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Wide nostrils
+        for side: CGFloat in [-1, 1] {
+            var n = Path(ellipseIn: CGRect(x: cx + side*u*0.076 - u*0.034, y: headY + u*0.100, width: u*0.068, height: u*0.042))
+            ctx.fill(n, with: .color(cfg.nose.opacity(0.82)))
+        }
+
+        // Raised eyes (small bumps high on head)
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.125
+            let ey = headY - u * 0.058
+            var bump = Path(ellipseIn: CGRect(x: ex - u*0.058, y: ey - u*0.054, width: u*0.116, height: u*0.108))
+            ctx.fill(bump, with: .color(cfg.body))
+            ctx.stroke(bump, with: .color(cfg.outline), lineWidth: u*0.020)
+            var white = Path(ellipseIn: CGRect(x: ex - u*0.040, y: ey - u*0.038, width: u*0.080, height: u*0.076))
+            ctx.fill(white, with: .color(.white))
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.026, y: ey - u*0.026, width: u*0.052, height: u*0.052))
+            ctx.fill(iris, with: .color(cfg.iris))
+            var pupil = Path(ellipseIn: CGRect(x: ex - u*0.016, y: ey - u*0.016, width: u*0.032, height: u*0.032))
+            ctx.fill(pupil, with: .color(.black))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.016, width: u*0.014, height: u*0.014))
+            ctx.fill(hl, with: .color(.white))
+        }
+    }
+
+    // MARK: - Giraffe body (very long neck, spotted, ossicones)
+
+    func drawGiraffeBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                         cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let headY = sz.height * 0.14 + bob
+        let bodyY = sz.height * 0.66 + bob
+        let feetY = sz.height * 0.92
+
+        // Tail
+        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing*0.20)
+
+        // Back leg
+        drawLeg(ctx, x: cx + u*0.10, y: feetY, u: u, cfg: cfg, angle: -legSwing*0.55, back: true)
+
+        // Oval body (slightly smaller than standard)
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.215, y: bodyY - u*0.155, width: u*0.43, height: u*0.27))
+        ctx.fill(body, with: .color(cfg.body))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Front leg
+        drawLeg(ctx, x: cx - u*0.10, y: feetY, u: u, cfg: cfg, angle: legSwing*0.55, back: false)
+
+        // Body spots
+        let bSpots: [(CGFloat, CGFloat, CGFloat)] = [
+            (-0.095, -0.050, 0.054), (0.075, 0.010, 0.046),
+            (-0.022, 0.065, 0.040), (0.115, -0.038, 0.034)
+        ]
+        for (dx, dy, r) in bSpots {
+            var s = Path(ellipseIn: CGRect(x: cx + u*dx - u*r, y: bodyY + u*dy - u*r, width: u*r*2, height: u*r*2))
+            ctx.fill(s, with: .color(cfg.accent.opacity(0.65)))
+        }
+
+        // Long neck (straight with slight taper)
+        let nkW: CGFloat = u * 0.095
+        var neck = Path()
+        neck.move(to:    CGPoint(x: cx - nkW,      y: bodyY - u*0.12))
+        neck.addCurve(to: CGPoint(x: cx - nkW*0.5, y: headY + u*0.17),
+                      control1: CGPoint(x: cx - nkW*1.0, y: bodyY - u*0.35),
+                      control2: CGPoint(x: cx - nkW*0.7, y: headY + u*0.32))
+        neck.addLine(to:  CGPoint(x: cx + nkW*0.5, y: headY + u*0.17))
+        neck.addCurve(to: CGPoint(x: cx + nkW,      y: bodyY - u*0.12),
+                      control1: CGPoint(x: cx + nkW*0.7, y: headY + u*0.32),
+                      control2: CGPoint(x: cx + nkW*1.0, y: bodyY - u*0.35))
+        neck.closeSubpath()
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Neck spots
+        let nSpots: [(CGFloat, CGFloat, CGFloat)] = [
+            (0.010, 0.340, 0.048), (-0.032, 0.465, 0.040), (0.025, 0.415, 0.032)
+        ]
+        for (dx, ry, r) in nSpots {
+            var s = Path(ellipseIn: CGRect(x: cx + u*dx - u*r, y: sz.height*ry - u*r, width: u*r*2, height: u*r*2))
+            ctx.fill(s, with: .color(cfg.accent.opacity(0.68)))
+        }
+
+        // Small oval head
+        let hr = u * 0.195
+        var head = Path(ellipseIn: CGRect(x: cx - hr*1.1, y: headY - hr*0.90, width: hr*2.2, height: hr*1.80))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Ossicones (2 stubby horn protrusions on top of head)
+        for side: CGFloat in [-1, 1] {
+            let ox = cx + side * u * 0.082
+            var oss = Path()
+            oss.move(to:    CGPoint(x: ox - u*0.014, y: headY - u*0.155))
+            oss.addLine(to: CGPoint(x: ox + u*0.014, y: headY - u*0.155))
+            oss.addLine(to: CGPoint(x: ox + u*0.010, y: headY - u*0.268))
+            oss.addLine(to: CGPoint(x: ox - u*0.010, y: headY - u*0.268))
+            oss.closeSubpath()
+            ctx.fill(oss, with: .color(cfg.accent))
+            ctx.stroke(oss, with: .color(cfg.outline), lineWidth: u*0.016)
+            var knob = Path(ellipseIn: CGRect(x: ox - u*0.022, y: headY - u*0.300, width: u*0.044, height: u*0.036))
+            ctx.fill(knob, with: .color(cfg.accent))
+            ctx.stroke(knob, with: .color(cfg.outline), lineWidth: u*0.014)
+        }
+
+        // Small round ears
+        drawEars(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+
+        // Face
+        drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
     }
 }

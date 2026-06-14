@@ -27,6 +27,26 @@ final class AppState {
     var reminderHour: Int = 20
     var reminderMinute: Int = 0
 
+    // MARK: - Age & Kid Mode (UserDefaults, not SaveData)
+    var hasSeenAgeWarning: Bool = false
+    var isKidMode: Bool = false
+    var kidModePin: String = ""   // 5-letter code set by parent in Settings
+
+    // MARK: - Food System (UserDefaults)
+    var animalFood: Double = 100.0
+    var dailyBudget: Double = 100.0
+    var lastFoodDate: Date? = nil
+    var needsDailyFoodCheck: Bool = false
+
+    // MARK: - Evolution System (UserDefaults)
+    var highestStreak: Int = 0         // best streak ever, never decreases
+
+    // MARK: - Accountability Messages (UserDefaults)
+    var accountabilityMessages: [String] = []
+
+    // MARK: - Markets (UserDefaults)
+    var cryptoWatchlistIds: [String] = []
+
     // MARK: - AJ State
     var currentMood: AJMood = .neutral
     var currentSpeech: String = "Hey! Welcome to your world 🌍"
@@ -106,6 +126,28 @@ final class AppState {
 
     var revivalCost: Int {
         min(1 + (animalDeathCount / 3) * 5, 15)
+    }
+
+    // MARK: - Evolution
+
+    var evolutionLevel: Int {
+        if highestStreak >= 365 { return 4 }
+        if highestStreak >= 180 { return 3 }
+        if highestStreak >= 90  { return 2 }
+        if highestStreak >= 30  { return 1 }
+        return 0
+    }
+
+    var evolutionTitle: String {
+        ["Beginner", "Evolved", "Rare", "Epic", "Legendary"][evolutionLevel]
+    }
+
+    var evolutionEmoji: String {
+        ["🥚", "🌟", "⚡", "💎", "👑"][evolutionLevel]
+    }
+
+    var nextEvolutionStreak: Int {
+        [30, 30, 90, 180, 365][evolutionLevel]
     }
 
     var equippedOutfit: OutfitItem? {
@@ -262,7 +304,13 @@ final class AppState {
             } else if cal.isDateInYesterday(last) {
                 streak += 1
                 if streak == 7  { showToast("🔥 7-Day Streak! Keep it up!", icon: "🔥", color: .ajOrange) }
-                if streak == 30 { showToast("⚡ LEGENDARY 30-Day Streak!", icon: "⚡", color: .ajGold) }
+                if streak == 30 {
+                    showToast("🌟 30-Day Streak! FIRST EVOLUTION unlocked!", icon: "🌟", color: .ajGold)
+                    checkEvolutionMilestones()
+                }
+                if streak == 90 { showToast("⚡ 90 Days! RARE EVOLUTION unlocked!", icon: "⚡", color: .ajGold); checkEvolutionMilestones() }
+                if streak == 180 { showToast("💎 180 Days! EPIC EVOLUTION!", icon: "💎", color: .ajGold); checkEvolutionMilestones() }
+                if streak == 365 { showToast("👑 365 Days! LEGENDARY EVOLUTION! You're unstoppable!", icon: "👑", color: .ajGold); checkEvolutionMilestones() }
             } else {
                 streak = 1
                 showToast("Streak reset... fresh start today 💪", icon: "💙", color: Color(red: 0.267, green: 0.533, blue: 1.0))
@@ -271,6 +319,14 @@ final class AppState {
             streak = 1
         }
         lastLogDate = Date()
+        if streak > highestStreak {
+            highestStreak = streak
+            UserDefaults.standard.set(highestStreak, forKey: "aj_highStreak")
+        }
+    }
+
+    private func checkEvolutionMilestones() {
+        if evolutionLevel >= 1 { earnBadge(.streak30) }
     }
 
     // MARK: - XP & Levels
@@ -358,7 +414,57 @@ final class AppState {
         NotificationManager.scheduleWeeklySummary()
     }
 
+    // MARK: - Food logic
+
+    func awardDailyFood(spentToday: Double) {
+        let ratio = dailyBudget > 0 ? spentToday / dailyBudget : 0
+        let foodGain: Double
+        if ratio <= 1.0 {
+            foodGain = 100      // in budget → full meal
+        } else if ratio <= 1.35 {
+            foodGain = 50       // slightly over → half meal
+        } else {
+            foodGain = 5        // way over or no save → crumb
+        }
+        animalFood = min(100, foodGain)
+        lastFoodDate = Date()
+        needsDailyFoodCheck = false
+        saveFoodState()
+    }
+
+    func checkFoodDecay() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        if let last = lastFoodDate {
+            let lastDay = cal.startOfDay(for: last)
+            let days = cal.dateComponents([.day], from: lastDay, to: today).day ?? 0
+            if days > 0 {
+                animalFood = max(0, animalFood - Double(days) * 18)
+                needsDailyFoodCheck = true
+                saveFoodState()
+            }
+        } else {
+            needsDailyFoodCheck = true
+        }
+    }
+
+    private func saveFoodState() {
+        UserDefaults.standard.set(animalFood, forKey: "aj_food")
+        UserDefaults.standard.set(dailyBudget, forKey: "aj_dailyBudget")
+        if let d = lastFoodDate { UserDefaults.standard.set(d, forKey: "aj_lastFood") }
+        UserDefaults.standard.set(needsDailyFoodCheck, forKey: "aj_needsFood")
+    }
+
     func save() {
+        // Age/mode flags
+        UserDefaults.standard.set(hasSeenAgeWarning, forKey: "aj_ageWarning")
+        UserDefaults.standard.set(isKidMode, forKey: "aj_kidMode")
+        UserDefaults.standard.set(kidModePin, forKey: "aj_kidPin")
+        // Evolution + extras
+        UserDefaults.standard.set(highestStreak, forKey: "aj_highStreak")
+        UserDefaults.standard.set(accountabilityMessages, forKey: "aj_messages")
+        UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
+        saveFoodState()
         applyNotificationSchedule()
         let data = SaveData(
             userName: userName, hasCompletedOnboarding: hasCompletedOnboarding,
@@ -380,6 +486,18 @@ final class AppState {
     }
 
     func load() {
+        // Load age/mode flags
+        hasSeenAgeWarning = UserDefaults.standard.bool(forKey: "aj_ageWarning")
+        isKidMode = UserDefaults.standard.bool(forKey: "aj_kidMode")
+        kidModePin = UserDefaults.standard.string(forKey: "aj_kidPin") ?? ""
+        animalFood = UserDefaults.standard.object(forKey: "aj_food") as? Double ?? 100.0
+        dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
+        lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
+        needsDailyFoodCheck = UserDefaults.standard.bool(forKey: "aj_needsFood")
+        highestStreak = UserDefaults.standard.integer(forKey: "aj_highStreak")
+        accountabilityMessages = UserDefaults.standard.stringArray(forKey: "aj_messages") ?? []
+        cryptoWatchlistIds = UserDefaults.standard.stringArray(forKey: "aj_cryptoWatch") ?? []
+
         guard
             let raw = UserDefaults.standard.data(forKey: saveKey),
             let d   = try? JSONDecoder().decode(SaveData.self, from: raw)

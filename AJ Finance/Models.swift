@@ -133,6 +133,65 @@ enum AJMood: String, CaseIterable, Identifiable {
     }
 
     var randomSpeech: String { speechLines.randomElement() ?? speechLines[0] }
+
+    var kidSpeechLines: [String] {
+        switch self {
+        case .hype:
+            return [
+                "WOW YOU DID IT! 🔥", "AMAZING SAVE! 💰", "YOU'RE A MONEY SUPERSTAR! 🌟",
+                "KEEP GOING, YOU'RE INCREDIBLE! 🚀", "THE PIGGY BANK IS GROWING! 🐷",
+                "YOU ARE A SAVINGS CHAMPION! 🏆", "LOOK AT YOU GO! 👏",
+                "SUPER DUPER SAVINGS MOVE! ✨", "YOU'RE BUILT FOR THIS! 💪",
+                "THE GOAL IS SO CLOSE! 🎯", "BESTIE WE ARE WINNING TODAY! 🎉"
+            ]
+        case .happy:
+            return [
+                "You did so great today! 😊", "Keep saving, you're awesome!",
+                "Every coin counts — nice work!", "You're getting closer to your goal! 🎯",
+                "So proud of you bestie! 💚", "Small steps lead to big wins! 🌱",
+                "You showed up and that's everything! ✨",
+                "Your future self says thank you! 💫",
+                "This is what smart saving looks like! 👏"
+            ]
+        case .neutral:
+            return [
+                "Just chilling here 😊", "All good over here!", "Ready when you are!",
+                "Looking good so far!", "Eyes on the goal! 👀",
+                "You've got this, I believe in you!", "Every day is a new chance! 🌟",
+                "Tap me if you need a pep talk! 👋"
+            ]
+        case .sad:
+            return [
+                "We can do better tomorrow! 💙", "I still believe in you!",
+                "Every superhero has a tough day sometimes 🌧️",
+                "Tomorrow is a brand new start! 🌅",
+                "You're still my favorite — let's bounce back! 💙",
+                "It's okay to slip up — what matters is getting back up! 🌱",
+                "I'm not giving up on you, promise! 🤝"
+            ]
+        case .angry:
+            return [
+                "Hmm, that wasn't the plan was it? 😕",
+                "Come on, we can do better than this!",
+                "You told me we were saving... remember? 👀",
+                "That's not ideal, but we bounce back! 💪",
+                "Next time let's stick to the budget, okay? 😊",
+                "I know you can do better — I've seen it! 🌟"
+            ]
+        case .sleep:
+            return [
+                "Zzz... sweet dreams! 💤", "Rest up, big day tomorrow! 😴",
+                "Saving energy for our next win! 🔋",
+                "Dreaming of your goal being achieved! 💤",
+                "*soft snoring sounds* 😴", "See you tomorrow bestie! 🌙"
+            ]
+        }
+    }
+
+    func speech(kidMode: Bool) -> String {
+        let lines = kidMode ? kidSpeechLines : speechLines
+        return lines.randomElement() ?? lines[0]
+    }
 }
 
 enum AccountabilityMode: String, CaseIterable, Codable, Identifiable {
@@ -442,6 +501,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case peacock     = "Peacock"
     case hedgehog    = "Hedgehog"
     case chameleon   = "Chameleon"
+    case turtle      = "Turtle"
+    case hippo       = "Hippo"
+    case giraffe     = "Giraffe"
+    case mouse       = "Mouse"
     var id: String { rawValue }
 
     var emoji: String {
@@ -475,6 +538,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .peacock:     return "🦚"
         case .hedgehog:    return "🦔"
         case .chameleon:   return "🦎"
+        case .turtle:      return "🐢"
+        case .hippo:       return "🦛"
+        case .giraffe:     return "🦒"
+        case .mouse:       return "🐭"
         }
     }
 
@@ -509,6 +576,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .peacock:     return Color(red: 0.15, green: 0.65, blue: 0.58)
         case .hedgehog:    return Color(red: 0.55, green: 0.45, blue: 0.35)
         case .chameleon:   return Color(red: 0.38, green: 0.82, blue: 0.45)
+        case .turtle:      return Color(red: 0.28, green: 0.65, blue: 0.24)
+        case .hippo:       return Color(red: 0.62, green: 0.55, blue: 0.75)
+        case .giraffe:     return Color(red: 0.96, green: 0.80, blue: 0.36)
+        case .mouse:       return Color(red: 0.72, green: 0.70, blue: 0.74)
         }
     }
 
@@ -543,6 +614,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .peacock:     return .jungle
         case .hedgehog:    return .forest
         case .chameleon:   return .jungle
+        case .turtle:      return .ocean
+        case .hippo:       return .savanna
+        case .giraffe:     return .savanna
+        case .mouse:       return .meadow
         }
     }
 
@@ -577,43 +652,158 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .peacock:     return "Show-stopping royalty 🎨"
         case .hedgehog:    return "Prickly on the outside, pure on the inside 🌼"
         case .chameleon:   return "Adaptable & vibrant 🌈"
+        case .turtle:      return "Slow & steady wins the savings 🐢"
+        case .hippo:       return "Big energy, big savings 🦛"
+        case .giraffe:     return "Head above the rest 🦒"
+        case .mouse:       return "Tiny saver, huge ambitions 🐭"
         }
     }
 
     var catchphrase: String {
         switch self {
-        case .tiger:       return "LETS GET THIS BAG FR FR 🔥"
-        case .panda:       return "Bamboo savings hit different 🎋"
-        case .fox:         return "Stay clever, stay richer 🦊"
-        case .bunny:       return "Hop hop, save save! 🐰"
-        case .bear:        return "Hibernating on my savings growth 🍯"
-        case .penguin:     return "Ice cold savings, no cap ❄️"
-        case .lion:        return "Savings is the kingdom 👑"
-        case .elephant:    return "Never forget to save. Ever. 🐘"
-        case .koala:       return "Eucalyptus-scented bag secured 🌿"
-        case .cat:         return "I save when I want to. Which is always. 😼"
-        case .dog:         return "Good boy savings incoming! 🎾"
-        case .deer:        return "Graceful with the whole budget 🍂"
-        case .frog:        return "Ribbit means SAVE IT 🐸"
-        case .dragon:      return "Hoarding coins like a mythical legend 🐲"
-        case .unicorn:     return "Magically securing the bag ✨"
-        case .axolotl:     return "Regenerating that savings health daily 💧"
-        case .capybara:    return "Vibe first, save always 😌"
-        case .redPanda:    return "Fluffy savings account, zero losses 🍂"
-        case .snowLeopard: return "Spotted saving from a mile away ❄️"
-        case .cheetah:     return "Fastest animal to the goal ⚡"
-        case .sloth:       return "Slow and steady saves the actual bag 💤"
-        case .otter:       return "Floating on a cloud of savings 🌊"
-        case .flamingo:    return "Standing out AND standing on business 💅"
-        case .hamster:     return "Cheek pouches FULL of savings 🐹"
-        case .wolf:        return "Pack mentality: everybody saves 🌙"
-        case .crab:        return "Crab walking sideways into wealth 🦀"
-        case .peacock:     return "Displaying this financial glow for the world 🦚"
-        case .hedgehog:    return "All prickled up and ready to save 🌼"
-        case .chameleon:   return "Blending savings into every situation 🌈"
+        case .tiger:       return "Don't be a bitch today — get up and GET THIS BAG 🔥"
+        case .panda:       return "Stop being lazy, we got money to stack damn it 🎋"
+        case .fox:         return "You smart as hell so act like it and save that bread 🦊"
+        case .bunny:       return "Hop your ass to the bank and DROP SOMETHING 💰"
+        case .bear:        return "Wake the hell up, hibernation is for losers — we saving 🍯"
+        case .penguin:     return "Ice cold with the budget, no cap, let's GET IT ❄️"
+        case .lion:        return "You royalty, so stop spending like a damn peasant 👑"
+        case .elephant:    return "Never forget the goal — STACK YOUR COINS or catch these hands 🐘"
+        case .koala:       return "Get your sleepy ass up and check them savings bestie 🌿"
+        case .cat:         return "I don't beg, I BUILD — now get your coins right 😼"
+        case .dog:         return "Stop throwing your money away like a damn toy, SAVE THAT 🎾"
+        case .deer:        return "Graceful with the moves, BAD BITCH with the budget 🍂"
+        case .frog:        return "Ribbit your ass to that savings account RIGHT NOW 🍀"
+        case .dragon:      return "You're a damn legend — legends don't go broke 🐲"
+        case .unicorn:     return "Magic is real and so is going broke — pick a lane ✨"
+        case .axolotl:     return "Regenerate your damn bank account, start NOW 💧"
+        case .capybara:    return "Chill vibes ONLY when we're saving our coins 😌"
+        case .redPanda:    return "Fluffy vibes don't pay bills — let's get serious 🍂"
+        case .snowLeopard: return "Rare as hell — stop wasting it on broke behavior ❄️"
+        case .cheetah:     return "Fastest to spend, slowest to save — flip that script NOW ⚡"
+        case .sloth:       return "Even my slow ass knows saving beats spending — get right 💤"
+        case .otter:       return "Float through life without drowning in debt — come on 🌊"
+        case .flamingo:    return "Standing on one leg AND one paycheck? Nah bestie, fix that 💅"
+        case .hamster:     return "Pack them cheeks with savings bitch — I mean the bank account 🐾"
+        case .wolf:        return "The whole pack eats when YOU save — don't let us down 🌙"
+        case .crab:        return "Sidewalk your ass to the savings account RIGHT NOW 🦀"
+        case .peacock:     return "You too beautiful to be broke — act like it damn 🎨"
+        case .hedgehog:    return "Prickly outside, soft heart, HARD savings — let's go 🌼"
+        case .chameleon:   return "Adapt your spending habits or stay broke — your choice 🌈"
+        case .turtle:      return "Slow and STEADY means saving every damn day 🐢"
+        case .hippo:       return "Big energy, big bank account — open wide and SAVE 🦛"
+        case .giraffe:     return "Head above the rest means your finances better be too 🦒"
+        case .mouse:       return "Tiny but fierce — squeeze every penny until it screams 🐭"
+        }
+    }
+
+    var kidCatchphrase: String {
+        switch self {
+        case .tiger:       return "Time to level up! Let's stack those coins today 🔥"
+        case .panda:       return "Every bamboo stalk saved is a step toward your dream 🎋"
+        case .fox:         return "You're super smart! Use that big brain to save more money 🦊"
+        case .bunny:       return "Hop hop hop to the savings! Every little bit counts 🐰"
+        case .bear:        return "Big bears save big honey jars — let's go! 🍯"
+        case .penguin:     return "Cool kids save their coins — are you cool enough? ❄️"
+        case .lion:        return "You're the king/queen — save like royalty today! 👑"
+        case .elephant:    return "Never ever forget your savings goal — you've totally got this 🐘"
+        case .koala:       return "Take a little snooze, then wake up and save, okay? 🌿"
+        case .cat:         return "Super sneaky savings moves — you've got this! 😺"
+        case .dog:         return "Good savings incoming! You're doing amazing today! 🎾"
+        case .deer:        return "Graceful steps toward your goal — every single day 🍂"
+        case .frog:        return "Every big leap starts with one small save! 🍀"
+        case .dragon:      return "Collect those coins like the treasure-loving dragon you are 🐲"
+        case .unicorn:     return "Believe in the magic of saving — it really works! ✨"
+        case .axolotl:     return "Keep going no matter what — you always come back stronger 💧"
+        case .capybara:    return "Chill vibes only when we're saving our coins! 😌"
+        case .redPanda:    return "Fluffy and fabulous AND a great saver — that's you! 🍂"
+        case .snowLeopard: return "Rare and amazing, just like your savings skills ❄️"
+        case .cheetah:     return "Fast savings, slow spending — that's the champion way! ⚡"
+        case .sloth:       return "Even if we go slow, we're still going! Save something today 💤"
+        case .otter:       return "Float through life with a happy savings account 🌊"
+        case .flamingo:    return "Stand tall and proud with your savings goal! 💅"
+        case .hamster:     return "Fill those cheeks — I mean savings — every single day! 🐹"
+        case .wolf:        return "The whole pack is rooting for you! Let's save! 🌙"
+        case .crab:        return "Keep moving forward (or sideways!) toward your goal 🦀"
+        case .peacock:     return "Show off those amazing savings — you're incredible! 🎨"
+        case .hedgehog:    return "Be brave, be bold, save that gold! 🌼"
+        case .chameleon:   return "Change your spending habits and watch the magic happen! 🌈"
+        case .turtle:      return "Slow and steady really does win the savings race 🐢"
+        case .hippo:       return "Big smiles, big hearts, big savings — that's you! 🦛"
+        case .giraffe:     return "Reach for the highest savings goals — you can do it! 🦒"
+        case .mouse:       return "Small actions lead to BIG results — start saving now! 🐭"
+        }
+    }
+
+    var foodEmoji: String {
+        switch self {
+        case .tiger, .lion, .snowLeopard, .cheetah, .wolf: return "🥩"
+        case .panda, .redPanda:                            return "🎋"
+        case .fox:                                         return "🍇"
+        case .bunny:                                       return "🥕"
+        case .bear:                                        return "🍯"
+        case .penguin, .otter, .flamingo:                  return "🐟"
+        case .elephant:                                    return "🥜"
+        case .koala:                                       return "🌿"
+        case .cat:                                         return "🐟"
+        case .dog:                                         return "🦴"
+        case .deer:                                        return "🍎"
+        case .frog:                                        return "🪲"
+        case .dragon:                                      return "💎"
+        case .unicorn:                                     return "🌈"
+        case .axolotl:                                     return "🦐"
+        case .capybara, .hippo:                            return "🍉"
+        case .sloth:                                       return "🍃"
+        case .hamster:                                     return "🌻"
+        case .crab:                                        return "🪸"
+        case .peacock:                                     return "🌾"
+        case .hedgehog:                                    return "🫐"
+        case .chameleon:                                   return "🦗"
+        case .turtle:                                      return "🥬"
+        case .giraffe:                                     return "🌴"
+        case .mouse:                                       return "🧀"
+        }
+    }
+
+    var foodName: String {
+        switch self {
+        case .tiger:       return "Prime Steak"
+        case .panda:       return "Bamboo Shoots"
+        case .fox:         return "Wild Berries"
+        case .bunny:       return "Fresh Carrots"
+        case .bear:        return "Golden Honey"
+        case .penguin:     return "Fresh Fish"
+        case .lion:        return "Prime Rib"
+        case .elephant:    return "Peanuts"
+        case .koala:       return "Eucalyptus Leaves"
+        case .cat:         return "Tuna"
+        case .dog:         return "Treats & Kibble"
+        case .deer:        return "Fresh Apples"
+        case .frog:        return "Juicy Bugs"
+        case .dragon:      return "Precious Gems"
+        case .unicorn:     return "Rainbow Fruit"
+        case .axolotl:     return "Water Shrimp"
+        case .capybara:    return "Watermelon"
+        case .redPanda:    return "Bamboo Shoots"
+        case .snowLeopard: return "Mountain Game"
+        case .cheetah:     return "Gazelle Steak"
+        case .sloth:       return "Jungle Leaves"
+        case .otter:       return "River Fish"
+        case .flamingo:    return "Pink Shrimp"
+        case .hamster:     return "Sunflower Seeds"
+        case .wolf:        return "Wild Game"
+        case .crab:        return "Ocean Seaweed"
+        case .peacock:     return "Grain & Seeds"
+        case .hedgehog:    return "Blueberries"
+        case .chameleon:   return "Crickets"
+        case .turtle:      return "Sea Lettuce"
+        case .hippo:       return "Watermelon"
+        case .giraffe:     return "Tree Leaves"
+        case .mouse:       return "Aged Cheese"
         }
     }
 }
+
 
 // MARK: - Outfit System
 

@@ -18,7 +18,7 @@ struct AnimalSelectionView: View {
                         animalPreviewCard
                             .padding(.horizontal, 16)
 
-                        Text("29 ANIMALS TO CHOOSE FROM")
+                        Text("33 ANIMALS TO CHOOSE FROM")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(.ajOrange)
                             .tracking(2)
@@ -111,7 +111,7 @@ struct AnimalSelectionView: View {
                     Text(displayAnimal.tagline)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.ajOrange)
-                    Text(displayAnimal.catchphrase)
+                    Text(appState.isKidMode ? displayAnimal.kidCatchphrase : displayAnimal.catchphrase)
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.55))
                         .italic()

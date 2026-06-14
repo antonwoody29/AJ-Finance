@@ -52,6 +52,18 @@ struct SettingsView: View {
                         .buttonStyle(.plain)
                     }
 
+                    // Family / Kid Mode
+                    familyCard
+
+                    // Daily Budget
+                    dailyBudgetCard
+
+                    // Evolution progress
+                    evolutionCard
+
+                    // Accountability Messages
+                    accountabilityMessagesCard
+
                     // Stats
                     statsCard
                 }
@@ -400,6 +412,333 @@ struct SettingsView: View {
                 }
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.04)))
+            }
+        }
+    }
+
+    // MARK: - Family / Kid Mode
+
+    @State private var editingPin   = false
+    @State private var newPin       = ""
+    @State private var pinSaved     = false
+
+    private var familyCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("FAMILY & KID MODE")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                // Current mode indicator
+                HStack(spacing: 10) {
+                    Text(appState.isKidMode ? "👶" : "🔞").font(.system(size: 22))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(appState.isKidMode ? "Kid Mode Active" : "Adult Mode Active")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text(appState.isKidMode ? "Clean language, no profanity" : "Full language, 18+ content")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.50))
+                    }
+                    Spacer()
+                    Button {
+                        appState.isKidMode.toggle()
+                        appState.save()
+                    } label: {
+                        Text(appState.isKidMode ? "Switch to Adult" : "Kid Mode")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.ajOrange)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Capsule().stroke(Color.ajOrange, lineWidth: 1))
+                    }
+                }
+
+                Divider().background(Color.white.opacity(0.10))
+
+                // PIN setting
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "lock.fill").foregroundColor(.ajOrange)
+                        Text("Family Code (5 letters)")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                        Spacer()
+                        if !appState.kidModePin.isEmpty {
+                            Text("Set ✓")
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.ajGreen)
+                        }
+                    }
+                    Text("Kids enter this code on the Kid Version screen to access the app.")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.48))
+
+                    if editingPin {
+                        HStack(spacing: 8) {
+                            TextField("5-letter code", text: $newPin)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.characters)
+                                .onChange(of: newPin) { _, v in newPin = String(v.uppercased().filter { $0.isLetter }.prefix(5)) }
+                                .padding(10)
+                                .background(Color.white.opacity(0.08))
+                                .cornerRadius(8)
+
+                            Button("Save") {
+                                if newPin.count == 5 {
+                                    appState.kidModePin = newPin
+                                    appState.save()
+                                    editingPin = false
+                                    pinSaved = true
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { pinSaved = false }
+                                }
+                            }
+                            .font(.system(size: 14, weight: .black))
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 14).padding(.vertical, 10)
+                            .background(newPin.count == 5 ? Color.ajOrange : Color.white.opacity(0.20))
+                            .cornerRadius(8)
+                        }
+                    } else {
+                        Button(appState.kidModePin.isEmpty ? "Set Family Code" : "Change Code") {
+                            newPin = appState.kidModePin
+                            editingPin = true
+                        }
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.ajOrange)
+                    }
+
+                    if pinSaved {
+                        Text("Family code saved! 🔐")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.ajGreen)
+                            .transition(.opacity)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Daily Budget
+
+    @State private var editingBudget = false
+    @State private var budgetText    = ""
+
+    private var dailyBudgetCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("DAILY SPENDING BUDGET")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                HStack(spacing: 12) {
+                    Text("🍽️").font(.system(size: 24))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Daily Budget")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                        Text("Your animal gets fed based on how close you stay to this")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.50))
+                    }
+                    Spacer()
+                }
+
+                if editingBudget {
+                    HStack(spacing: 8) {
+                        Text("$").font(.system(size: 18, weight: .black)).foregroundColor(.ajGold)
+                        TextField("100", text: $budgetText)
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundColor(.white)
+                            .keyboardType(.numberPad)
+                            .padding(10)
+                            .background(Color.white.opacity(0.08))
+                            .cornerRadius(8)
+                        Button("Set") {
+                            if let v = Double(budgetText), v > 0 {
+                                appState.dailyBudget = v
+                                appState.save()
+                                editingBudget = false
+                            }
+                        }
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 14).padding(.vertical, 10)
+                        .background(Color.ajOrange).cornerRadius(8)
+                    }
+                } else {
+                    HStack {
+                        Text("$\(Int(appState.dailyBudget)) / day")
+                            .font(.system(size: 22, weight: .black))
+                            .foregroundColor(.ajGold)
+                        Spacer()
+                        Button("Edit") {
+                            budgetText = "\(Int(appState.dailyBudget))"
+                            editingBudget = true
+                        }
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.ajOrange)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Evolution
+
+    private var evolutionCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("EVOLUTION JOURNEY")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                HStack(spacing: 14) {
+                    Text(appState.evolutionEmoji)
+                        .font(.system(size: 44))
+                        .padding(12)
+                        .background(Circle().fill(Color.ajOrange.opacity(0.12)))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(appState.evolutionTitle)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                        Text("Best streak: \(appState.highestStreak) days")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.ajOrange)
+                        if appState.evolutionLevel < 4 {
+                            Text("Next evolution at \(appState.nextEvolutionStreak) days")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                        } else {
+                            Text("Maximum evolution reached! 👑")
+                                .font(.system(size: 11))
+                                .foregroundColor(.ajGold)
+                        }
+                    }
+                    Spacer()
+                }
+
+                // Evolution tier timeline
+                HStack(spacing: 0) {
+                    ForEach(Array(zip(["🥚","🌟","⚡","💎","👑"], ["Start","30d","90d","180d","365d"])), id: \.1) { emoji, label in
+                        VStack(spacing: 4) {
+                            Text(emoji)
+                                .font(.system(size: appState.evolutionLevel >= ["🥚","🌟","⚡","💎","👑"].firstIndex(of: emoji)! ? 18 : 14))
+                                .opacity(appState.evolutionLevel >= ["🥚","🌟","⚡","💎","👑"].firstIndex(of: emoji)! ? 1.0 : 0.35)
+                            Text(label)
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.40))
+                        }
+                        .frame(maxWidth: .infinity)
+                        if label != "365d" {
+                            Rectangle()
+                                .fill(Color.white.opacity(0.15))
+                                .frame(height: 1)
+                                .padding(.bottom, 12)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Accountability Messages
+
+    @State private var newMessage = ""
+    @State private var showMessageInput = false
+
+    private var accountabilityMessagesCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("NOTES TO FUTURE ME")
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundColor(.ajOrange)
+                            .tracking(2)
+                        Text("AJ reads these back to you when you need motivation")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                    Spacer()
+                    Button {
+                        withAnimation(.spring(response: 0.3)) { showMessageInput.toggle() }
+                    } label: {
+                        Image(systemName: showMessageInput ? "xmark.circle.fill" : "plus.circle.fill")
+                            .font(.system(size: 22))
+                            .foregroundColor(.ajOrange)
+                    }
+                }
+
+                if showMessageInput {
+                    VStack(spacing: 8) {
+                        TextField("\"Remember why you started...\"", text: $newMessage, axis: .vertical)
+                            .font(.system(size: 14))
+                            .foregroundColor(.white)
+                            .tint(.ajOrange)
+                            .lineLimit(3)
+                            .padding(12)
+                            .background(Color.white.opacity(0.06))
+                            .cornerRadius(10)
+
+                        Button {
+                            let trimmed = newMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+                            guard !trimmed.isEmpty else { return }
+                            appState.accountabilityMessages.append(trimmed)
+                            appState.save()
+                            newMessage = ""
+                            withAnimation { showMessageInput = false }
+                        } label: {
+                            Text("Save Note 💌")
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(Color.ajOrange.cornerRadius(10))
+                        }
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+
+                if !appState.accountabilityMessages.isEmpty {
+                    VStack(spacing: 6) {
+                        ForEach(Array(appState.accountabilityMessages.enumerated()), id: \.offset) { idx, msg in
+                            HStack(alignment: .top, spacing: 10) {
+                                Text("💌").font(.system(size: 14))
+                                Text(msg)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(.white.opacity(0.80))
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Spacer()
+                                Button {
+                                    withAnimation {
+                                        appState.accountabilityMessages.remove(at: idx)
+                                        appState.save()
+                                    }
+                                } label: {
+                                    Image(systemName: "trash")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.30))
+                                }
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(Color.white.opacity(0.04))
+                            .cornerRadius(10)
+                        }
+                    }
+                } else if !showMessageInput {
+                    Text("No notes yet. Write something you'll thank yourself for later.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.35))
+                        .italic()
+                }
             }
         }
     }

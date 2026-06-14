@@ -168,7 +168,7 @@ struct OnboardingView: View {
                     Text(selectedAnimalType.rawValue)
                         .font(.system(size: 18, weight: .black))
                         .foregroundColor(.white)
-                    Text(selectedAnimalType.catchphrase)
+                    Text(appState.isKidMode ? selectedAnimalType.kidCatchphrase : selectedAnimalType.catchphrase)
                         .font(.system(size: 12))
                         .foregroundColor(.ajOrange)
                         .italic()
