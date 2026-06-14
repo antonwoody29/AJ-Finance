@@ -8,9 +8,11 @@ AJ is a SwiftUI iOS app that turns personal finance into a habit you actually wa
 
 ## Screenshots
 
-| Home | Markets | Evolution |
-|------|---------|-----------|
-| Animal companion in living habitat | Live top-50 crypto prices | 5-tier evolution from 🥚 to 👑 |
+<p float="left">
+  <img src="Screenshots/home.png" width="30%" alt="Home — animal companion in living habitat" />
+  <img src="Screenshots/markets.png" width="30%" alt="Markets — live top-50 crypto prices" />
+  <img src="Screenshots/evolution.png" width="30%" alt="Evolution Journey and Notes to Future Me" />
+</p>
 
 ---
 
