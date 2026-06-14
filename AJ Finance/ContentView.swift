@@ -1,21 +1,259 @@
-//
-//  ContentView.swift
-//  AJ Finance
-//
-//  Created by Anton Woody on 6/13/26.
-//
-
 import SwiftUI
 
+// MARK: - Color hex extension lives here (single source)
+extension Color {
+    init(hex: String) {
+        let s = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var v: UInt64 = 0
+        Scanner(string: s).scanHexInt64(&v)
+        self.init(
+            red:   Double((v >> 16) & 0xFF) / 255,
+            green: Double((v >>  8) & 0xFF) / 255,
+            blue:  Double( v        & 0xFF) / 255
+        )
+    }
+}
+
+// MARK: - Root View
+
 struct ContentView: View {
+    @State private var appState  = AppState()
+    @State private var tab: Int  = 0
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        Group {
+            if !appState.hasCompletedOnboarding {
+                OnboardingView()
+                    .environment(appState)
+            } else {
+                mainView
+            }
         }
-        .padding()
+        .onAppear { appState.load() }
+    }
+
+    // MARK: - Main Tabbed Layout
+
+    private var mainView: some View {
+        ZStack(alignment: .bottom) {
+            Color.ajDark.ignoresSafeArea()
+
+            // Tab content
+            Group {
+                switch tab {
+                case 0:
+                    NavigationStack { HomeView() }
+                        .transition(.opacity)
+                case 1:
+                    NavigationStack { GoalsView() }
+                        .transition(.opacity)
+                case 2:
+                    NavigationStack { SpendView() }
+                        .transition(.opacity)
+                case 3:
+                    NavigationStack { GamesView() }
+                        .transition(.opacity)
+                default:
+                    NavigationStack { SettingsView() }
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.2), value: tab)
+            .ignoresSafeArea(edges: .bottom)
+            .environment(appState)
+
+            // Toast overlay (sits above content, below tab bar)
+            VStack {
+                ToastOverlay(toasts: appState.toasts)
+                    .padding(.top, 56)
+                Spacer()
+            }
+            .allowsHitTesting(false)
+            .environment(appState)
+
+            // Custom tab bar
+            AJTabBar(selected: $tab)
+        }
+        .ignoresSafeArea(.keyboard)
+        .overlay {
+            if !appState.animalIsAlive {
+                RevivalOverlay()
+                    .environment(appState)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.4), value: appState.animalIsAlive)
+            }
+        }
+        .overlay {
+            if appState.isPIPMode {
+                PIPView()
+                    .environment(appState)
+                    .transition(.opacity)
+                    .animation(.easeInOut(duration: 0.4), value: appState.isPIPMode)
+            }
+        }
+    }
+}
+
+// MARK: - Custom Tab Bar
+
+private struct AJTabBar: View {
+    @Binding var selected: Int
+
+    private struct TabItem {
+        var label: String
+        var icon: String
+        var activeIcon: String
+    }
+
+    private let items: [TabItem] = [
+        .init(label: "Home",     icon: "house",           activeIcon: "house.fill"),
+        .init(label: "Goals",    icon: "target",          activeIcon: "target"),
+        .init(label: "Spend",    icon: "creditcard",      activeIcon: "creditcard.fill"),
+        .init(label: "Games",    icon: "gamecontroller",  activeIcon: "gamecontroller.fill"),
+        .init(label: "Settings", icon: "gearshape",       activeIcon: "gearshape.fill")
+    ]
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(0..<items.count, id: \.self) { i in
+                Button {
+                    withAnimation(.spring(response: 0.35)) { selected = i }
+                } label: {
+                    VStack(spacing: 4) {
+                        ZStack {
+                            if selected == i {
+                                Capsule()
+                                    .fill(Color.ajOrange.opacity(0.22))
+                                    .frame(width: 48, height: 30)
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+                            Image(systemName: selected == i ? items[i].activeIcon : items[i].icon)
+                                .font(.system(size: 20, weight: selected == i ? .bold : .regular))
+                                .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.4))
+                                .frame(width: 48, height: 30)
+                        }
+                        Text(items[i].label)
+                            .font(.system(size: 10, weight: selected == i ? .black : .regular))
+                            .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.35))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 26)
+                .fill(Color.ajCard.opacity(0.97))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 26)
+                        .stroke(Color.ajCardBorder, lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(0.5), radius: 24, y: -6)
+        )
+        .padding(.horizontal, 16)
+        .padding(.bottom, 28)
+    }
+}
+
+// MARK: - Revival Overlay
+
+struct RevivalOverlay: View {
+    @Environment(AppState.self) private var appState
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.92).ignoresSafeArea()
+
+            VStack(spacing: 22) {
+                Spacer()
+
+                Text("💀")
+                    .font(.system(size: 80))
+
+                Text("\(appState.selectedAnimal.rawValue) Has Died...")
+                    .font(.system(size: 24, weight: .black))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+
+                Text("You weren't saving enough to keep \(appState.selectedAnimal.rawValue) alive. Time to level up!")
+                    .font(.system(size: 15))
+                    .foregroundColor(.white.opacity(0.65))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 36)
+
+                // Death stats
+                HStack(spacing: 0) {
+                    VStack(spacing: 4) {
+                        Text("\(appState.animalDeathCount)")
+                            .font(.system(size: 36, weight: .black))
+                            .foregroundColor(.ajOrangeRed)
+                        Text("total deaths")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Rectangle()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: 1, height: 55)
+
+                    VStack(spacing: 4) {
+                        Text("$\(appState.revivalCost)")
+                            .font(.system(size: 36, weight: .black))
+                            .foregroundColor(.ajGold)
+                        Text("to revive")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.vertical, 18)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.ajCard)
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.ajCardBorder, lineWidth: 1))
+                )
+                .padding(.horizontal, 28)
+
+                if appState.animalDeathCount > 0 && appState.revivalCost < 15 {
+                    Text("Every 3 deaths the cost increases by $5 — capped at $15")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.38))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 30)
+                }
+
+                // Revive button (simulates in-app purchase)
+                Button {
+                    appState.reviveAnimal()
+                } label: {
+                    Text("Revive for $\(appState.revivalCost) 💳")
+                        .font(.system(size: 17, weight: .black))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 18)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(LinearGradient(
+                                    colors: [.ajGold, .ajOrange],
+                                    startPoint: .leading, endPoint: .trailing
+                                ))
+                                .shadow(color: .ajGold.opacity(0.5), radius: 12, y: 4)
+                        )
+                }
+                .padding(.horizontal, 28)
+
+                Text("💡 Save money regularly to keep your animal healthy!")
+                    .font(.system(size: 12))
+                    .foregroundColor(.ajOrange)
+                    .multilineTextAlignment(.center)
+
+                Spacer()
+            }
+        }
     }
 }
 
