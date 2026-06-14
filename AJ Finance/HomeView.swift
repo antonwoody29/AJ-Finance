@@ -124,7 +124,7 @@ struct HomeView: View {
                 // ── Layer 5: Top HUD ───────────────────────────────────
                 topHUD
                     .padding(.horizontal, 16)
-                    .padding(.top, geo.safeAreaInsets.top + 10)
+                    .padding(.top, max(geo.safeAreaInsets.top + 14, 68))
 
                 // ── Layer 6: Speech bubble ────────────────────────────
                 if showSpeech && appState.animalIsAlive {
