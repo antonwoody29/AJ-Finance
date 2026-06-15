@@ -252,9 +252,10 @@ struct AnimalBodyView: View {
     var outfit: OutfitItem? = nil
     var evolutionStage: Int = 2  // 0=egg, 1=baby, 2+=adult
 
-    @State private var walkCycle: CGFloat = 0
-    @State private var breathe:   Bool    = false
-    @State private var blink:     Bool    = false
+    @State private var walkCycle:  CGFloat = 0
+    @State private var breathe:    Bool    = false
+    @State private var blink:      Bool    = false
+    @State private var eggWobble:  CGFloat = 0
 
     var body: some View {
         Canvas { ctx, sz in
@@ -274,6 +275,7 @@ struct AnimalBodyView: View {
                              legSwing: legSwing, bob: bob, blink: blink)
             }
         }
+        .rotationEffect(.degrees(Double(eggWobble)), anchor: .bottom)
         .frame(width: size, height: size)
         .onAppear {
             withAnimation(.easeInOut(duration: 1.9).repeatForever(autoreverses: true)) {
@@ -281,8 +283,32 @@ struct AnimalBodyView: View {
             }
             startWalk()
             scheduleBlink()
+            scheduleEggWobble()
         }
         .onChange(of: isWalking) { _, _ in startWalk() }
+    }
+
+    private func scheduleEggWobble() {
+        guard evolutionStage == 0 else { return }
+        let pause = Double.random(in: 1.8...4.0)
+        DispatchQueue.main.asyncAfter(deadline: .now() + pause) {
+            guard evolutionStage == 0 else { return }
+            // Wiggle sequence: tilt right → left → right smaller → settle
+            withAnimation(.easeInOut(duration: 0.14)) { eggWobble =  11 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                withAnimation(.easeInOut(duration: 0.14)) { eggWobble = -11 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                    withAnimation(.easeInOut(duration: 0.14)) { eggWobble =  7 }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                        withAnimation(.easeInOut(duration: 0.14)) { eggWobble = -7 }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.14) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { eggWobble = 0 }
+                            scheduleEggWobble()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func startWalk() {
