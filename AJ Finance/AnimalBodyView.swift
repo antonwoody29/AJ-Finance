@@ -401,6 +401,8 @@ struct AnimalBodyView: View {
                        control1: CGPoint(x: cx - u*0.014, y: faceY + u*0.090),
                        control2: CGPoint(x: cx + u*0.014, y: faceY + u*0.090))
         ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        if let o = outfit { drawEggOutfit(ctx, outfit: o, cx: cx, cy: cy, u: u) }
     }
 
     // MARK: - Baby (stage 1)
@@ -532,6 +534,8 @@ struct AnimalBodyView: View {
                        control1: CGPoint(x: cx - u*0.018, y: headY + u*0.152),
                        control2: CGPoint(x: cx + u*0.018, y: headY + u*0.152))
         ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     // MARK: - Master draw
@@ -611,6 +615,8 @@ struct AnimalBodyView: View {
 
         // ── Markings ────────────────────────────────────────────
         drawMarkings(ctx, hx: cx, hy: headY, bx: cx, by: bodyY, u: u, cfg: cfg)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     // MARK: - Special body types
@@ -675,6 +681,8 @@ struct AnimalBodyView: View {
             var nostril = Path(ellipseIn: CGRect(x: cx + side*u*0.03, y: headY + u*0.005, width: u*0.028, height: u*0.018))
             ctx.fill(nostril, with: .color(cfg.nose.opacity(0.70)))
         }
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     func drawFlamingoBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
@@ -741,6 +749,8 @@ struct AnimalBodyView: View {
         ctx.fill(pupil, with: .color(.black))
         var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.022, width: u*0.018, height: u*0.018))
         ctx.fill(hl, with: .color(.white))
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     func drawCrabBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
@@ -811,6 +821,8 @@ struct AnimalBodyView: View {
         mouth.move(to: CGPoint(x: cx - u*0.06, y: headY + u*0.07))
         mouth.addLine(to: CGPoint(x: cx + u*0.06, y: headY + u*0.07))
         ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.018)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     // MARK: - Body
@@ -1237,6 +1249,47 @@ struct AnimalBodyView: View {
         ctx.stroke(trunk, with: .color(cfg.outline), lineWidth: u*0.024)
     }
 
+    // MARK: - Outfit (drawn inside canvas so it bobs/walks with the animal)
+
+    func drawOutfit(_ ctx: GraphicsContext, outfit: OutfitItem,
+                    cx: CGFloat, headY: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let emoji = outfit.emoji
+        switch outfit.slot {
+        case .hat:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.27)),
+                     at: CGPoint(x: cx, y: headY - u * 0.40), anchor: .center)
+        case .glasses:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
+                     at: CGPoint(x: cx, y: headY - u * 0.03), anchor: .center)
+        case .collar:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
+                     at: CGPoint(x: cx, y: headY + u * 0.28), anchor: .center)
+        case .cape:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
+                     at: CGPoint(x: cx, y: bodyY - u * 0.02), anchor: .center)
+        }
+    }
+
+    func drawEggOutfit(_ ctx: GraphicsContext, outfit: OutfitItem,
+                       cx: CGFloat, cy: CGFloat, u: CGFloat) {
+        let emoji = outfit.emoji
+        let eggTop = cy - u * 0.33
+        switch outfit.slot {
+        case .hat:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
+                     at: CGPoint(x: cx, y: eggTop - u * 0.09), anchor: .center)
+        case .glasses:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.18)),
+                     at: CGPoint(x: cx, y: cy + u * 0.02), anchor: .center)
+        case .collar:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.18)),
+                     at: CGPoint(x: cx, y: cy + u * 0.18), anchor: .center)
+        case .cape:
+            ctx.draw(Text(emoji).font(.system(size: u * 0.22)),
+                     at: CGPoint(x: cx, y: cy + u * 0.24), anchor: .center)
+        }
+    }
+
     // MARK: - Markings
 
     func drawMarkings(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat,
@@ -1342,6 +1395,8 @@ struct AnimalBodyView: View {
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
 
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     // MARK: - Hippo body (wide body, raised-eye head, massive muzzle)
@@ -1415,6 +1470,8 @@ struct AnimalBodyView: View {
             var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.016, width: u*0.014, height: u*0.014))
             ctx.fill(hl, with: .color(.white))
         }
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 
     // MARK: - Giraffe body (very long neck, spotted, ossicones)
@@ -1500,5 +1557,7 @@ struct AnimalBodyView: View {
 
         // Face
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
 }

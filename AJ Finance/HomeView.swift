@@ -729,9 +729,12 @@ struct AmbientParticles: View {
         case .forest:    return "🍂"
         case .ocean:     return "✨"
         case .savanna:   return "🌾"
-        case .cloudland: return "☁️"
+        case .cloudland: return "⭐"
         case .bamboo:    return "🌸"
         case .meadow:    return "🦋"
+        case .beach:     return "🌊"
+        case .mountain:  return "❄️"
+        case .candy:     return "✨"
         }
     }
 
