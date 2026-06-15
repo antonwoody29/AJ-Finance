@@ -272,7 +272,8 @@ struct HomeView: View {
                 mood: appState.animalMood,
                 size: 148,
                 outfit: appState.equippedOutfit,
-                isWalking: isWalking
+                isWalking: isWalking,
+                evolutionStage: appState.animalGrowthStage
             )
             .scaleEffect(
                 x: (facingRight ? 1.0 : -1.0) * stepScaleX * behaviorScaleX,

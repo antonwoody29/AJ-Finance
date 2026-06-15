@@ -150,6 +150,13 @@ final class AppState {
         [30, 30, 90, 180, 365][evolutionLevel]
     }
 
+    // 0 = egg, 1 = baby, 2 = adult
+    var animalGrowthStage: Int {
+        if evolutionLevel == 0 { return 0 }
+        if evolutionLevel == 1 { return 1 }
+        return 2
+    }
+
     var equippedOutfit: OutfitItem? {
         guard let id = equippedOutfitId else { return nil }
         return allOutfits.first(where: { $0.id == id })

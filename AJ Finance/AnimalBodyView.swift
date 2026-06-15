@@ -250,6 +250,7 @@ struct AnimalBodyView: View {
     var size: CGFloat
     var isWalking: Bool = false
     var outfit: OutfitItem? = nil
+    var evolutionStage: Int = 2  // 0=egg, 1=baby, 2+=adult
 
     @State private var walkCycle: CGFloat = 0
     @State private var breathe:   Bool    = false
@@ -266,8 +267,12 @@ struct AnimalBodyView: View {
                            ? CGFloat(abs(sin(phase * 2))) * 3
                            : (breathe ? 1.8 : -1.8)
 
-            drawAll(ctx: ctx, sz: sz, u: u, cfg: cfg,
-                    legSwing: legSwing, bob: bob, blink: blink)
+            switch evolutionStage {
+            case 0: drawEgg(ctx: ctx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            case 1: drawBaby(ctx: ctx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            default: drawAll(ctx: ctx, sz: sz, u: u, cfg: cfg,
+                             legSwing: legSwing, bob: bob, blink: blink)
+            }
         }
         .frame(width: size, height: size)
         .onAppear {
@@ -300,6 +305,207 @@ struct AnimalBodyView: View {
                 scheduleBlink()
             }
         }
+    }
+
+    // MARK: - Egg (stage 0)
+
+    func drawEgg(ctx: GraphicsContext, sz: CGSize, u: CGFloat,
+                 cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cx = sz.width / 2
+        let cy = sz.height * 0.50 + bob * 0.5
+
+        // Shadow
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.22, y: sz.height*0.84, width: u*0.44, height: u*0.09))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        // Egg shape (taller ellipse, narrower at top)
+        let eW = u * 0.50, eH = u * 0.66
+        var egg = Path(ellipseIn: CGRect(x: cx - eW/2, y: cy - eH*0.56, width: eW, height: eH))
+        ctx.fill(egg, with: .color(cfg.body))
+
+        // Inner belly tint
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.16, y: cy - u*0.20, width: u*0.32, height: u*0.32))
+        ctx.fill(belly, with: .color(cfg.belly.opacity(0.55)))
+
+        // Decorative marks on egg matching animal's pattern
+        switch cfg.marking {
+        case .spots:
+            for (ox, oy, r): (CGFloat, CGFloat, CGFloat) in [(-0.10, -0.14, 0.06), (0.12, -0.05, 0.05), (-0.04, 0.10, 0.07), (0.08, 0.16, 0.04)] {
+                var spot = Path(ellipseIn: CGRect(x: cx + ox*u - r*u, y: cy + oy*u - r*u, width: r*2*u, height: r*2*u))
+                ctx.fill(spot, with: .color(cfg.accent.opacity(0.45)))
+            }
+        case .stripes:
+            for oy: CGFloat in [-0.10, 0.06, 0.22] {
+                var stripe = Path()
+                stripe.move(to: CGPoint(x: cx - eW*0.42, y: cy + oy*u))
+                stripe.addLine(to: CGPoint(x: cx + eW*0.42, y: cy + oy*u))
+                ctx.stroke(stripe, with: .color(cfg.accent.opacity(0.40)), lineWidth: u*0.040)
+            }
+        default: break
+        }
+
+        // Outline
+        ctx.stroke(egg, with: .color(cfg.outline), lineWidth: u*0.032)
+
+        // Shine highlight
+        var shine = Path(ellipseIn: CGRect(x: cx - u*0.11, y: cy - u*0.30, width: u*0.14, height: u*0.20))
+        ctx.fill(shine, with: .color(.white.opacity(0.32)))
+
+        // Tiny sleeping face
+        let faceY = cy + u * 0.04
+        if blink {
+            // Eyes open — tiny dots
+            for side: CGFloat in [-1, 1] {
+                var eye = Path(ellipseIn: CGRect(x: cx + side*u*0.09 - u*0.022, y: faceY - u*0.022, width: u*0.044, height: u*0.044))
+                ctx.fill(eye, with: .color(cfg.outline))
+            }
+        } else {
+            // Closed sleepy lines
+            for side: CGFloat in [-1, 1] {
+                var closed = Path()
+                closed.move(to: CGPoint(x: cx + side*u*0.065, y: faceY))
+                closed.addLine(to: CGPoint(x: cx + side*u*0.115, y: faceY))
+                ctx.stroke(closed, with: .color(cfg.outline), lineWidth: u*0.026)
+            }
+        }
+        // Little smile
+        var smile = Path()
+        smile.move(to:     CGPoint(x: cx - u*0.040, y: faceY + u*0.055))
+        smile.addCurve(to: CGPoint(x: cx + u*0.040, y: faceY + u*0.055),
+                       control1: CGPoint(x: cx - u*0.014, y: faceY + u*0.090),
+                       control2: CGPoint(x: cx + u*0.014, y: faceY + u*0.090))
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.022)
+    }
+
+    // MARK: - Baby (stage 1)
+
+    func drawBaby(ctx: GraphicsContext, sz: CGSize, u: CGFloat,
+                  cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cx  = sz.width / 2
+        let headY = sz.height * 0.38 + bob
+        let bodyY = sz.height * 0.70 + bob
+
+        // Shadow
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.20, y: sz.height*0.86, width: u*0.40, height: u*0.08))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        // Tiny body
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.15, y: bodyY - u*0.12, width: u*0.30, height: u*0.22))
+        ctx.fill(body, with: .color(cfg.body))
+        var bellyB = Path(ellipseIn: CGRect(x: cx - u*0.09, y: bodyY - u*0.08, width: u*0.18, height: u*0.15))
+        ctx.fill(bellyB, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Stub legs
+        for side: CGFloat in [-1, 1] {
+            var leg = Path(ellipseIn: CGRect(x: cx + side*u*0.06 - u*0.058, y: bodyY + u*0.06, width: u*0.116, height: u*0.090))
+            ctx.fill(leg, with: .color(cfg.body))
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.020)
+        }
+
+        // Tiny arms
+        for side: CGFloat in [-1, 1] {
+            var arm = Path(ellipseIn: CGRect(x: cx + side*u*0.16 - u*0.050, y: bodyY - u*0.09, width: u*0.090, height: u*0.070))
+            ctx.fill(arm, with: .color(cfg.body))
+            ctx.stroke(arm, with: .color(cfg.outline), lineWidth: u*0.018)
+        }
+
+        // Big round head
+        let hR = u * 0.32
+        var head = Path(ellipseIn: CGRect(x: cx - hR, y: headY - hR*0.90, width: hR*2, height: hR*1.80))
+        ctx.fill(head, with: .color(cfg.body))
+
+        // Head belly tint
+        var headBelly = Path(ellipseIn: CGRect(x: cx - u*0.18, y: headY + u*0.02, width: u*0.36, height: u*0.22))
+        ctx.fill(headBelly, with: .color(cfg.belly.opacity(0.55)))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Baby ears — small nubs based on ear type
+        switch cfg.ear {
+        case .pointy:
+            for side: CGFloat in [-1, 1] {
+                var ear = Path()
+                let ex = cx + side*u*0.24
+                ear.move(to: CGPoint(x: ex, y: headY - hR*0.72))
+                ear.addLine(to: CGPoint(x: ex + side*u*0.08, y: headY - hR*1.12))
+                ear.addLine(to: CGPoint(x: ex + side*u*0.14, y: headY - hR*0.68))
+                ear.closeSubpath()
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.024)
+                var inner = Path()
+                inner.move(to: CGPoint(x: ex + side*u*0.02, y: headY - hR*0.72))
+                inner.addLine(to: CGPoint(x: ex + side*u*0.08, y: headY - hR*1.04))
+                inner.addLine(to: CGPoint(x: ex + side*u*0.12, y: headY - hR*0.70))
+                inner.closeSubpath()
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.60)))
+            }
+        case .floppy:
+            for side: CGFloat in [-1, 1] {
+                var ear = Path(ellipseIn: CGRect(x: cx + side*u*0.18 - u*0.07, y: headY - hR*0.60, width: u*0.12, height: u*0.22))
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.022)
+                var inner = Path(ellipseIn: CGRect(x: cx + side*u*0.18 - u*0.046, y: headY - hR*0.54, width: u*0.078, height: u*0.14))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.55)))
+            }
+        case .huge, .giant:
+            for side: CGFloat in [-1, 1] {
+                var ear = Path(ellipseIn: CGRect(x: cx + side*u*0.22 - u*0.10, y: headY - hR*0.80, width: u*0.18, height: u*0.22))
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.022)
+                var inner = Path(ellipseIn: CGRect(x: cx + side*u*0.22 - u*0.066, y: headY - hR*0.74, width: u*0.12, height: u*0.14))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.55)))
+            }
+        default: // round, tiny
+            for side: CGFloat in [-1, 1] {
+                var ear = Path(ellipseIn: CGRect(x: cx + side*u*0.22 - u*0.080, y: headY - hR*0.88, width: u*0.14, height: u*0.13))
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.022)
+                var inner = Path(ellipseIn: CGRect(x: cx + side*u*0.22 - u*0.050, y: headY - hR*0.82, width: u*0.086, height: u*0.080))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.55)))
+            }
+        }
+
+        // Huge baby eyes
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.13
+            let ey = headY - u * 0.04
+            var white = Path(ellipseIn: CGRect(x: ex - u*0.088, y: ey - u*0.092, width: u*0.176, height: u*0.184))
+            ctx.fill(white, with: .color(.white))
+            ctx.stroke(white, with: .color(cfg.outline), lineWidth: u*0.024)
+            if blink {
+                var line = Path()
+                line.move(to: CGPoint(x: ex - u*0.072, y: ey))
+                line.addLine(to: CGPoint(x: ex + u*0.072, y: ey))
+                ctx.stroke(line, with: .color(cfg.outline), lineWidth: u*0.028)
+            } else {
+                var iris = Path(ellipseIn: CGRect(x: ex - u*0.058, y: ey - u*0.068, width: u*0.116, height: u*0.130))
+                ctx.fill(iris, with: .color(cfg.iris))
+                var pupil = Path(ellipseIn: CGRect(x: ex - u*0.036, y: ey - u*0.048, width: u*0.072, height: u*0.090))
+                ctx.fill(pupil, with: .color(.black))
+                var hl1 = Path(ellipseIn: CGRect(x: ex + u*0.010, y: ey - u*0.045, width: u*0.030, height: u*0.030))
+                ctx.fill(hl1, with: .color(.white))
+                var hl2 = Path(ellipseIn: CGRect(x: ex - u*0.034, y: ey + u*0.012, width: u*0.018, height: u*0.018))
+                ctx.fill(hl2, with: .color(.white.opacity(0.70)))
+            }
+        }
+
+        // Cheek blush (always on babies)
+        for side: CGFloat in [-1, 1] {
+            var blush = Path(ellipseIn: CGRect(x: cx + side*u*0.15 - u*0.060, y: headY + u*0.085, width: u*0.110, height: u*0.055))
+            ctx.fill(blush, with: .color(Color(red: 1.0, green: 0.58, blue: 0.58).opacity(0.48)))
+        }
+
+        // Tiny nose
+        var nose = Path(ellipseIn: CGRect(x: cx - u*0.022, y: headY + u*0.055, width: u*0.044, height: u*0.030))
+        ctx.fill(nose, with: .color(cfg.nose))
+
+        // Little smile
+        var smile = Path()
+        smile.move(to:     CGPoint(x: cx - u*0.055, y: headY + u*0.110))
+        smile.addCurve(to: CGPoint(x: cx + u*0.055, y: headY + u*0.110),
+                       control1: CGPoint(x: cx - u*0.018, y: headY + u*0.152),
+                       control2: CGPoint(x: cx + u*0.018, y: headY + u*0.152))
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.022)
     }
 
     // MARK: - Master draw

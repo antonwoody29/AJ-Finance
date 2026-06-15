@@ -8,9 +8,10 @@ struct AnimalCanvas: View {
     var size: CGFloat
     var outfit: OutfitItem? = nil
     var isWalking: Bool = false
+    var evolutionStage: Int = 2
 
     var body: some View {
-        AnimalFigure(type: type, mood: mood, size: size, outfit: outfit, isWalking: isWalking)
+        AnimalFigure(type: type, mood: mood, size: size, outfit: outfit, isWalking: isWalking, evolutionStage: evolutionStage)
     }
 }
 
@@ -22,6 +23,7 @@ struct AnimalFigure: View {
     var size: CGFloat
     var outfit: OutfitItem? = nil
     var isWalking: Bool = false
+    var evolutionStage: Int = 2
 
     @State private var glowPulse:    Bool = false
     @State private var sparklePhase: Bool = false
@@ -36,7 +38,7 @@ struct AnimalFigure: View {
             moodGlowEllipse
 
             // Full drawn Pokémon-style body
-            AnimalBodyView(type: type, mood: mood, size: size, isWalking: isWalking)
+            AnimalBodyView(type: type, mood: mood, size: size, isWalking: isWalking, evolutionStage: evolutionStage)
 
             // Outfit accessories (positioned relative to body proportions)
             if let outfit = outfit { outfitLayer(outfit) }
