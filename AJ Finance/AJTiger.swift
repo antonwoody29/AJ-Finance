@@ -21,6 +21,7 @@ private func absCG(_ val: CGFloat) -> CGFloat { abs(val) }
 struct AJTiger: View {
     var mood: AJMood
     var size: CGFloat = 200
+    var savingsProgress: Double = 0   // 0.0 (empty) → 1.0 (full backpack)
 
     var body: some View {
         TimelineView(.animation) { timeline in
@@ -51,7 +52,8 @@ struct AJTiger: View {
 
                 // Main tiger canvas
                 Canvas { context, canvasSize in
-                    drawTiger(ctx: context, cSize: canvasSize, t: t, mood: mood)
+                    drawTiger(ctx: context, cSize: canvasSize, t: t, mood: mood,
+                              savingsProgress: CGFloat(savingsProgress))
                 }
                 .frame(width: size, height: size * 1.15)
                 .offset(y: floatOffset(t: t, mood: mood))
@@ -76,10 +78,10 @@ struct AJTiger: View {
 
 // MARK: - Canvas Drawing Entry
 
-private func drawTiger(ctx: GraphicsContext, cSize: CGSize, t: Double, mood: AJMood) {
+private func drawTiger(ctx: GraphicsContext, cSize: CGSize, t: Double, mood: AJMood,
+                       savingsProgress: CGFloat = 0) {
     let s: CGFloat = cSize.width / 160
     var context = ctx
-    // Angry shake
     let shakeX: CGFloat = mood == .angry ? sinCG(t * 18) * 3 * s : 0
     context.translateBy(x: shakeX, y: 0)
 
@@ -88,6 +90,7 @@ private func drawTiger(ctx: GraphicsContext, cSize: CGSize, t: Double, mood: AJM
     drawBody(in: context, s: s)
     drawBelly(in: context, s: s)
     drawBodyStripes(in: context, s: s)
+    drawBackpack(in: context, s: s, fillLevel: savingsProgress)
     drawArms(in: context, s: s, t: t, mood: mood)
     drawHead(in: context, s: s, mood: mood)
     drawEars(in: context, s: s)
@@ -138,17 +141,26 @@ private func drawTail(in ctx: GraphicsContext, s: CGFloat, t: Double, mood: AJMo
 }
 
 private func drawLegs(in ctx: GraphicsContext, s: CGFloat, t: Double, mood: AJMood) {
-    let b1: CGFloat = mood == .hype ? absCG(sinCG(t * 8))   * 6 * s : 0
+    let b1: CGFloat = mood == .hype ? absCG(sinCG(t * 8))       * 6 * s : 0
     let b2: CGFloat = mood == .hype ? absCG(sinCG(t * 8 + .pi)) * 6 * s : 0
+    let padColor = Color(red: 1.0, green: 0.66, blue: 0.74)
 
     // Left leg
     ctx.fill(ovalAt(cx: 55, cy: 198, w: 28, h: 46, s: s, dy: b1), with: .color(tigerOrange))
     ctx.fill(ovalAt(cx: 55, cy: 211, w: 22, h: 11, s: s, dy: b1), with: .color(tigerDark.opacity(0.5)))
+    for i: CGFloat in [-1, 0, 1] {
+        ctx.fill(ovalAt(cx: Double(55 + i * 3.5), cy: 213, w: 3.5, h: 2.8, s: s, dy: b1),
+                 with: .color(padColor))
+    }
     drawClaws(ctx, cx: 55 * s, cy: 211 * s + b1, s: s)
 
     // Right leg
     ctx.fill(ovalAt(cx: 105, cy: 198, w: 28, h: 46, s: s, dy: b2), with: .color(tigerOrange))
     ctx.fill(ovalAt(cx: 105, cy: 211, w: 22, h: 11, s: s, dy: b2), with: .color(tigerDark.opacity(0.5)))
+    for i: CGFloat in [-1, 0, 1] {
+        ctx.fill(ovalAt(cx: Double(105 + i * 3.5), cy: 213, w: 3.5, h: 2.8, s: s, dy: b2),
+                 with: .color(padColor))
+    }
     drawClaws(ctx, cx: 105 * s, cy: 211 * s + b2, s: s)
 }
 
@@ -194,6 +206,15 @@ private func drawArm(_ ctx: GraphicsContext, s: CGFloat, cx: Double, cy: Double,
     let pawX = cx + 24 * sin(rad)
     let pawY = cy + 24 * cos(rad)
     ctx.fill(ovalAt(cx: pawX, cy: pawY, w: 18, h: 15, s: s), with: .color(tigerOrange))
+    // Paw pads — 3 small pink dots
+    let padColor = Color(red: 1.0, green: 0.66, blue: 0.74)
+    let perpX = cos(rad + .pi / 2)
+    let perpY = sin(rad + .pi / 2)
+    for i: Double in [-1, 0, 1] {
+        ctx.fill(ovalAt(cx: pawX + i * 3.5 * perpX,
+                        cy: pawY + i * 3.5 * perpY,
+                        w: 3.5, h: 2.8, s: s), with: .color(padColor))
+    }
     drawClaws(ctx, cx: CGFloat(pawX) * s, cy: CGFloat(pawY) * s, s: s)
     // Arm stripe
     let midX = cx + 8 * sin(rad)
@@ -215,6 +236,11 @@ private func drawClaws(_ ctx: GraphicsContext, cx: CGFloat, cy: CGFloat, s: CGFl
 private func drawHead(in ctx: GraphicsContext, s: CGFloat, mood: AJMood) {
     ctx.fill(Path { p in p.addEllipse(in: CGRect(x: 24*s, y: 16*s, width: 112*s, height: 112*s)) },
              with: .color(tigerOrange))
+    // Cheek blush (subtle pink circles — drawn early so cheek marks sit on top)
+    let blush = Color(red: 1.0, green: 0.62, blue: 0.70)
+    let blushOpacity: Double = mood == .happy || mood == .hype ? 0.50 : 0.30
+    ctx.fill(ovalAt(cx: 44, cy: 88, w: 22, h: 13, s: s), with: .color(blush.opacity(blushOpacity)))
+    ctx.fill(ovalAt(cx: 116, cy: 88, w: 22, h: 13, s: s), with: .color(blush.opacity(blushOpacity)))
     if mood == .angry {
         ctx.fill(Path { p in p.addEllipse(in: CGRect(x: 24*s, y: 16*s, width: 112*s, height: 112*s)) },
                  with: .color(redGlow.opacity(0.15)))
@@ -233,12 +259,13 @@ private func drawEars(in ctx: GraphicsContext, s: CGFloat) {
 }
 
 private func drawHeadStripes(in ctx: GraphicsContext, s: CGFloat) {
-    // M forehead
-    ctx.stroke(Path { p in
-        p.move(to: pt(64,27,s)); p.addLine(to: pt(70,42,s))
-        p.addLine(to: pt(80,31,s)); p.addLine(to: pt(90,42,s))
-        p.addLine(to: pt(96,27,s))
-    }, with: .color(tigerDark), style: StrokeStyle(lineWidth: 5*s, lineCap: .round, lineJoin: .round))
+    // "AJ" brand mark on forehead — replaces the old M stripe
+    let ajText = ctx.resolve(
+        Text("AJ")
+            .font(.system(size: CGFloat(15) * s, weight: .black, design: .rounded))
+            .foregroundColor(tigerDark)
+    )
+    ctx.draw(ajText, at: CGPoint(x: CGFloat(80) * s, y: CGFloat(34) * s), anchor: .center)
 
     // Cheek marks
     let cheeks: [(Double, Double, Double, Double)] = [
@@ -255,44 +282,83 @@ private func drawHeadStripes(in ctx: GraphicsContext, s: CGFloat) {
 
 private func drawEyes(in ctx: GraphicsContext, s: CGFloat, t: Double, mood: AJMood) {
     for (ex, ey): (Double, Double) in [(62,72),(98,72)] {
-        // Eye white base
-        ctx.fill(ovalAt(cx: ex, cy: ey, w: 22, h: 20, s: s), with: .color(.white))
+        // Eye white — bigger and rounder than before
+        ctx.fill(ovalAt(cx: ex, cy: ey, w: 27, h: 25, s: s), with: .color(.white))
 
         switch mood {
+
         case .sleep:
+            // Heavy droopy shut eye with lashes
             ctx.stroke(Path { p in
-                p.move(to: pt(ex-10, ey, s))
-                p.addQuadCurve(to: pt(ex+10, ey, s), control: pt(ex, ey+6, s))
-            }, with: .color(eyeBlack), style: StrokeStyle(lineWidth: 3*s, lineCap: .round))
+                p.move(to: pt(ex-12, ey, s))
+                p.addQuadCurve(to: pt(ex+12, ey, s), control: pt(ex, ey+7, s))
+            }, with: .color(eyeBlack), style: StrokeStyle(lineWidth: 3.5*s, lineCap: .round))
+            for i: Int in -2...2 {
+                let lx = ex + Double(i) * 4.5
+                ctx.stroke(Path { p in
+                    p.move(to: pt(lx, ey - 3, s))
+                    p.addLine(to: pt(lx + Double(i) * 1.2, ey - 9, s))
+                }, with: .color(eyeBlack), style: StrokeStyle(lineWidth: 1.5*s, lineCap: .round))
+            }
 
         case .sad:
-            ctx.fill(ovalAt(cx: ex, cy: ey+3, w: 14, h: 12, s: s), with: .color(eyeGreen))
-            ctx.fill(ovalAt(cx: ex, cy: ey+3, w:  7, h:  8, s: s), with: .color(eyeBlack))
-            ctx.fill(ovalAt(cx: ex-2, cy: ey+1, w: 3, h: 3, s: s), with: .color(.white.opacity(0.7)))
+            // Droopy iris + worried brows (inner corner lower = sad angle)
+            ctx.fill(ovalAt(cx: ex, cy: ey+3, w: 17, h: 15, s: s), with: .color(eyeGreen))
+            ctx.fill(ovalAt(cx: ex, cy: ey+3, w:  8, h:  9, s: s), with: .color(eyeBlack))
+            ctx.fill(ovalAt(cx: ex-2, cy: ey+1, w: 3.5, h: 3.5, s: s), with: .color(.white.opacity(0.7)))
+            // Droopy lower-lid cover
             ctx.fill(Path { p in
-                p.move(to: pt(ex-11, ey, s)); p.addLine(to: pt(ex+11, ey, s))
-                p.addQuadCurve(to: pt(ex-11, ey, s), control: pt(ex, ey+5, s))
+                p.move(to: pt(ex-13, ey, s)); p.addLine(to: pt(ex+13, ey, s))
+                p.addQuadCurve(to: pt(ex-13, ey, s), control: pt(ex, ey+6, s))
             }, with: .color(tigerOrange))
+            // Worried brow: slopes DOWN toward center (opposite of angry)
+            let sadBrowDeg: Double = ex < 80 ? -14 : 14
+            ctx.fill(rotRect(cx: ex, cy: ey-16, w: 20, h: 4, deg: sadBrowDeg, s: s),
+                     with: .color(tigerDark.opacity(0.85)))
 
         case .angry:
-            ctx.fill(ovalAt(cx: ex, cy: ey, w: 17, h: 17, s: s), with: .color(eyeGreen))
-            ctx.fill(ovalAt(cx: ex, cy: ey, w:  9, h: 10, s: s), with: .color(eyeBlack))
-            ctx.fill(ovalAt(cx: ex-2, cy: ey-2, w: 3, h: 3, s: s), with: .color(.white.opacity(0.7)))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 20, h: 20, s: s), with: .color(eyeGreen))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 10, h: 11, s: s), with: .color(eyeBlack))
+            ctx.fill(ovalAt(cx: ex-2, cy: ey-2, w: 3.5, h: 3.5, s: s), with: .color(.white.opacity(0.7)))
+            // Angry brow: slopes UP toward center
             let browDeg: Double = ex < 80 ? 15 : -15
-            ctx.fill(rotRect(cx: ex, cy: ey-14, w: 20, h: 4, deg: browDeg, s: s), with: .color(tigerDark))
+            ctx.fill(rotRect(cx: ex, cy: ey-15, w: 22, h: 4.5, deg: browDeg, s: s), with: .color(tigerDark))
 
         case .hype:
+            // Wide excited eyes with gold ring + sparkle glints
             let pb: CGFloat = sinCG(t * 6) * 1.5
-            ctx.fill(ovalAt(cx: ex, cy: ey, w: 21, h: 21, s: s), with: .color(eyeGreen))
-            ctx.fill(ovalAt(cx: ex, cy: Double(CGFloat(ey)+pb/s), w: 10, h: 11, s: s), with: .color(eyeBlack))
-            ctx.fill(ovalAt(cx: ex-3, cy: Double(CGFloat(ey-3)+pb/s), w: 4, h: 4, s: s), with: .color(.white))
-            ctx.stroke(Path { p in p.addEllipse(in: CGRect(x: (CGFloat(ex)-11)*s, y: (CGFloat(ey)-11)*s, width: 22*s, height: 22*s)) },
-                       with: .color(goldColor), style: StrokeStyle(lineWidth: 2*s))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 26, h: 26, s: s), with: .color(eyeGreen))
+            ctx.fill(ovalAt(cx: ex, cy: Double(CGFloat(ey) + pb / s), w: 12, h: 13, s: s), with: .color(eyeBlack))
+            ctx.fill(ovalAt(cx: ex-3, cy: Double(CGFloat(ey-3) + pb / s), w: 4.5, h: 4.5, s: s), with: .color(.white))
+            ctx.stroke(Path { p in
+                p.addEllipse(in: CGRect(x: (CGFloat(ex)-13)*s, y: (CGFloat(ey)-13)*s, width: 26*s, height: 26*s))
+            }, with: .color(goldColor), style: StrokeStyle(lineWidth: 2*s))
+            // Sparkle glints inside the eye
+            let glint: CGFloat = absCG(sinCG(t * 8)) * 1.2 + 1.6
+            ctx.fill(ovalAt(cx: ex+6, cy: ey-7, w: Double(glint*2), h: Double(glint*2), s: s),
+                     with: .color(.white))
+            ctx.fill(ovalAt(cx: ex-4, cy: ey+4, w: Double(glint*1.3), h: Double(glint*1.3), s: s),
+                     with: .color(goldColor.opacity(0.85)))
+
+        case .happy:
+            // Bright, slightly squinting happy eyes
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 22, h: 22, s: s), with: .color(eyeGreen))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 10, h: 11, s: s), with: .color(eyeBlack))
+            ctx.fill(ovalAt(cx: ex-2, cy: ey-2, w: 4, h: 4, s: s), with: .color(.white.opacity(0.8)))
+            ctx.fill(ovalAt(cx: ex+3, cy: ey-5, w: 2.5, h: 2.5, s: s), with: .color(.white.opacity(0.55)))
+            // "Raised cheek" cover — curved orange arch over bottom of eye = smiling squint
+            ctx.fill(Path { p in
+                p.move(to: pt(ex-13, ey+8, s))
+                p.addQuadCurve(to: pt(ex+13, ey+8, s), control: pt(ex, ey+2, s))
+                p.addLine(to: pt(ex+13, ey+14, s))
+                p.addLine(to: pt(ex-13, ey+14, s))
+                p.closeSubpath()
+            }, with: .color(tigerOrange))
 
         default:
-            ctx.fill(ovalAt(cx: ex, cy: ey, w: 16, h: 16, s: s), with: .color(eyeGreen))
-            ctx.fill(ovalAt(cx: ex, cy: ey, w:  8, h:  9, s: s), with: .color(eyeBlack))
-            ctx.fill(ovalAt(cx: ex-2, cy: ey-2, w: 3, h: 3, s: s), with: .color(.white.opacity(0.7)))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w: 19, h: 19, s: s), with: .color(eyeGreen))
+            ctx.fill(ovalAt(cx: ex, cy: ey, w:  9, h: 10, s: s), with: .color(eyeBlack))
+            ctx.fill(ovalAt(cx: ex-2, cy: ey-2, w: 3.5, h: 3.5, s: s), with: .color(.white.opacity(0.7)))
         }
     }
 }
@@ -370,6 +436,92 @@ private func drawAngerVein(in ctx: GraphicsContext, s: CGFloat, t: Double) {
         p.addLine(to: pt(101,54,s)); p.addLine(to: pt(109,60,s))
     }, with: .color(redGlow.opacity(pulse)),
        style: StrokeStyle(lineWidth: 3*s, lineCap: .round, lineJoin: .round))
+}
+
+// MARK: - Piggy Bank Backpack
+
+private func drawBackpack(in ctx: GraphicsContext, s: CGFloat, fillLevel: CGFloat) {
+    // Sits on AJ's right-back shoulder area (left side in drawing since tiger faces left)
+    let bx: CGFloat = 120 * s
+    let by: CGFloat = 122 * s
+    let bw: CGFloat = 22 * s
+    let bh: CGFloat = 18 * s
+
+    let packCream = Color(red: 1.0, green: 0.87, blue: 0.89)
+    let packPink  = Color(red: 1.0, green: 0.56, blue: 0.70)
+    let packDark  = Color(red: 0.52, green: 0.18, blue: 0.28)
+    let coinGold  = Color(red: 1.0, green: 0.82, blue: 0.0)
+
+    let bodyRect = CGRect(x: bx - bw/2, y: by - bh/2, width: bw, height: bh)
+
+    // Strap line
+    ctx.stroke(Path { p in
+        p.move(to: CGPoint(x: bx - bw*0.42, y: by - bh*0.4))
+        p.addLine(to: CGPoint(x: bx - bw*0.48, y: by + bh*0.46))
+    }, with: .color(packDark.opacity(0.55)), style: StrokeStyle(lineWidth: 2*s, lineCap: .round))
+
+    // Piggy bank body
+    ctx.fill(Path { p in
+        p.addRoundedRect(in: bodyRect, cornerSize: CGSize(width: 5.5*s, height: 5.5*s))
+    }, with: .color(packCream))
+
+    // Fill level (savings visible inside — inset so it never clips outside)
+    if fillLevel > 0.02 {
+        let innerH = (bh - 4*s) * min(fillLevel, 1.0)
+        let innerY = by + bh/2 - 2*s - innerH
+        ctx.fill(Path { p in
+            p.addRoundedRect(
+                in: CGRect(x: bx - bw/2 + 2.5*s, y: innerY, width: bw - 5*s, height: innerH),
+                cornerSize: CGSize(width: 3*s, height: 3*s))
+        }, with: .color(packPink.opacity(0.78)))
+    }
+
+    // Outline
+    ctx.stroke(Path { p in
+        p.addRoundedRect(in: bodyRect, cornerSize: CGSize(width: 5.5*s, height: 5.5*s))
+    }, with: .color(packDark.opacity(0.70)), lineWidth: 1.5*s)
+
+    // Coin slot on top
+    ctx.fill(Path { p in
+        p.addRoundedRect(
+            in: CGRect(x: bx - 4*s, y: by - bh/2 - 1.8*s, width: 8*s, height: 2.8*s),
+            cornerSize: CGSize(width: 1.2*s, height: 1.2*s))
+    }, with: .color(packDark.opacity(0.82)))
+
+    // Tiny piggy ears on top corners
+    for side: CGFloat in [-1, 1] {
+        let ex = bx + side * 7 * s
+        let ey = by - bh/2 - 3 * s
+        ctx.fill(Path { p in
+            p.addEllipse(in: CGRect(x: ex - 3.5*s, y: ey - 2.5*s, width: 7*s, height: 5*s))
+        }, with: .color(packCream))
+        ctx.stroke(Path { p in
+            p.addEllipse(in: CGRect(x: ex - 3.5*s, y: ey - 2.5*s, width: 7*s, height: 5*s))
+        }, with: .color(packDark.opacity(0.60)), lineWidth: 1.2*s)
+    }
+
+    // Snout — small oval on front face of piggy bank
+    ctx.fill(ovalAt(cx: Double((bx + 3*s)/s), cy: Double((by + bh*0.14)/s), w: 11, h: 7.5, s: s),
+             with: .color(packPink.opacity(0.65)))
+    ctx.fill(ovalAt(cx: Double((bx + 1.5*s)/s), cy: Double((by + bh*0.10)/s), w: 3, h: 2.5, s: s),
+             with: .color(packDark.opacity(0.45)))
+    ctx.fill(ovalAt(cx: Double((bx + 4.5*s)/s), cy: Double((by + bh*0.10)/s), w: 3, h: 2.5, s: s),
+             with: .color(packDark.opacity(0.45)))
+
+    // Gold coin visible in slot when not empty
+    if fillLevel > 0.25 {
+        ctx.fill(ovalAt(cx: Double(bx/s), cy: Double((by - bh/2)/s) + 0.5, w: 6.5, h: 5, s: s),
+                 with: .color(coinGold))
+        ctx.stroke(Path { p in
+            p.addEllipse(in: CGRect(x: bx - 3.25*s, y: by - bh/2 - 2*s, width: 6.5*s, height: 5*s))
+        }, with: .color(coinGold.darker().opacity(0.55)), lineWidth: 0.8*s)
+    }
+}
+
+private extension Color {
+    func darker() -> Color {
+        Color(red: 0.70, green: 0.60, blue: 0.0)
+    }
 }
 
 // MARK: - Hype Effects
