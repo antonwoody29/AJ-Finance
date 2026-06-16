@@ -946,17 +946,24 @@ struct AmbientParticles: View {
 
     private var particleEmoji: String {
         switch habitat {
-        case .jungle:    return "🍃"
-        case .arctic:    return "❄️"
-        case .forest:    return "🍂"
-        case .ocean:     return "✨"
-        case .savanna:   return "🌾"
-        case .cloudland: return "⭐"
-        case .bamboo:    return "🌸"
-        case .meadow:    return "🦋"
-        case .beach:     return "🌊"
-        case .mountain:  return "❄️"
-        case .candy:     return "✨"
+        case .jungle:       return "🍃"
+        case .arctic:       return "❄️"
+        case .forest:       return "🍂"
+        case .ocean:        return "✨"
+        case .savanna:      return "🌾"
+        case .cloudland:    return "⭐"
+        case .bamboo:       return "🌸"
+        case .meadow:       return "🦋"
+        case .beach:        return "🌊"
+        case .mountain:     return "❄️"
+        case .candy:        return "✨"
+        case .pond:         return "💧"
+        case .river:        return "🌊"
+        case .volcano:      return "🔥"
+        case .hotSprings:   return "💨"
+        case .woodland:     return "✨"
+        case .flowerGarden: return "🌸"
+        case .burrow:       return "🌾"
         }
     }
 

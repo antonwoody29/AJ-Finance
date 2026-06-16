@@ -529,7 +529,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
     case meadow    = "Cozy Meadow"
     case beach     = "Beach Paradise"
     case mountain  = "Mountain Retreat"
-    case candy     = "Candy Kingdom"
+    case candy        = "Candy Kingdom"
+    case pond         = "Lily Pad Pond"
+    case river        = "Rushing River"
+    case volcano      = "Volcano Lair"
+    case hotSprings   = "Hot Springs"
+    case woodland     = "Moonlit Woodland"
+    case flowerGarden = "Flower Garden"
+    case burrow       = "Cozy Burrow"
 
     var skyTop: Color {
         switch self {
@@ -543,7 +550,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .meadow:    return Color(red: 0.16, green: 0.54, blue: 0.98)
         case .beach:     return Color(red: 0.10, green: 0.50, blue: 0.98)
         case .mountain:  return Color(red: 0.04, green: 0.08, blue: 0.34)
-        case .candy:     return Color(red: 0.90, green: 0.50, blue: 0.84)
+        case .candy:        return Color(red: 0.90, green: 0.50, blue: 0.84)
+        case .pond:         return Color(red: 0.36, green: 0.72, blue: 0.92)
+        case .river:        return Color(red: 0.20, green: 0.52, blue: 0.88)
+        case .volcano:      return Color(red: 0.06, green: 0.02, blue: 0.04)
+        case .hotSprings:   return Color(red: 0.80, green: 0.48, blue: 0.20)
+        case .woodland:     return Color(red: 0.04, green: 0.04, blue: 0.20)
+        case .flowerGarden: return Color(red: 0.70, green: 0.86, blue: 0.98)
+        case .burrow:       return Color(red: 0.40, green: 0.28, blue: 0.12)
         }
     }
 
@@ -559,7 +573,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .meadow:    return Color(red: 0.48, green: 0.80, blue: 0.98)
         case .beach:     return Color(red: 0.46, green: 0.84, blue: 1.00)
         case .mountain:  return Color(red: 0.24, green: 0.38, blue: 0.82)
-        case .candy:     return Color(red: 1.00, green: 0.90, blue: 0.98)
+        case .candy:        return Color(red: 1.00, green: 0.90, blue: 0.98)
+        case .pond:         return Color(red: 0.52, green: 0.84, blue: 0.62)
+        case .river:        return Color(red: 0.16, green: 0.72, blue: 0.78)
+        case .volcano:      return Color(red: 0.52, green: 0.10, blue: 0.02)
+        case .hotSprings:   return Color(red: 0.96, green: 0.76, blue: 0.54)
+        case .woodland:     return Color(red: 0.06, green: 0.20, blue: 0.12)
+        case .flowerGarden: return Color(red: 0.96, green: 0.88, blue: 0.96)
+        case .burrow:       return Color(red: 0.62, green: 0.46, blue: 0.22)
         }
     }
 
@@ -575,7 +596,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .meadow:    return Color(red: 0.16, green: 0.76, blue: 0.12)
         case .beach:     return Color(red: 0.98, green: 0.88, blue: 0.48)
         case .mountain:  return Color(red: 0.40, green: 0.32, blue: 0.22)
-        case .candy:     return Color(red: 0.96, green: 0.44, blue: 0.76)
+        case .candy:        return Color(red: 0.96, green: 0.44, blue: 0.76)
+        case .pond:         return Color(red: 0.14, green: 0.56, blue: 0.22)
+        case .river:        return Color(red: 0.08, green: 0.48, blue: 0.68)
+        case .volcano:      return Color(red: 0.20, green: 0.14, blue: 0.12)
+        case .hotSprings:   return Color(red: 0.18, green: 0.68, blue: 0.72)
+        case .woodland:     return Color(red: 0.08, green: 0.28, blue: 0.10)
+        case .flowerGarden: return Color(red: 0.22, green: 0.76, blue: 0.22)
+        case .burrow:       return Color(red: 0.50, green: 0.34, blue: 0.16)
         }
     }
 
@@ -591,7 +619,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .meadow:    return ["🌸", "🌻", "🦋", "🌼"]
         case .beach:     return ["🌴", "🌊", "🐚", "⭐"]
         case .mountain:  return ["🌲", "🏔️", "❄️", "🦅"]
-        case .candy:     return ["🍭", "🍬", "🌈", "✨"]
+        case .candy:        return ["🍭", "🍬", "🌈", "✨"]
+        case .pond:         return ["🌿", "🌸", "🐸", "💧"]
+        case .river:        return ["🌊", "🪨", "🌿", "🦦"]
+        case .volcano:      return ["🔥", "💎", "⚡", "🌋"]
+        case .hotSprings:   return ["💨", "🌿", "🪨", "🌸"]
+        case .woodland:     return ["🌲", "🍂", "🌙", "🦉"]
+        case .flowerGarden: return ["🌸", "🌺", "🌻", "🌹"]
+        case .burrow:       return ["🌾", "🌰", "🕯️", "🍄"]
         }
     }
 
@@ -608,7 +643,14 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .meadow:    return ["☁️", "🌤️", "🦋"]
         case .beach:     return ["☁️", "☀️", "🐦"]
         case .mountain:  return ["❄️", "☁️", "🦅"]
-        case .candy:     return ["🌈", "☁️", "✨"]
+        case .candy:        return ["🌈", "☁️", "✨"]
+        case .pond:         return ["☁️", "🌤️", "🦋"]
+        case .river:        return ["☁️", "🌤️", "🐦"]
+        case .volcano:      return ["⚡", "💨", "🌋"]
+        case .hotSprings:   return ["☁️", "🌅", "🌤️"]
+        case .woodland:     return ["🌙", "⭐", "🦉"]
+        case .flowerGarden: return ["☁️", "🌤️", "🦋"]
+        case .burrow:       return ["☀️", "🌾", "🐦"]
         }
     }
 }
@@ -731,37 +773,37 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .tiger:       return .jungle
         case .panda:       return .bamboo
-        case .fox:         return .forest
-        case .bunny:       return .meadow
-        case .bear:        return .mountain
+        case .fox:         return .mountain
+        case .bunny:       return .flowerGarden
+        case .bear:        return .woodland
         case .penguin:     return .arctic
         case .lion:        return .savanna
         case .elephant:    return .savanna
         case .koala:       return .forest
-        case .cat:         return .meadow
+        case .cat:         return .forest
         case .dog:         return .meadow
-        case .deer:        return .forest
-        case .frog:        return .ocean
-        case .dragon:      return .cloudland
+        case .deer:        return .woodland
+        case .frog:        return .pond
+        case .dragon:      return .volcano
         case .unicorn:     return .candy
         case .axolotl:     return .ocean
-        case .capybara:    return .meadow
+        case .capybara:    return .hotSprings
         case .redPanda:    return .bamboo
         case .snowLeopard: return .arctic
         case .cheetah:     return .savanna
         case .sloth:       return .jungle
-        case .otter:       return .ocean
+        case .otter:       return .river
         case .flamingo:    return .beach
-        case .hamster:     return .candy
+        case .hamster:     return .burrow
         case .wolf:        return .mountain
         case .crab:        return .beach
         case .peacock:     return .jungle
         case .hedgehog:    return .forest
         case .chameleon:   return .jungle
         case .turtle:      return .ocean
-        case .hippo:       return .savanna
+        case .hippo:       return .hotSprings
         case .giraffe:     return .savanna
-        case .mouse:       return .meadow
+        case .mouse:       return .burrow
         }
     }
 
