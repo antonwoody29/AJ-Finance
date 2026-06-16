@@ -165,7 +165,12 @@ struct GoalCard: View {
         AJCard {
             VStack(spacing: 14) {
                 HStack(spacing: 12) {
-                    Text(goal.emoji).font(.system(size: 32))
+                    ZStack(alignment: .bottomTrailing) {
+                        Text(goal.emoji).font(.system(size: 32))
+                        Text(goal.stageEmoji)
+                            .font(.system(size: 14))
+                            .offset(x: 4, y: 4)
+                    }
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Text(goal.name)
@@ -176,7 +181,7 @@ struct GoalCard: View {
                                     .foregroundColor(.ajGold)
                             }
                         }
-                        Text("$\(String(format: "%.2f", goal.currentAmount)) / $\(String(format: "%.2f", goal.targetAmount))")
+                        Text("$\(String(format: "%.2f", goal.currentAmount)) of $\(String(format: "%.2f", goal.targetAmount))")
                             .font(.system(size: 13))
                             .foregroundColor(.white.opacity(0.6))
                     }
@@ -202,8 +207,14 @@ struct GoalCard: View {
                 .frame(height: 8)
 
                 if !completed {
+                    // Emotional motivational line
+                    Text(goal.motivationalText)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.ajOrange.opacity(0.85))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
                     HStack {
-                        Text("$\(String(format: "%.2f", goal.remaining)) to go")
+                        Text(goal.remainingText)
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.5))
                         Spacer()

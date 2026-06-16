@@ -169,96 +169,141 @@ struct AnimalWorldBackground: View {
 
     var body: some View {
         GeometryReader { geo in
-            let habitat    = animal.habitat
+            let habitat     = animal.habitat
             let healthRatio = isAlive ? health / 100.0 : 0.0
             let W = geo.size.width
             let H = geo.size.height
             let decor = habitat.decorationEmojis
+            let deadGround  = Color(red: 0.18, green: 0.12, blue: 0.10)
 
             ZStack {
-                // ── Sky gradient ──────────────────────────────────────
+                // ── Sky gradient: full height so horizon has rich color ─
                 LinearGradient(
                     colors: isAlive
                         ? [habitat.skyTop, habitat.skyBottom]
-                        : [Color(red: 0.12, green: 0.08, blue: 0.08),
-                           Color(red: 0.20, green: 0.12, blue: 0.10)],
-                    startPoint: .top, endPoint: .center
+                        : [Color(red: 0.10, green: 0.06, blue: 0.06),
+                           Color(red: 0.18, green: 0.10, blue: 0.08)],
+                    startPoint: .top, endPoint: .bottom
                 )
                 .ignoresSafeArea()
+
+                // ── Atmospheric horizon glow ──────────────────────────
+                if isAlive {
+                    RadialGradient(
+                        colors: [habitat.skyBottom.opacity(0.60), .clear],
+                        center: UnitPoint(x: 0.5, y: 0.80),
+                        startRadius: 0,
+                        endRadius: W * 0.85
+                    )
+                    .ignoresSafeArea()
+                }
 
                 // ── Low-health vignette ───────────────────────────────
                 if healthRatio < 0.5 {
                     Color.black.opacity((0.5 - healthRatio) * 0.60).ignoresSafeArea()
                 }
 
-                // ── Far parallax layer: distant sky objects (18% speed) ─
-                // These barely move — feel very far away
+                // ── Far sky objects (barely move, 10% parallax) ───────
+                let sky = habitat.skyEmojis
                 Group {
-                    Text(decor[0 % decor.count])
-                        .font(.system(size: 28))
-                        .opacity(isAlive ? 0.38 : 0.06)
-                        .rotationEffect(.degrees(-8))
-                        .offset(x: W * 0.12 - W/2 - parallaxX * 0.18,
-                                y: H * 0.22 + (floatPhase ? -8 : 8))
-                        .animation(.easeInOut(duration: 3.2).repeatForever(autoreverses: true), value: floatPhase)
-
-                    Text(decor[1 % decor.count])
-                        .font(.system(size: 22))
-                        .opacity(isAlive ? 0.30 : 0.05)
-                        .rotationEffect(.degrees(6))
-                        .offset(x: W * 0.76 - W/2 - parallaxX * 0.18,
-                                y: H * 0.18 + (floatPhase ? 7 : -7))
-                        .animation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true), value: floatPhase)
-                }
-
-                // ── Mid parallax layer: trees/bushes (42% speed) ─────
-                Group {
-                    Text(decor[2 % decor.count])
+                    Text(sky[0])
                         .font(.system(size: 36))
-                        .opacity(isAlive ? 0.58 : 0.08)
-                        .offset(x: W * 0.08 - W/2 - parallaxX * 0.42,
-                                y: H * 0.60 + (floatPhase ? -4 : 4))
-                        .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: floatPhase)
+                        .opacity(isAlive ? 0.60 : 0.06)
+                        .offset(x: W * 0.14 - W/2 - parallaxX * 0.10,
+                                y: H * 0.13 - H/2 + (floatPhase ? -10 : 10))
+                        .animation(.easeInOut(duration: 3.4).repeatForever(autoreverses: true), value: floatPhase)
 
-                    Text(decor[3 % decor.count])
-                        .font(.system(size: 32))
-                        .opacity(isAlive ? 0.55 : 0.08)
-                        .offset(x: W * 0.84 - W/2 - parallaxX * 0.42,
-                                y: H * 0.58 + (floatPhase ? 5 : -5))
-                        .animation(.easeInOut(duration: 2.7).repeatForever(autoreverses: true), value: floatPhase)
+                    Text(sky[0])
+                        .font(.system(size: 26))
+                        .opacity(isAlive ? 0.42 : 0.04)
+                        .offset(x: W * 0.72 - W/2 - parallaxX * 0.08,
+                                y: H * 0.07 - H/2 + (floatPhase ? 7 : -7))
+                        .animation(.easeInOut(duration: 2.9).repeatForever(autoreverses: true), value: floatPhase)
 
-                    // Extra mid items — uses wrapping index
-                    Text(decor[0 % decor.count])
-                        .font(.system(size: 20))
-                        .opacity(isAlive ? 0.35 : 0.05)
-                        .offset(x: W * 0.46 - W/2 - parallaxX * 0.35,
-                                y: H * 0.28 + (floatPhase ? -6 : 6))
-                        .animation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true), value: floatPhase)
+                    Text(sky[1])
+                        .font(.system(size: 22))
+                        .opacity(isAlive ? 0.38 : 0.04)
+                        .offset(x: W * 0.45 - W/2 - parallaxX * 0.06,
+                                y: H * 0.17 - H/2 + (floatPhase ? -6 : 6))
+                        .animation(.easeInOut(duration: 4.2).repeatForever(autoreverses: true), value: floatPhase)
+
+                    Text(sky[2])
+                        .font(.system(size: 18))
+                        .opacity(isAlive ? 0.50 : 0.03)
+                        .offset(x: W * 0.88 - W/2 - parallaxX * 0.12,
+                                y: H * 0.22 - H/2 + (floatPhase ? 5 : -5))
+                        .animation(.easeInOut(duration: 5.0).repeatForever(autoreverses: true), value: floatPhase)
                 }
 
-                // ── Ground ellipse (stays fixed — IS the ground) ──────
-                VStack {
+                // ── Back hills silhouette (cartoon depth layer) ───────
+                VStack(spacing: 0) {
                     Spacer()
-                    Ellipse()
-                        .fill(isAlive
-                              ? habitat.groundColor
-                              : Color(red: 0.18, green: 0.12, blue: 0.10))
-                        .frame(width: W * 1.45, height: H * 0.40)
-                        .offset(y: H * 0.20)
+                    CartoonHillsBack()
+                        .fill(LinearGradient(
+                            stops: [
+                                .init(color: isAlive ? habitat.groundColor.opacity(0.36) : deadGround.opacity(0.40), location: 0),
+                                .init(color: isAlive ? habitat.groundColor.opacity(0.62) : deadGround.opacity(0.65), location: 1)
+                            ],
+                            startPoint: .top, endPoint: .bottom
+                        ))
+                        .frame(height: H * 0.55)
+                        .offset(x: -parallaxX * 0.14)
                 }
                 .ignoresSafeArea()
 
-                // ── Habitat life layer (animated creatures & plants) ──
+                // ── Mid layer: trees rooted on back hills (42% speed) ─
+                Group {
+                    Text(decor[0 % decor.count])
+                        .font(.system(size: 44))
+                        .opacity(isAlive ? 0.78 : 0.08)
+                        .offset(x: W * 0.08 - W/2 - parallaxX * 0.42,
+                                y: H * 0.50 - H/2 + (floatPhase ? -3 : 3))
+                        .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: floatPhase)
+
+                    Text(decor[1 % decor.count])
+                        .font(.system(size: 38))
+                        .opacity(isAlive ? 0.72 : 0.08)
+                        .offset(x: W * 0.84 - W/2 - parallaxX * 0.42,
+                                y: H * 0.48 - H/2 + (floatPhase ? 4 : -4))
+                        .animation(.easeInOut(duration: 2.7).repeatForever(autoreverses: true), value: floatPhase)
+
+                    Text(decor[0 % decor.count])
+                        .font(.system(size: 34))
+                        .opacity(isAlive ? 0.62 : 0.06)
+                        .offset(x: W * 0.46 - W/2 - parallaxX * 0.36,
+                                y: H * 0.52 - H/2 + (floatPhase ? -3 : 3))
+                        .animation(.easeInOut(duration: 3.1).repeatForever(autoreverses: true), value: floatPhase)
+                }
+
+                // ── Habitat life layer (creatures & plants) ───────────
                 HabitatLifeLayer(habitat: habitat, isAlive: isAlive, W: W, H: H)
 
-                // ── Near parallax layer: ground objects (65% speed) ───
-                // These move the most — feel closest to camera
+                // ── Main cartoon ground ───────────────────────────────
+                VStack(spacing: 0) {
+                    Spacer()
+                    ZStack {
+                        CartoonGround()
+                            .fill(LinearGradient(
+                                stops: [
+                                    .init(color: Color.white.opacity(isAlive ? 0.28 : 0.04), location: 0),
+                                    .init(color: isAlive ? habitat.groundColor : deadGround, location: 0.20),
+                                    .init(color: isAlive ? habitat.groundColor.opacity(0.90) : deadGround.opacity(0.85), location: 1)
+                                ],
+                                startPoint: .top, endPoint: .bottom
+                            ))
+                        CartoonGround()
+                            .stroke(Color.black.opacity(0.24), lineWidth: 3.5)
+                    }
+                    .frame(height: H * 0.42)
+                }
+                .ignoresSafeArea()
+
+                // ── Near parallax: closest ground decorations (65%) ───
                 let nearItems: [(Int, CGFloat, CGFloat, CGFloat, Bool)] = [
-                    // (decor index, relX, relY, size, flip)
-                    (2, 0.15, 0.68, 38, false),
-                    (3, 0.82, 0.66, 34, true),
-                    (1, 0.28, 0.72, 26, false),
-                    (0, 0.70, 0.70, 28, true),
+                    (2, 0.14, 0.65, 42, false),
+                    (3, 0.83, 0.63, 38, true),
+                    (1, 0.30, 0.70, 30, false),
+                    (0, 0.68, 0.67, 32, true),
                 ]
                 ForEach(0..<nearItems.count, id: \.self) { i in
                     let (di, rx, ry, sz, flip) = nearItems[i]
@@ -267,12 +312,12 @@ struct AnimalWorldBackground: View {
                     Text(decor[di % decor.count])
                         .font(.system(size: sz))
                         .scaleEffect(x: flip ? -1 : 1, y: 1)
-                        .opacity(isAlive ? (isTapped ? 1.0 : 0.82) : 0.10)
+                        .opacity(isAlive ? (isTapped ? 1.0 : 0.90) : 0.10)
                         .scaleEffect(isTapped ? 1.38 : 1.0)
                         .rotationEffect(.degrees(isTapped ? 22 : Double(i) * 6 - 4))
                         .offset(
                             x: W * rx - W/2 - parallaxX * 0.65,
-                            y: H * ry + (floatPhase ? 3 * floatDir : -3 * floatDir)
+                            y: H * ry - H/2 + (floatPhase ? 3 * floatDir : -3 * floatDir)
                                 + (isTapped ? -20 : 0)
                         )
                         .animation(.spring(response: 0.30, dampingFraction: 0.50), value: isTapped)
@@ -289,6 +334,74 @@ struct AnimalWorldBackground: View {
                 floatPhase = true
             }
         }
+    }
+}
+
+// MARK: - Cartoon Ground Shapes
+
+private struct CartoonHillsBack: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let w = rect.width
+        let h = rect.height
+        path.move(to: CGPoint(x: 0, y: h))
+        path.addLine(to: CGPoint(x: 0, y: h * 0.32))
+        path.addCurve(
+            to: CGPoint(x: w * 0.22, y: h * 0.10),
+            control1: CGPoint(x: w * 0.06, y: h * 0.28),
+            control2: CGPoint(x: w * 0.12, y: h * 0.06)
+        )
+        path.addCurve(
+            to: CGPoint(x: w * 0.50, y: h * 0.22),
+            control1: CGPoint(x: w * 0.32, y: h * 0.28),
+            control2: CGPoint(x: w * 0.42, y: h * 0.24)
+        )
+        path.addCurve(
+            to: CGPoint(x: w * 0.78, y: h * 0.08),
+            control1: CGPoint(x: w * 0.58, y: h * 0.20),
+            control2: CGPoint(x: w * 0.66, y: h * 0.02)
+        )
+        path.addCurve(
+            to: CGPoint(x: w, y: h * 0.26),
+            control1: CGPoint(x: w * 0.90, y: h * 0.14),
+            control2: CGPoint(x: w * 0.96, y: h * 0.22)
+        )
+        path.addLine(to: CGPoint(x: w, y: h))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct CartoonGround: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let w = rect.width
+        let h = rect.height
+        path.move(to: CGPoint(x: 0, y: h))
+        path.addLine(to: CGPoint(x: 0, y: h * 0.28))
+        path.addCurve(
+            to: CGPoint(x: w * 0.26, y: h * 0.10),
+            control1: CGPoint(x: w * 0.06, y: h * 0.24),
+            control2: CGPoint(x: w * 0.16, y: h * 0.04)
+        )
+        path.addCurve(
+            to: CGPoint(x: w * 0.54, y: h * 0.20),
+            control1: CGPoint(x: w * 0.36, y: h * 0.28),
+            control2: CGPoint(x: w * 0.46, y: h * 0.24)
+        )
+        path.addCurve(
+            to: CGPoint(x: w * 0.82, y: h * 0.06),
+            control1: CGPoint(x: w * 0.62, y: h * 0.16),
+            control2: CGPoint(x: w * 0.72, y: h * 0.00)
+        )
+        path.addCurve(
+            to: CGPoint(x: w, y: h * 0.22),
+            control1: CGPoint(x: w * 0.92, y: h * 0.12),
+            control2: CGPoint(x: w * 0.97, y: h * 0.18)
+        )
+        path.addLine(to: CGPoint(x: w, y: h))
+        path.closeSubpath()
+        return path
     }
 }
 

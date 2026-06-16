@@ -62,6 +62,7 @@ final class AppState {
     var ownedOutfitIds: [String] = []
     var equippedOutfitId: String? = nil
     var isPIPMode: Bool = false
+    var trips: [Trip] = []
 
     // MARK: - Toast Queue
     var toasts: [ToastMessage] = []
@@ -169,6 +170,201 @@ final class AppState {
         return currentMood
     }
 
+    // MARK: - Dynamic Greeting Engine
+
+    func generateContextualGreeting() -> String {
+        let cal  = Calendar.current
+        let now  = Date()
+        let hour    = cal.component(.hour,    from: now)
+        let weekday = cal.component(.weekday, from: now)  // 1=Sun,2=Mon…7=Sat
+        let day     = cal.component(.day,     from: now)
+        let isPayday = day == 1 || day == 15
+
+        // Critical states first
+        if !animalIsAlive {
+            return ["I missed you so much 💙 Let's get back on track?",
+                    "You came back 🥺 I never stopped believing in you."].randomElement()!
+        }
+        if animalHealth < 20 {
+            return ["I'm not feeling great bestie 😟 Can you log something today?",
+                    "My health is low 💔 A little save right now would really help."].randomElement()!
+        }
+
+        // Payday
+        if isPayday {
+            return ["Not me smelling direct deposit 👀 PAYDAY bestie!",
+                    "PAYDAY! Remember — future you gets a cut first 💰",
+                    "It's giving paycheck energy ✨ Let's allocate wisely."].randomElement()!
+        }
+
+        // Streak milestone
+        if streak > 0 && streak % 7 == 0 {
+            return "Day \(streak) streak?! You are literally built different 🔥"
+        }
+
+        // Monday
+        if weekday == 2 {
+            return ["Monday means securing the bag 💼 Let's gooo",
+                    "New week, new energy. Your goals are calling 📣",
+                    "It's Monday and you're already winning by checking in 🔥"].randomElement()!
+        }
+
+        // Friday
+        if weekday == 6 {
+            return ["Happy Friday bestie 🎉 Have fun — just don't fight for your life at Target 🎯",
+                    "Friday energy activated ✨ Your budget says hi too.",
+                    "It's Friday and future you is already proud 💫"].randomElement()!
+        }
+
+        // Active goals progress
+        if let topGoal = activeGoals.max(by: { $0.progress < $1.progress }),
+           topGoal.progressPercentage > 0 {
+            let pct = topGoal.progressPercentage
+            if pct >= 75 {
+                return "You're \(pct)% of the way to \(topGoal.name)! Almost there 🔥"
+            } else if pct >= 50 {
+                return "Halfway to \(topGoal.emoji) \(topGoal.name)! Future you is screaming 🎉"
+            }
+        }
+
+        // Time of day pools
+        let morningLines = [
+            "Rise and grind, money superstar ☀️",
+            "Good morning bestie 🌅 Let's make future you proud today.",
+            "New day, new bag 💼 AJ is rooting for you!",
+            "Woke up and chose financial stability 💅",
+            "Morning! Your goals didn't take a day off either 🎯",
+        ]
+        let afternoonLines = [
+            "Afternoon check-in! How's the spending looking? 👀",
+            "Midday energy 💪 Stay on track bestie.",
+            "You're crushing it today. Keep going! 🔥",
+            "The day's not over — still time to log something 📸",
+        ]
+        let eveningLines = [
+            "Evening bestie 🌙 Great time to log today's receipts!",
+            "How did today go? Log it and earn those XP ✨",
+            "AJ did a lot of thinking today. Mostly about your goals 🤔💙",
+            "Day's almost done. Finish strong! 💪",
+        ]
+        let lateNightLines = [
+            "Put the card down and nobody gets hurt 💳",
+            "It's late. Future you is begging you to sleep 🌙",
+            "Late night check-in appreciated 👀 Keep the bag safe.",
+        ]
+
+        switch hour {
+        case 5..<12: return morningLines.randomElement()!
+        case 12..<17: return afternoonLines.randomElement()!
+        case 17..<22: return eveningLines.randomElement()!
+        default:      return lateNightLines.randomElement()!
+        }
+    }
+
+    // MARK: - Spending Personality
+
+    var spendingPersonality: SpendingPersonality {
+        let cats  = spendingByCategory
+        let total = cats.values.reduce(0, +)
+
+        guard total > 5 else {
+            return SpendingPersonality(
+                name: "The Minimalist",
+                emoji: "🧘",
+                tagline: "You barely spend. We respect it.",
+                strength: "Your wallet is basically untouched",
+                weakness: "Sometimes joy requires spending a little",
+                growthTip: "Try a small 'fun budget' — guilt-free spending is healthy too",
+                color: .ajGreen
+            )
+        }
+
+        let foodRatio    = (cats[.food] ?? 0) / total
+        let shopRatio    = (cats[.shopping] ?? 0) / total
+        let entertRatio  = (cats[.entertainment] ?? 0) / total
+        let coffeeRatio  = (cats[.coffee] ?? 0) / total
+
+        if coffeeRatio > 0.30 {
+            return SpendingPersonality(
+                name: "The Coffee Lover",
+                emoji: "☕",
+                tagline: "Fuelled by espresso and ambition.",
+                strength: "You know what you like",
+                weakness: "Those daily lattes add up fast",
+                growthTip: "Make 3 at home per week — save ~$60/month without noticing",
+                color: Color(red: 0.70, green: 0.44, blue: 0.22)
+            )
+        }
+        if foodRatio > 0.50 {
+            return SpendingPersonality(
+                name: "The Foodie",
+                emoji: "🍔",
+                tagline: "You eat well. We eat vicariously.",
+                strength: "You prioritize the experience",
+                weakness: "Dining out is sneakily expensive",
+                growthTip: "Meal prep two dinners a week — save $80–$120/month",
+                color: Color(red: 1.0, green: 0.42, blue: 0.42)
+            )
+        }
+        if shopRatio > 0.50 && total > 400 {
+            return SpendingPersonality(
+                name: "The Chaos Goblin",
+                emoji: "🛍️",
+                tagline: "Cart added. Impulse decision made.",
+                strength: "You know how to treat yourself",
+                weakness: "The cart doesn't always need to checkout",
+                growthTip: "Sleep 24 hours on any purchase over $30 — you'll skip half",
+                color: Color(red: 0.306, green: 0.8, blue: 0.769)
+            )
+        }
+        if shopRatio > 0.35 {
+            return SpendingPersonality(
+                name: "The Treat Yourself",
+                emoji: "💅",
+                tagline: "You deserve it. But maybe not all of it.",
+                strength: "Life is short and you know it",
+                weakness: "Treating yourself gets addictive",
+                growthTip: "Set a weekly 'treat yourself' cap — enjoy it fully, guilt-free",
+                color: Color(red: 0.95, green: 0.55, blue: 0.85)
+            )
+        }
+        if entertRatio > 0.35 {
+            return SpendingPersonality(
+                name: "The YOLO Tourist",
+                emoji: "🎢",
+                tagline: "Experiences over everything.",
+                strength: "Memories > things — respectable philosophy",
+                weakness: "YOLO debt is still debt",
+                growthTip: "Pre-fund your fun — put entertainment money aside weekly",
+                color: Color(red: 0.588, green: 0.808, blue: 0.706)
+            )
+        }
+
+        // Balanced / Planner
+        let maxRatio = cats.values.max().map { $0 / total } ?? 0
+        if maxRatio < 0.35 {
+            return SpendingPersonality(
+                name: "The Planner",
+                emoji: "📊",
+                tagline: "Balanced. Calculated. Lowkey iconic.",
+                strength: "No single category blows your budget",
+                weakness: "Sometimes too cautious to enjoy life",
+                growthTip: "You're already winning — make sure you're investing too",
+                color: .ajOrange
+            )
+        }
+
+        return SpendingPersonality(
+            name: "The Side Hustler",
+            emoji: "💼",
+            tagline: "Spending with purpose.",
+            strength: "Every dollar has a reason",
+            weakness: "Hard to switch off the hustle mindset",
+            growthTip: "Automate savings so the hustle works while you rest",
+            color: .ajGold
+        )
+    }
+
     // MARK: - Goal Operations
 
     func addGoal(_ goal: SavingsGoal) {
@@ -192,6 +388,17 @@ final class AppState {
         } else {
             setMood(.happy)
             showToast("+$\(String(format: "%.2f", amount)) saved! 💰", icon: "💰", color: .ajOrange)
+            // Milestone push notifications
+            let pct = goals[idx].targetAmount > 0
+                ? Int((goals[idx].currentAmount / goals[idx].targetAmount) * 100)
+                : 0
+            if pct == 25 || pct == 50 || pct == 75 {
+                NotificationManager.scheduleGoalMilestone(
+                    goalName: goals[idx].name,
+                    emoji: goals[idx].emoji,
+                    percentage: pct
+                )
+            }
         }
         checkBadges()
         save()
@@ -202,6 +409,7 @@ final class AppState {
         isHypeDancing = true
         currentSpeech = accountabilityMode.goalCompleteReaction()
         showToast("🏆 Goal Complete! \(goal.emoji) \(goal.name) DONE!", icon: "🏆", color: .ajGold)
+        NotificationManager.triggerGoalBadge(goalName: goal.name, emoji: goal.emoji)
         earnXP(500)
         earnCoins(100)
         boostHealth(by: 30)
@@ -265,6 +473,8 @@ final class AppState {
         animalHealth = max(animalHealth - amount, 0)
         if animalHealth <= 0 {
             killAnimal()
+        } else if animalHealth < 30 {
+            NotificationManager.schedulePetHealthAlert(health: animalHealth, animalName: selectedAnimal.rawValue)
         }
     }
 
@@ -275,6 +485,7 @@ final class AppState {
         if level >= 10 { isPIPMode = true }
         setMood(.sad, speech: "I tried to warn you... 😔 Log in more to keep me alive!")
         showToast("💀 \(selectedAnimal.rawValue) has died... save more to keep me alive!", icon: "💀", color: .ajOrangeRed)
+        NotificationManager.triggerPetDied(animalName: selectedAnimal.rawValue)
         save()
     }
 
@@ -412,13 +623,18 @@ final class AppState {
         var ownedOutfitIds: [String]
         var equippedOutfitId: String?
         var isPIPMode: Bool
+        var trips: [Trip]
     }
 
     private let saveKey = "AJFinanceData_v3"
 
     func applyNotificationSchedule() {
-        NotificationManager.scheduleReceiptReminder(hour: reminderHour, minute: reminderMinute, enabled: reminderEnabled)
-        NotificationManager.scheduleWeeklySummary()
+        NotificationManager.scheduleAll(
+            animalName: selectedAnimal.rawValue,
+            reminderHour: reminderHour,
+            reminderMinute: reminderMinute,
+            reminderEnabled: reminderEnabled
+        )
     }
 
     // MARK: - Food logic
@@ -463,6 +679,10 @@ final class AppState {
     }
 
     func save() {
+        // Persist animal name for scene-phase notification handler
+        UserDefaults.standard.set(selectedAnimal.rawValue, forKey: "aj_animalName")
+        UserDefaults.standard.set(reminderHour, forKey: "aj_reminderHour")
+        UserDefaults.standard.set(reminderMinute, forKey: "aj_reminderMin")
         // Age/mode flags
         UserDefaults.standard.set(hasSeenAgeWarning, forKey: "aj_ageWarning")
         UserDefaults.standard.set(isKidMode, forKey: "aj_kidMode")
@@ -485,7 +705,8 @@ final class AppState {
             animalHealth: animalHealth, animalIsAlive: animalIsAlive,
             animalDeathCount: animalDeathCount, lastHealthDecayDate: lastHealthDecayDate,
             animalCoins: animalCoins, ownedOutfitIds: ownedOutfitIds,
-            equippedOutfitId: equippedOutfitId, isPIPMode: isPIPMode
+            equippedOutfitId: equippedOutfitId, isPIPMode: isPIPMode,
+            trips: trips
         )
         if let encoded = try? JSONEncoder().encode(data) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
@@ -522,5 +743,6 @@ final class AppState {
         animalDeathCount = d.animalDeathCount; lastHealthDecayDate = d.lastHealthDecayDate
         animalCoins = d.animalCoins; ownedOutfitIds = d.ownedOutfitIds
         equippedOutfitId = d.equippedOutfitId; isPIPMode = d.isPIPMode
+        trips = d.trips
     }
 }

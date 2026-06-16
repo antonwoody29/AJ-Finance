@@ -466,20 +466,35 @@ struct AJSpeechBubble: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text(text)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.black)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.white)
-                        .shadow(color: .black.opacity(0.25), radius: 6, y: 3)
-                )
+            HStack(alignment: .top, spacing: 9) {
+                // AJ portrait dot
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.20))
+                        .frame(width: 26, height: 26)
+                    Text("💬").font(.system(size: 13))
+                }
+                Text(text)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(Color.black.opacity(0.72))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22)
+                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.45), radius: 12, y: 4)
+            )
+
             BubbleTail()
-                .fill(Color.white)
-                .frame(width: 16, height: 10)
+                .fill(Color.black.opacity(0.72))
+                .frame(width: 18, height: 11)
         }
     }
 }

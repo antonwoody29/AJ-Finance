@@ -59,6 +59,9 @@ struct ContentView: View {
                 case 4:
                     NavigationStack { GamesView() }
                         .transition(.opacity)
+                case 5:
+                    NavigationStack { TripModeView() }
+                        .transition(.opacity)
                 default:
                     NavigationStack { SettingsView() }
                         .transition(.opacity)
@@ -117,6 +120,7 @@ private struct AJTabBar: View {
         .init(label: "Spend",    icon: "creditcard",                activeIcon: "creditcard.fill"),
         .init(label: "Markets",  icon: "chart.line.uptrend.xyaxis", activeIcon: "chart.line.uptrend.xyaxis"),
         .init(label: "Games",    icon: "gamecontroller",            activeIcon: "gamecontroller.fill"),
+        .init(label: "Trips",    icon: "airplane",                  activeIcon: "airplane"),
         .init(label: "Settings", icon: "gearshape",                 activeIcon: "gearshape.fill")
     ]
 
@@ -124,43 +128,51 @@ private struct AJTabBar: View {
         HStack(spacing: 0) {
             ForEach(0..<items.count, id: \.self) { i in
                 Button {
-                    withAnimation(.spring(response: 0.35)) { selected = i }
+                    withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) { selected = i }
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
                 } label: {
-                    VStack(spacing: 4) {
+                    VStack(spacing: 2) {
                         ZStack {
                             if selected == i {
-                                Capsule()
-                                    .fill(Color.ajOrange.opacity(0.22))
-                                    .frame(width: 48, height: 30)
-                                    .transition(.scale.combined(with: .opacity))
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.ajOrange.opacity(0.20))
+                                    .frame(width: 46, height: 32)
+                                    .transition(.scale(scale: 0.6).combined(with: .opacity))
                             }
                             Image(systemName: selected == i ? items[i].activeIcon : items[i].icon)
-                                .font(.system(size: 20, weight: selected == i ? .bold : .regular))
-                                .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.4))
-                                .frame(width: 48, height: 30)
+                                .font(.system(size: selected == i ? 21 : 17,
+                                              weight: selected == i ? .bold : .regular))
+                                .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.35))
+                                .scaleEffect(selected == i ? 1.08 : 1.0)
+                                .animation(.spring(response: 0.28), value: selected)
                         }
-                        Text(items[i].label)
-                            .font(.system(size: 10, weight: selected == i ? .black : .regular))
-                            .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.35))
+                        // Label only on active tab
+                        if selected == i {
+                            Text(items[i].label)
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundColor(.ajOrange)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                        }
                     }
                     .frame(maxWidth: .infinity)
+                    .frame(height: 50)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
         .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(Color.ajCard.opacity(0.97))
+            RoundedRectangle(cornerRadius: 28)
+                .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 26)
-                        .stroke(Color.ajCardBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 28)
+                        .stroke(Color.white.opacity(0.10), lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(0.5), radius: 24, y: -6)
+                .shadow(color: .black.opacity(0.55), radius: 28, y: -6)
         )
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 14)
         .padding(.bottom, 28)
     }
 }

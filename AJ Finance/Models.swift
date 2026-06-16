@@ -361,6 +361,52 @@ struct SavingsGoal: Identifiable, Codable {
     var isCompleted: Bool       { currentAmount >= targetAmount }
     var progressPercentage: Int { Int(progress * 100) }
     var remaining: Double       { max(targetAmount - currentAmount, 0) }
+
+    var motivationalText: String {
+        let pct = progressPercentage
+        switch pct {
+        case 0..<5:   return "The journey to \(name) starts right here 🌱"
+        case 5..<25:  return "Building real momentum toward \(name) 💪"
+        case 25..<50: return "You're already \(pct)% there. Future you approves ✨"
+        case 50..<75: return "Halfway to \(name)! Champions don't stop here 🔥"
+        case 75..<90: return "\(pct)% done! \(name) is almost yours 😤"
+        case 90..<100: return "So close you can taste it 👀 Just \(Int(remaining)) more!"
+        default:      return "YOU DID IT. \(name) is yours. Absolute legend 🏆"
+        }
+    }
+
+    var remainingText: String {
+        if isCompleted { return "Goal achieved! 🏆" }
+        let rem = remaining
+        if rem < 10  { return "Less than $\(String(format: "%.2f", rem)) left — that's IT!" }
+        if rem < 50  { return "Just $\(String(format: "%.0f", rem)) more. So close 👀" }
+        if rem < 200 { return "Only $\(String(format: "%.0f", rem)) away from \(name)!" }
+        return "$\(String(format: "%.0f", rem)) to go on \(name) — you've got this 🎯"
+    }
+
+    // Visual stage emoji based on progress (🌱 → 🌿 → 🌳 → 🔥 → 🏆)
+    var stageEmoji: String {
+        switch progressPercentage {
+        case 0..<20:  return "🌱"
+        case 20..<45: return "🌿"
+        case 45..<70: return "🌳"
+        case 70..<95: return "🔥"
+        case 95..<100: return "⚡"
+        default:      return "🏆"
+        }
+    }
+}
+
+// MARK: - Spending Personality
+
+struct SpendingPersonality {
+    let name: String
+    let emoji: String
+    let tagline: String
+    let strength: String
+    let weakness: String
+    let growthTip: String
+    let color: Color
 }
 
 // Renamed from Transaction to SpendEntry to avoid shadowing SwiftUI.Transaction
@@ -421,49 +467,49 @@ enum AnimalHabitat: String, CaseIterable, Codable {
 
     var skyTop: Color {
         switch self {
-        case .jungle:    return Color(red: 0.04, green: 0.20, blue: 0.08)
-        case .arctic:    return Color(red: 0.38, green: 0.68, blue: 0.96)
-        case .forest:    return Color(red: 0.06, green: 0.18, blue: 0.36)
-        case .ocean:     return Color(red: 0.02, green: 0.10, blue: 0.42)
-        case .savanna:   return Color(red: 0.82, green: 0.50, blue: 0.10)
-        case .cloudland: return Color(red: 0.08, green: 0.06, blue: 0.22)
-        case .bamboo:    return Color(red: 0.10, green: 0.28, blue: 0.14)
-        case .meadow:    return Color(red: 0.32, green: 0.62, blue: 0.92)
-        case .beach:     return Color(red: 0.22, green: 0.58, blue: 0.96)
-        case .mountain:  return Color(red: 0.12, green: 0.18, blue: 0.40)
-        case .candy:     return Color(red: 0.96, green: 0.68, blue: 0.90)
+        case .jungle:    return Color(red: 0.02, green: 0.16, blue: 0.06)
+        case .arctic:    return Color(red: 0.18, green: 0.52, blue: 0.96)
+        case .forest:    return Color(red: 0.04, green: 0.10, blue: 0.28)
+        case .ocean:     return Color(red: 0.01, green: 0.05, blue: 0.36)
+        case .savanna:   return Color(red: 0.82, green: 0.30, blue: 0.02)
+        case .cloudland: return Color(red: 0.03, green: 0.01, blue: 0.16)
+        case .bamboo:    return Color(red: 0.04, green: 0.16, blue: 0.08)
+        case .meadow:    return Color(red: 0.16, green: 0.54, blue: 0.98)
+        case .beach:     return Color(red: 0.10, green: 0.50, blue: 0.98)
+        case .mountain:  return Color(red: 0.04, green: 0.08, blue: 0.34)
+        case .candy:     return Color(red: 0.90, green: 0.50, blue: 0.84)
         }
     }
 
     var skyBottom: Color {
         switch self {
-        case .jungle:    return Color(red: 0.06, green: 0.36, blue: 0.12)
-        case .arctic:    return Color(red: 0.70, green: 0.88, blue: 1.00)
-        case .forest:    return Color(red: 0.10, green: 0.34, blue: 0.20)
-        case .ocean:     return Color(red: 0.04, green: 0.24, blue: 0.62)
-        case .savanna:   return Color(red: 0.96, green: 0.72, blue: 0.26)
-        case .cloudland: return Color(red: 0.20, green: 0.14, blue: 0.50)
-        case .bamboo:    return Color(red: 0.18, green: 0.50, blue: 0.22)
-        case .meadow:    return Color(red: 0.58, green: 0.84, blue: 0.96)
-        case .beach:     return Color(red: 0.56, green: 0.86, blue: 1.00)
-        case .mountain:  return Color(red: 0.32, green: 0.44, blue: 0.76)
-        case .candy:     return Color(red: 1.00, green: 0.88, blue: 0.96)
+        case .jungle:    return Color(red: 0.06, green: 0.42, blue: 0.14)
+        case .arctic:    return Color(red: 0.68, green: 0.90, blue: 1.00)
+        case .forest:    return Color(red: 0.08, green: 0.30, blue: 0.18)
+        case .ocean:     return Color(red: 0.04, green: 0.18, blue: 0.72)
+        case .savanna:   return Color(red: 0.98, green: 0.76, blue: 0.22)
+        case .cloudland: return Color(red: 0.14, green: 0.08, blue: 0.54)
+        case .bamboo:    return Color(red: 0.12, green: 0.46, blue: 0.18)
+        case .meadow:    return Color(red: 0.48, green: 0.80, blue: 0.98)
+        case .beach:     return Color(red: 0.46, green: 0.84, blue: 1.00)
+        case .mountain:  return Color(red: 0.24, green: 0.38, blue: 0.82)
+        case .candy:     return Color(red: 1.00, green: 0.90, blue: 0.98)
         }
     }
 
     var groundColor: Color {
         switch self {
-        case .jungle:    return Color(red: 0.08, green: 0.28, blue: 0.04)
-        case .arctic:    return Color(red: 0.88, green: 0.94, blue: 1.00)
-        case .forest:    return Color(red: 0.10, green: 0.22, blue: 0.08)
-        case .ocean:     return Color(red: 0.04, green: 0.16, blue: 0.48)
-        case .savanna:   return Color(red: 0.72, green: 0.52, blue: 0.18)
-        case .cloudland: return Color(red: 0.14, green: 0.10, blue: 0.38)
-        case .bamboo:    return Color(red: 0.14, green: 0.38, blue: 0.08)
-        case .meadow:    return Color(red: 0.28, green: 0.68, blue: 0.24)
-        case .beach:     return Color(red: 0.96, green: 0.88, blue: 0.62)
-        case .mountain:  return Color(red: 0.34, green: 0.28, blue: 0.20)
-        case .candy:     return Color(red: 0.98, green: 0.62, blue: 0.86)
+        case .jungle:    return Color(red: 0.06, green: 0.46, blue: 0.04)
+        case .arctic:    return Color(red: 0.86, green: 0.96, blue: 1.00)
+        case .forest:    return Color(red: 0.08, green: 0.36, blue: 0.06)
+        case .ocean:     return Color(red: 0.02, green: 0.20, blue: 0.68)
+        case .savanna:   return Color(red: 0.90, green: 0.72, blue: 0.22)
+        case .cloudland: return Color(red: 0.16, green: 0.10, blue: 0.56)
+        case .bamboo:    return Color(red: 0.10, green: 0.52, blue: 0.06)
+        case .meadow:    return Color(red: 0.16, green: 0.76, blue: 0.12)
+        case .beach:     return Color(red: 0.98, green: 0.88, blue: 0.48)
+        case .mountain:  return Color(red: 0.40, green: 0.32, blue: 0.22)
+        case .candy:     return Color(red: 0.96, green: 0.44, blue: 0.76)
         }
     }
 
@@ -480,6 +526,23 @@ enum AnimalHabitat: String, CaseIterable, Codable {
         case .beach:     return ["🌴", "🌊", "🐚", "⭐"]
         case .mountain:  return ["🌲", "🏔️", "❄️", "🦅"]
         case .candy:     return ["🍭", "🍬", "🌈", "✨"]
+        }
+    }
+
+    // Sky-layer decorations: shown high in the sky, appropriate per habitat
+    var skyEmojis: [String] {
+        switch self {
+        case .jungle:    return ["☁️", "🌤️", "🦜"]
+        case .arctic:    return ["🌨️", "❄️", "🌬️"]
+        case .forest:    return ["☁️", "🌤️", "🐦"]
+        case .ocean:     return ["☁️", "🌊", "🐦"]
+        case .savanna:   return ["☀️", "🌤️", "🦅"]
+        case .cloudland: return ["🪐", "⭐", "🛸"]
+        case .bamboo:    return ["☁️", "🌸", "🕊️"]
+        case .meadow:    return ["☁️", "🌤️", "🦋"]
+        case .beach:     return ["☁️", "☀️", "🐦"]
+        case .mountain:  return ["❄️", "☁️", "🦅"]
+        case .candy:     return ["🌈", "☁️", "✨"]
         }
     }
 }
@@ -674,6 +737,77 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    var financialArchetype: String {
+        switch self {
+        case .flamingo:    return "Extra & Iconic"
+        case .fox:         return "Strategic Saver"
+        case .bear:        return "Security First"
+        case .bunny:       return "Tiny Wins Expert"
+        case .penguin:     return "Loyal Planner"
+        case .tiger:       return "Bold Risk-Taker"
+        case .panda:       return "Chill Accumulator"
+        case .lion:        return "Power Spender"
+        case .elephant:    return "Long-Game Thinker"
+        case .koala:       return "Low-Key Saver"
+        case .cat:         return "Independent Builder"
+        case .dog:         return "Loyal Contributor"
+        case .deer:        return "Graceful Planner"
+        case .dragon:      return "Legendary Investor"
+        case .unicorn:     return "Dream Manifestor"
+        case .wolf:        return "Pack Protector"
+        case .otter:       return "Joy & Balance"
+        case .sloth:       return "Slow & Steady"
+        case .turtle:      return "Consistent Winner"
+        case .capybara:    return "Stress-Free Saver"
+        case .cheetah:     return "Sprint Saver"
+        case .hamster:     return "Hoarder (the good kind)"
+        case .peacock:     return "Invest in the Best"
+        case .hedgehog:    return "Cautious Protector"
+        case .chameleon:   return "Adaptive Planner"
+        case .redPanda:    return "Aesthetic Saver"
+        case .snowLeopard: return "Rare Find"
+        case .axolotl:     return "Resilient Rebuilder"
+        case .crab:        return "Side Hustle King"
+        case .mouse:       return "Micro-Savings Master"
+        case .hippo:       return "Big Moves Only"
+        case .giraffe:     return "Big Picture Thinker"
+        case .frog:        return "Lucky Leaper"
+        }
+    }
+
+    var archetypeStrength: String {
+        switch self {
+        case .flamingo:    return "Celebrates every win loudly 🎉"
+        case .fox:         return "Always three steps ahead 🦊"
+        case .bear:        return "Emergency fund is STACKED 🍯"
+        case .bunny:       return "Never misses a daily check-in 🌸"
+        case .penguin:     return "Spreadsheet game is immaculate ❄️"
+        case .tiger:       return "Goes all in on big goals 🔥"
+        case .panda:       return "Stress-free approach to money 🎋"
+        case .lion:        return "Commands respect in every room 👑"
+        case .elephant:    return "Never forgets a financial goal 🐘"
+        case .koala:       return "Low spending, high vibes 🌿"
+        case .otter:       return "Balances fun and finance perfectly 🌊"
+        case .turtle:      return "Consistency over intensity always 🐢"
+        default:           return "Shows up every single day 💪"
+        }
+    }
+
+    var archetypeWeakness: String {
+        switch self {
+        case .flamingo:    return "Thinks every sale is fate 🛍️"
+        case .fox:         return "Overthinks every purchase 🤔"
+        case .bear:        return "Too scared to invest 📈"
+        case .bunny:       return "Gets impatient with slow progress 😤"
+        case .penguin:     return "Resistant to changing the plan 📋"
+        case .tiger:       return "Impulse buys when bored 🐯"
+        case .panda:       return "Too relaxed about urgent goals 😴"
+        case .lion:        return "Spends royally, saves rarely 💸"
+        case .elephant:    return "Gets overwhelmed by big numbers 🐘"
+        default:           return "Working on consistency 🌱"
+        }
+    }
+
     var catchphrase: String {
         switch self {
         case .tiger:       return "Don't be a bitch today — get up and GET THIS BAG 🔥"
@@ -817,8 +951,169 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .mouse:       return "Aged Cheese"
         }
     }
+
+    var rarity: CompanionRarity {
+        switch self {
+        case .dragon:                          return .legendary
+        case .unicorn, .axolotl, .peacock,
+             .chameleon, .snowLeopard,
+             .capybara:                        return .epic
+        case .fox, .lion, .elephant, .deer,
+             .flamingo, .wolf, .otter, .crab,
+             .cheetah, .redPanda, .hippo,
+             .giraffe:                         return .rare
+        default:                               return .common
+        }
+    }
+
+    var energy: String {
+        switch self {
+        case .tiger:       return "CEO in training. Bold, ambitious, zero chill."
+        case .panda:       return "Zen bestie. Chill, adorable, unbothered by everything."
+        case .fox:         return "Smart older sibling. Always planning three steps ahead."
+        case .bunny:       return "Optimistic bestie who celebrates every tiny win loudly."
+        case .bear:        return "Protective parent friend. Big hugs, bigger savings."
+        case .penguin:     return "Type-A perfectionist. Spreadsheets are their love language."
+        case .lion:        return "Confident motivator. Born leader, natural hype person."
+        case .elephant:    return "Calm mentor. Slow, wise, never forgets your goals."
+        case .koala:       return "Soft life enthusiast. Maximum comfort, minimum stress."
+        case .cat:         return "Independent icon. Unbothered and thriving on their own terms."
+        case .dog:         return "Golden retriever energy. Your biggest, loudest hype person."
+        case .deer:        return "Quiet encouragement. Soft power, unexpectedly deep wisdom."
+        case .frog:        return "Go-with-the-flow adventurer. Resourceful, adaptable, fun."
+        case .dragon:      return "Mythical force. Unstoppable. Appears when you need power most."
+        case .unicorn:     return "Manifestation queen. Dream boldly, live magically, save fiercely."
+        case .axolotl:     return "The comeback kid. Resilient rebuilder who never stays down."
+        case .capybara:    return "Vibe architect. Stress-free by design, wealthy by patience."
+        case .redPanda:    return "Aesthetic everything. Cozy, precious, secretly strategic."
+        case .snowLeopard: return "Rare and mysterious. Shows up unexpectedly, always wins quietly."
+        case .cheetah:     return "Sprint to success. Fast decisions, faster results, no second-guessing."
+        case .sloth:       return "No rush, just bag. Patience is the real flex, always has been."
+        case .otter:       return "Joy and balance architect. Best life AND best finances. Always."
+        case .flamingo:    return "Main character energy. Extra, iconic, unforgettable. On purpose."
+        case .hamster:     return "Tiny mighty hoarder. Small size, enormous savings game."
+        case .wolf:        return "Pack leader. Fiercely loyal. Protects the whole financial crew."
+        case .crab:        return "Sideways hustler. Works every angle, saves from every direction."
+        case .peacock:     return "Showstopping royalty. Invest in looking AND feeling rich."
+        case .hedgehog:    return "Prickly outside, pure heart. Cautious, consistent, deeply caring."
+        case .chameleon:   return "Adaptive planner. Changes strategy as needed, always comes out ahead."
+        case .turtle:      return "The marathoner. Consistency beats intensity. Every. Single. Time."
+        case .hippo:       return "Big moves only. Massive energy, massive savings potential."
+        case .giraffe:     return "Head above the rest. Big picture thinking, tall ambitions."
+        case .mouse:       return "Micro-savings master. Small but fierce. Every penny screams."
+        }
+    }
+
+    var signatureItem: String {
+        switch self {
+        case .tiger:       return "⌚ Sport watch"
+        case .panda:       return "🎒 Snack pouch"
+        case .fox:         return "👜 Tiny satchel"
+        case .bunny:       return "🥕 Carrot backpack"
+        case .bear:        return "🧣 Plaid scarf"
+        case .penguin:     return "🎀 Bow tie"
+        case .lion:        return "👑 Royal cape"
+        case .elephant:    return "👓 Reading glasses"
+        case .koala:       return "☕ Mug of tea"
+        case .cat:         return "📿 Gold collar"
+        case .dog:         return "🩶 Bandana"
+        case .deer:        return "🌸 Flower crown"
+        case .frog:        return "🥾 Rain boots"
+        case .dragon:      return "💎 Golden crown"
+        case .unicorn:     return "💎 Crystal crown"
+        case .axolotl:     return "⭐ Star charm"
+        case .capybara:    return "🌸 Flower wreath"
+        case .redPanda:    return "🍂 Autumn leaf"
+        case .snowLeopard: return "❄️ Ice crystal"
+        case .cheetah:     return "⚡ Racing stripes"
+        case .sloth:       return "🏝️ Hammock"
+        case .otter:       return "🪨 River rock"
+        case .flamingo:    return "🕶️ Heart sunglasses"
+        case .hamster:     return "🐾 Full cheek pouches"
+        case .wolf:        return "🌙 Moon pendant"
+        case .crab:        return "🪙 Stack of coins"
+        case .peacock:     return "🦚 Display feathers"
+        case .hedgehog:    return "💐 Tiny bouquet"
+        case .chameleon:   return "🌈 Color-shifting scales"
+        case .turtle:      return "🎒 Shell backpack"
+        case .hippo:       return "🦺 Life vest"
+        case .giraffe:     return "🔭 Telescope"
+        case .mouse:       return "👛 Coin purse"
+        }
+    }
+
+    var signatureAnimation: String {
+        switch self {
+        case .tiger:       return "Power stance roar"
+        case .panda:       return "Joyful belly roll"
+        case .fox:         return "Tail flick while thinking"
+        case .bunny:       return "Rapid excited hops"
+        case .bear:        return "Warm belly laugh shake"
+        case .penguin:     return "Clipboard check waddle"
+        case .lion:        return "Slow dramatic mane shake"
+        case .elephant:    return "Wise trunk sway"
+        case .koala:       return "Slow sleepy stretch"
+        case .cat:         return "Elegant self-grooming"
+        case .dog:         return "Helicopter tail spin"
+        case .deer:        return "Graceful moonlit leap"
+        case .frog:        return "Belly laugh bounce"
+        case .dragon:      return "Fire breath celebration"
+        case .unicorn:     return "Full rainbow spin"
+        case .axolotl:     return "Full body happy wiggle"
+        case .capybara:    return "Peaceful zen float"
+        case .redPanda:    return "Playful tree branch climb"
+        case .snowLeopard: return "Silent prowl reveal"
+        case .cheetah:     return "Speed blur dash"
+        case .sloth:       return "Ultra slow victory stretch"
+        case .otter:       return "Hand-holding float"
+        case .flamingo:    return "One-legged runway twirl"
+        case .hamster:     return "Cheek-stuffing victory lap"
+        case .wolf:        return "Moonlit howl"
+        case .crab:        return "Claw snap celebration"
+        case .peacock:     return "Full feather fan spread"
+        case .hedgehog:    return "Curl-and-uncurl surprise"
+        case .chameleon:   return "Full color transformation"
+        case .turtle:      return "Determined slow march"
+        case .hippo:       return "Joyful water splash"
+        case .giraffe:     return "Neck stretch lookout"
+        case .mouse:       return "Tiny savings victory dance"
+        }
+    }
 }
 
+enum CompanionRarity: String, Codable {
+    case common    = "Common"
+    case rare      = "Rare"
+    case epic      = "Epic"
+    case legendary = "Legendary"
+
+    var color: Color {
+        switch self {
+        case .common:    return Color(white: 0.75)
+        case .rare:      return Color(red: 0.35, green: 0.70, blue: 1.00)
+        case .epic:      return Color(red: 0.72, green: 0.38, blue: 1.00)
+        case .legendary: return Color(red: 1.00, green: 0.78, blue: 0.10)
+        }
+    }
+
+    var stars: String {
+        switch self {
+        case .common:    return "★"
+        case .rare:      return "★★"
+        case .epic:      return "★★★"
+        case .legendary: return "✦✦✦"
+        }
+    }
+
+    var glowOpacity: Double {
+        switch self {
+        case .common:    return 0.0
+        case .rare:      return 0.25
+        case .epic:      return 0.40
+        case .legendary: return 0.65
+        }
+    }
+}
 
 // MARK: - Outfit System
 
@@ -1285,3 +1580,86 @@ let allOutfits: [OutfitItem] = [
     OutfitItem(id: "cape_hero", name: "Hero Cape",    emoji: "🦸", slot: .cape, rarity: .rare,      cost: 250, itemDescription: "Savings superhero unlocked."),
     OutfitItem(id: "cape_royal", name: "Royal Robe",  emoji: "👘", slot: .cape, rarity: .legendary, cost: 600, itemDescription: "Legendary. Top 1% energy."),
 ]
+
+// MARK: - Trip Mode Models
+
+enum TripCategory: String, CaseIterable, Codable, Identifiable {
+    case transportation = "Transportation"
+    case hotel          = "Hotel"
+    case food           = "Food"
+    case shopping       = "Shopping"
+    case activities     = "Activities"
+    case other          = "Other"
+
+    var id: String { rawValue }
+
+    var emoji: String {
+        switch self {
+        case .transportation: return "✈️"
+        case .hotel:          return "🏨"
+        case .food:           return "🍽️"
+        case .shopping:       return "🛍️"
+        case .activities:     return "🎡"
+        case .other:          return "📦"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .transportation: return Color(red: 0.30, green: 0.60, blue: 1.00)
+        case .hotel:          return Color(red: 1.00, green: 0.65, blue: 0.10)
+        case .food:           return Color(red: 0.20, green: 0.85, blue: 0.45)
+        case .shopping:       return Color(red: 1.00, green: 0.30, blue: 0.60)
+        case .activities:     return Color(red: 0.80, green: 0.40, blue: 1.00)
+        case .other:          return Color(red: 0.60, green: 0.60, blue: 0.60)
+        }
+    }
+}
+
+struct TripExpense: Identifiable, Codable {
+    var id    = UUID()
+    var name: String
+    var amount: Double
+    var category: TripCategory
+    var date: Date
+    var note: String = ""
+}
+
+struct TripRecipe: Identifiable, Codable {
+    var id              = UUID()
+    var name: String
+    var ingredients: [String]
+    var estimatedCost: Double
+    var servings: Int
+    var notes: String   = ""
+}
+
+struct Trip: Identifiable, Codable {
+    var id              = UUID()
+    var name: String
+    var destination: String
+    var emoji: String   = "✈️"
+    var startDate: Date
+    var endDate: Date
+    var totalBudget: Double
+    var categoryBudgets: [String: Double] = [:]   // TripCategory.rawValue → budget
+    var expenses: [TripExpense]           = []
+    var recipes: [TripRecipe]             = []
+
+    var isActive: Bool {
+        let now = Date()
+        return now >= startDate && now <= endDate
+    }
+
+    var totalSpent: Double { expenses.reduce(0) { $0 + $1.amount } }
+    var remaining: Double  { totalBudget - totalSpent }
+    var spendRatio: Double { totalBudget > 0 ? min(totalSpent / totalBudget, 1.0) : 0 }
+
+    func spent(for category: TripCategory) -> Double {
+        expenses.filter { $0.category == category }.reduce(0) { $0 + $1.amount }
+    }
+
+    func budget(for category: TripCategory) -> Double {
+        categoryBudgets[category.rawValue] ?? 0
+    }
+}

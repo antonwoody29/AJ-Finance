@@ -14,6 +14,9 @@ struct SpendView: View {
                     // Monthly total hero card
                     monthlyHeroCard
 
+                    // Spending personality card
+                    spendingPersonalityCard
+
                     // Month comparison
                     comparisonCard
 
@@ -56,6 +59,76 @@ struct SpendView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showScanner) {
             ReceiptScannerView()
+        }
+    }
+
+    private var spendingPersonalityCard: some View {
+        let p = appState.spendingPersonality
+        return AJCard {
+            VStack(spacing: 14) {
+                HStack(spacing: 14) {
+                    Text(p.emoji)
+                        .font(.system(size: 40))
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("YOUR MONEY VIBE")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(p.color.opacity(0.8))
+                            .tracking(2)
+                        Text(p.name)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                        Text(p.tagline)
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.65))
+                            .lineLimit(2)
+                    }
+                    Spacer()
+                }
+
+                Divider().background(Color.white.opacity(0.1))
+
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("YOUR STRENGTH")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(Color(red: 0, green: 0.8, blue: 0.27).opacity(0.8))
+                            .tracking(1.5)
+                        Text(p.strength)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Divider().background(Color.white.opacity(0.1)).frame(height: 36)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("WATCH OUT FOR")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.ajOrangeRed.opacity(0.8))
+                            .tracking(1.5)
+                        Text(p.weakness)
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                // AJ growth tip bubble
+                HStack(spacing: 10) {
+                    Text("💬")
+                        .font(.system(size: 16))
+                    Text(p.growthTip)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.85))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(p.color.opacity(0.12))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(p.color.opacity(0.25), lineWidth: 1))
+                )
+            }
         }
     }
 

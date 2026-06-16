@@ -24,6 +24,9 @@ struct HomeView: View {
     // World interaction
     @State private var decorTap: Int? = nil
 
+    // Receipt button pulse
+    @State private var receiptPulse = false
+
     // Coin burst
     @State private var coinBurstAmount  = 1
     @State private var coinBurstOffset: CGFloat = 0
@@ -123,17 +126,17 @@ struct HomeView: View {
                 )
 
                 // ── Layer 5: Top HUD ───────────────────────────────────
-                topHUD
+                statusCard
                     .padding(.horizontal, 16)
-                    .padding(.top, max(geo.safeAreaInsets.top + 14, 68))
+                    .padding(.top, max(geo.safeAreaInsets.top + 10, 60))
 
                 // ── Layer 6: Speech bubble ────────────────────────────
                 if showSpeech && appState.animalIsAlive {
                     AJSpeechBubble(text: appState.currentSpeech)
-                        .frame(maxWidth: 260)
+                        .frame(maxWidth: 270)
                         .position(
-                            x: clamped(geo.size.width / 2 + roamX, 140, geo.size.width - 140),
-                            y: groundY(geo) - 158
+                            x: clamped(geo.size.width / 2 + roamX, 145, geo.size.width - 145),
+                            y: groundY(geo) - 205
                         )
                         .transition(.scale(scale: 0.82, anchor: .bottom).combined(with: .opacity))
                         .animation(.spring(response: 0.36, dampingFraction: 0.68), value: appState.currentSpeech)
@@ -142,10 +145,10 @@ struct HomeView: View {
 
                 // ── Layer 7: Ground shadow ─────────────────────────────
                 Ellipse()
-                    .fill(Color.black.opacity(isWalking ? 0.22 : 0.13))
-                    .frame(width: 72 / max(stepScaleX * behaviorScaleX, 0.5), height: 10)
-                    .blur(radius: 4)
-                    .position(x: geo.size.width / 2 + roamX, y: groundY(geo) + 6)
+                    .fill(Color.black.opacity(isWalking ? 0.28 : 0.18))
+                    .frame(width: 94 / max(stepScaleX * behaviorScaleX, 0.5), height: 14)
+                    .blur(radius: 7)
+                    .position(x: geo.size.width / 2 + roamX, y: groundY(geo) + 8)
                     .animation(.easeInOut(duration: 0.11), value: stepScaleX)
                     .allowsHitTesting(false)
 
@@ -162,18 +165,16 @@ struct HomeView: View {
                 // ── Layer 9: Animal + hype rings ──────────────────────
                 animalView(geo: geo)
 
-                // ── Layer 10: Bottom UI (greeting + goals + actions) ───
+                // ── Layer 10: Bottom UI ────────────────────────────────
                 VStack(spacing: 0) {
                     Spacer()
-                    Text("Hey \(appState.userName.isEmpty ? "bestie" : appState.userName)! 👋")
-                        .font(.system(size: 17, weight: .black))
-                        .foregroundColor(.white)
-                        .shadow(color: .black.opacity(0.55), radius: 3)
-                        .padding(.bottom, 7)
                     goalPillsRow
+                        .padding(.bottom, 8)
+                    monthlyProgressCard
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
                     bottomActions
                         .padding(.horizontal, 16)
-                        .padding(.top, 8)
                         .padding(.bottom, 106)
                 }
 
@@ -198,14 +199,14 @@ struct HomeView: View {
             currentHour = Calendar.current.component(.hour, from: Date())
             appState.checkHealthDecay()
             appState.checkFoodDecay()
+            // Context-aware greeting — pet "notices" the moment
+            appState.currentSpeech = appState.generateContextualGreeting()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 startIdleSway()
                 scheduleBehavior(after: 2.0)
                 scheduleRoam(after: Double.random(in: 1.0...2.5))
             }
-            // Auto-hide initial speech
-            scheduleSpeechHide(after: 5.0)
-            // Trigger daily food check if needed (slight delay for smooth UX)
+            scheduleSpeechHide(after: 6.5)
             if appState.needsDailyFoodCheck {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
                     showDailyFoodCheck = true
@@ -216,7 +217,7 @@ struct HomeView: View {
 
     // MARK: - Ground geometry
 
-    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.73 }
+    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.585 }
     private func clamped(_ v: CGFloat, _ lo: CGFloat, _ hi: CGFloat) -> CGFloat { max(lo, min(hi, v)) }
 
     // MARK: - Atmosphere layers
@@ -270,7 +271,7 @@ struct HomeView: View {
             AnimalCanvas(
                 type: appState.selectedAnimal,
                 mood: appState.animalMood,
-                size: 148,
+                size: 192,
                 outfit: appState.equippedOutfit,
                 isWalking: isWalking,
                 evolutionStage: appState.animalGrowthStage
@@ -283,9 +284,9 @@ struct HomeView: View {
         }
         .position(
             x: geo.size.width / 2 + roamX,
-            y: groundY(geo) - 52 + stepBob + behaviorBob + (animalJump ? -44 : 0)
+            y: groundY(geo) - 70 + stepBob + behaviorBob + (animalJump ? -52 : 0)
         )
-        .contentShape(Circle().size(CGSize(width: 160, height: 160)))
+        .contentShape(Circle().size(CGSize(width: 200, height: 200)))
         .onTapGesture { handleTap() }
         .onLongPressGesture(minimumDuration: 0.50) { handleLongPress() }
     }
@@ -470,6 +471,7 @@ struct HomeView: View {
 
     private func handleTap() {
         guard appState.animalIsAlive else { return }
+        UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         appState.earnCoins(1)
         appState.currentSpeech = tapSpeeches.randomElement() ?? "Hey! 👋"
         showBubble()
@@ -491,6 +493,7 @@ struct HomeView: View {
 
     private func handleLongPress() {
         guard appState.animalIsAlive else { return }
+        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         appState.earnCoins(5)
         appState.boostHealth(by: 3)
         appState.currentSpeech = longPressSpeeches.randomElement() ?? "BIG ENERGY 🔥"
@@ -522,68 +525,86 @@ struct HomeView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { coinBurstOffset = 0 }
     }
 
-    // MARK: - Top HUD
+    // MARK: - Status Card (replaces scattered HUD pills)
 
-    private var topHUD: some View {
-        HStack(spacing: 6) {
-            vitalsPill
-            Spacer()
-            hudChip("🪙", "\(appState.animalCoins)", .ajGold)
-            hudChip("🔥", "\(appState.streak)",      .white)
-            evolutionChip
-        }
-    }
+    private var statusCard: some View {
+        VStack(spacing: 8) {
+            // Row 1: Health + Food bars
+            HStack(spacing: 10) {
+                HStack(spacing: 6) {
+                    Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 14))
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.12))
+                            Capsule().fill(hpGradient)
+                                .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalHealth / 100))))
+                                .animation(.spring(response: 0.6), value: appState.animalHealth)
+                        }
+                    }
+                    .frame(height: 7)
+                    Text("\(Int(appState.animalHealth))%")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(width: 28, alignment: .trailing)
+                }
 
-    private var evolutionChip: some View {
-        HStack(spacing: 3) {
-            Text(appState.evolutionEmoji).font(.system(size: 11))
-            Text("L\(appState.level)").font(.system(size: 11, weight: .black)).foregroundColor(.ajOrange)
-        }
-        .padding(.horizontal, 7).padding(.vertical, 5)
-        .background(Capsule().fill(Color.black.opacity(0.44)))
-    }
+                Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1, height: 18)
 
-    private func hudChip(_ icon: String, _ text: String, _ color: Color) -> some View {
-        HStack(spacing: 3) {
-            Text(icon).font(.system(size: 11))
-            Text(text).font(.system(size: 11, weight: .black)).foregroundColor(color)
-        }
-        .padding(.horizontal, 7).padding(.vertical, 5)
-        .background(Capsule().fill(Color.black.opacity(0.44)))
-    }
-
-    private var vitalsPill: some View {
-        HStack(spacing: 5) {
-            Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 11))
-            GeometryReader { g in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).fill(Color.black.opacity(0.34))
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(hpGradient)
-                        .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalHealth / 100))))
-                        .animation(.spring(response: 0.6), value: appState.animalHealth)
+                HStack(spacing: 6) {
+                    Text(appState.animalFood > 30 ? appState.selectedAnimal.foodEmoji : "🍖")
+                        .font(.system(size: 14))
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.12))
+                            Capsule().fill(foodGradient)
+                                .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalFood / 100))))
+                                .animation(.spring(response: 0.6), value: appState.animalFood)
+                        }
+                    }
+                    .frame(height: 7)
+                    Text("\(Int(appState.animalFood))%")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(width: 28, alignment: .trailing)
                 }
             }
-            .frame(width: 54, height: 7)
+            .onTapGesture { showDailyFoodCheck = true }
 
-            Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1, height: 12)
+            Divider().background(Color.white.opacity(0.12))
 
-            Text(appState.animalFood > 30 ? appState.selectedAnimal.foodEmoji : "🍖")
-                .font(.system(size: 11))
-            GeometryReader { g in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3).fill(Color.black.opacity(0.34))
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(foodGradient)
-                        .frame(width: g.size.width * CGFloat(max(0, min(1, appState.animalFood / 100))))
-                        .animation(.spring(response: 0.6), value: appState.animalFood)
-                }
+            // Row 2: Streak + Level + Coins
+            HStack(spacing: 0) {
+                statCell("🔥", "\(appState.streak)d", "Streak")
+                Spacer()
+                Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 22)
+                Spacer()
+                statCell(appState.evolutionEmoji, "Lv.\(appState.level)", "Level")
+                Spacer()
+                Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 22)
+                Spacer()
+                statCell("🪙", "\(appState.animalCoins)", "Coins")
             }
-            .frame(width: 44, height: 7)
         }
-        .padding(.horizontal, 8).padding(.vertical, 6)
-        .background(Capsule().fill(Color.black.opacity(0.44)))
-        .onTapGesture { showDailyFoodCheck = true }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 11)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color.black.opacity(0.55))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                .shadow(color: .black.opacity(0.4), radius: 14, y: 5)
+        )
+    }
+
+    private func statCell(_ icon: String, _ value: String, _ label: String) -> some View {
+        VStack(spacing: 1) {
+            HStack(spacing: 3) {
+                Text(icon).font(.system(size: 13))
+                Text(value).font(.system(size: 13, weight: .black)).foregroundColor(.white)
+            }
+            Text(label)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white.opacity(0.40))
+        }
     }
 
     private var foodGradient: LinearGradient {
@@ -651,45 +672,146 @@ struct HomeView: View {
         )
     }
 
+    // MARK: - Monthly progress card
+
+    private var monthlyProgressCard: some View {
+        let budget  = appState.dailyBudget * 30
+        let spent   = appState.totalSpent
+        let pct     = budget > 0 ? min(spent / budget, 1.0) : 0
+        let diff    = appState.lastMonthSpent - spent
+        let hasBudget = budget > 0
+
+        return HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("THIS MONTH")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.white.opacity(0.45))
+                    .tracking(1.5)
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("$\(String(format: "%.0f", spent))")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(.white)
+                    if hasBudget {
+                        Text("/ $\(String(format: "%.0f", budget))")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                }
+                if hasBudget {
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.10))
+                            Capsule()
+                                .fill(pct > 0.85
+                                      ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
+                                      : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: g.size.width * CGFloat(pct))
+                                .animation(.spring(response: 0.7), value: pct)
+                        }
+                    }
+                    .frame(height: 5)
+                }
+            }
+
+            Spacer()
+
+            if appState.lastMonthSpent > 0 {
+                VStack(spacing: 2) {
+                    Text(diff > 0 ? "🎉" : "📈").font(.system(size: 18))
+                    Text(diff > 0 ? "-$\(Int(diff))" : "+$\(Int(abs(diff)))")
+                        .font(.system(size: 12, weight: .black))
+                        .foregroundColor(diff > 0
+                                         ? Color(red: 0.2, green: 0.85, blue: 0.45)
+                                         : .ajOrangeRed)
+                    Text("vs last mo.")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.40))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.black.opacity(0.52))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.14), lineWidth: 1))
+        )
+    }
+
     // MARK: - Bottom actions
 
     private var bottomActions: some View {
-        HStack(spacing: 10) {
-            Button { showShop = true } label: {
-                VStack(spacing: 3) {
-                    Text("🛍️").font(.system(size: 20))
-                    Text("Shop").font(.system(size: 10, weight: .black)).foregroundColor(.white)
+        VStack(spacing: 10) {
+            // Hero CTA
+            Button {
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                showScanner = true
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "camera.fill")
+                        .font(.system(size: 18, weight: .bold))
+                    Text("📸 Snap Receipt")
+                        .font(.system(size: 15, weight: .black))
                 }
-                .frame(width: 62).padding(.vertical, 10)
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 17)
                 .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.black.opacity(0.46))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.14), lineWidth: 1))
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(LinearGradient(
+                                colors: [.ajOrange, .ajOrangeRed],
+                                startPoint: .leading, endPoint: .trailing
+                            ))
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.ajOrange, lineWidth: 2.5)
+                            .scaleEffect(receiptPulse ? 1.08 : 1.0)
+                            .opacity(receiptPulse ? 0.0 : 0.7)
+                            .animation(
+                                .easeOut(duration: 1.6).repeatForever(autoreverses: false),
+                                value: receiptPulse
+                            )
+                    }
+                    .shadow(color: .ajOrange.opacity(0.55), radius: 18, y: 5)
                 )
             }
-            Button { showScanner = true } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: "camera.fill").font(.system(size: 14, weight: .bold))
-                    Text("Snap Receipt").font(.system(size: 13, weight: .black))
+            .onAppear { receiptPulse = true }
+
+            // Secondary row
+            HStack(spacing: 10) {
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showShop = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("🛍️").font(.system(size: 16))
+                        Text("Shop").font(.system(size: 12, weight: .black)).foregroundColor(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black.opacity(0.50))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                    )
                 }
-                .foregroundColor(.black).frame(maxWidth: .infinity).padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
-                        .shadow(color: .ajOrange.opacity(0.40), radius: 8, y: 3)
-                )
-            }
-            Button { showAddGoal = true } label: {
-                VStack(spacing: 3) {
-                    Text("🎯").font(.system(size: 20))
-                    Text("Goals").font(.system(size: 10, weight: .black)).foregroundColor(.white)
+
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    showAddGoal = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Text("🎯").font(.system(size: 16))
+                        Text("Goals").font(.system(size: 12, weight: .black)).foregroundColor(.white)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black.opacity(0.50))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                    )
                 }
-                .frame(width: 62).padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.black.opacity(0.46))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.14), lineWidth: 1))
-                )
             }
         }
     }
