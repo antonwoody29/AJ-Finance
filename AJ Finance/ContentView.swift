@@ -107,6 +107,7 @@ struct ContentView: View {
 
 private struct AJTabBar: View {
     @Binding var selected: Int
+    @State private var bouncing = [Bool](repeating: false, count: 7)
 
     private struct TabItem {
         var label: String
@@ -130,6 +131,7 @@ private struct AJTabBar: View {
                 Button {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) { selected = i }
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    triggerBounce(i)
                 } label: {
                     VStack(spacing: 2) {
                         ZStack {
@@ -143,10 +145,10 @@ private struct AJTabBar: View {
                                 .font(.system(size: selected == i ? 21 : 17,
                                               weight: selected == i ? .bold : .regular))
                                 .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.35))
-                                .scaleEffect(selected == i ? 1.08 : 1.0)
+                                .scaleEffect(bouncing[i] ? 1.28 : (selected == i ? 1.08 : 1.0))
+                                .animation(.spring(response: 0.22, dampingFraction: 0.45), value: bouncing[i])
                                 .animation(.spring(response: 0.28), value: selected)
                         }
-                        // Label only on active tab
                         if selected == i {
                             Text(items[i].label)
                                 .font(.system(size: 10, weight: .black))
@@ -174,6 +176,11 @@ private struct AJTabBar: View {
         )
         .padding(.horizontal, 14)
         .padding(.bottom, 28)
+    }
+
+    private func triggerBounce(_ i: Int) {
+        bouncing[i] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { bouncing[i] = false }
     }
 }
 

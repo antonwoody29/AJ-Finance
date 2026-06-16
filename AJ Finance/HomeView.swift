@@ -27,6 +27,9 @@ struct HomeView: View {
     // Receipt button pulse
     @State private var receiptPulse = false
 
+    // Cloud drift animation
+    @State private var cloudDrift = false
+
     // Coin burst
     @State private var coinBurstAmount  = 1
     @State private var coinBurstOffset: CGFloat = 0
@@ -118,6 +121,11 @@ struct HomeView: View {
                     starsView(geo: geo)
                 }
 
+                // ── Layer 3.5: Animated clouds ────────────────────────
+                if !isNight {
+                    cloudLayer(geo: geo)
+                }
+
                 // ── Layer 4: Ambient habitat particles ────────────────
                 AmbientParticles(
                     habitat: appState.selectedAnimal.habitat,
@@ -169,13 +177,13 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     Spacer()
                     goalPillsRow
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 5)
                     monthlyProgressCard
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 8)
+                        .padding(.bottom, 5)
                     bottomActions
                         .padding(.horizontal, 16)
-                        .padding(.bottom, 106)
+                        .padding(.bottom, 100)
                 }
 
                 // ── Layer 11: Coin burst ───────────────────────────────
@@ -199,8 +207,8 @@ struct HomeView: View {
             currentHour = Calendar.current.component(.hour, from: Date())
             appState.checkHealthDecay()
             appState.checkFoodDecay()
-            // Context-aware greeting — pet "notices" the moment
             appState.currentSpeech = appState.generateContextualGreeting()
+            cloudDrift = true
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 startIdleSway()
                 scheduleBehavior(after: 2.0)
@@ -217,10 +225,42 @@ struct HomeView: View {
 
     // MARK: - Ground geometry
 
-    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.585 }
+    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.600 }
     private func clamped(_ v: CGFloat, _ lo: CGFloat, _ hi: CGFloat) -> CGFloat { max(lo, min(hi, v)) }
 
     // MARK: - Atmosphere layers
+
+    private func cloudLayer(geo: GeometryProxy) -> some View {
+        ZStack {
+            Text("☁️")
+                .font(.system(size: 44))
+                .opacity(0.50)
+                .position(
+                    x: geo.size.width * 0.18 - roamX * 0.04 + (cloudDrift ? 10 : -10),
+                    y: geo.size.height * 0.195 + (cloudDrift ? -6 : 6)
+                )
+                .animation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true), value: cloudDrift)
+
+            Text("☁️")
+                .font(.system(size: 30))
+                .opacity(0.32)
+                .position(
+                    x: geo.size.width * 0.73 - roamX * 0.03 + (cloudDrift ? -12 : 12),
+                    y: geo.size.height * 0.165 + (cloudDrift ? 7 : -7)
+                )
+                .animation(.easeInOut(duration: 5.8).repeatForever(autoreverses: true), value: cloudDrift)
+
+            Text("☁️")
+                .font(.system(size: 22))
+                .opacity(0.22)
+                .position(
+                    x: geo.size.width * 0.50 - roamX * 0.02 + (cloudDrift ? 7 : -7),
+                    y: geo.size.height * 0.265 + (cloudDrift ? -4 : 4)
+                )
+                .animation(.easeInOut(duration: 3.8).repeatForever(autoreverses: true), value: cloudDrift)
+        }
+        .allowsHitTesting(false)
+    }
 
     private var atmosphereTint: some View {
         let (color, opacity): (Color, Double) = {
@@ -271,7 +311,7 @@ struct HomeView: View {
             AnimalCanvas(
                 type: appState.selectedAnimal,
                 mood: appState.animalMood,
-                size: 192,
+                size: 210,
                 outfit: appState.equippedOutfit,
                 isWalking: isWalking,
                 evolutionStage: appState.animalGrowthStage
@@ -284,7 +324,7 @@ struct HomeView: View {
         }
         .position(
             x: geo.size.width / 2 + roamX,
-            y: groundY(geo) - 70 + stepBob + behaviorBob + (animalJump ? -52 : 0)
+            y: groundY(geo) - 74 + stepBob + behaviorBob + (animalJump ? -52 : 0)
         )
         .contentShape(Circle().size(CGSize(width: 200, height: 200)))
         .onTapGesture { handleTap() }
@@ -528,11 +568,11 @@ struct HomeView: View {
     // MARK: - Status Card (replaces scattered HUD pills)
 
     private var statusCard: some View {
-        VStack(spacing: 8) {
-            // Row 1: Health + Food bars
-            HStack(spacing: 10) {
-                HStack(spacing: 6) {
-                    Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 14))
+        HStack(spacing: 0) {
+            // HP bar section
+            Button { showDailyFoodCheck = true } label: {
+                HStack(spacing: 5) {
+                    Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 13))
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Capsule().fill(Color.white.opacity(0.12))
@@ -541,18 +581,18 @@ struct HomeView: View {
                                 .animation(.spring(response: 0.6), value: appState.animalHealth)
                         }
                     }
-                    .frame(height: 7)
-                    Text("\(Int(appState.animalHealth))%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.65))
-                        .frame(width: 28, alignment: .trailing)
+                    .frame(width: 44, height: 6)
                 }
+            }
+            .buttonStyle(.plain)
 
-                Rectangle().fill(Color.white.opacity(0.18)).frame(width: 1, height: 18)
+            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16).padding(.horizontal, 8)
 
-                HStack(spacing: 6) {
+            // Food bar section
+            Button { showDailyFoodCheck = true } label: {
+                HStack(spacing: 5) {
                     Text(appState.animalFood > 30 ? appState.selectedAnimal.foodEmoji : "🍖")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Capsule().fill(Color.white.opacity(0.12))
@@ -561,49 +601,36 @@ struct HomeView: View {
                                 .animation(.spring(response: 0.6), value: appState.animalFood)
                         }
                     }
-                    .frame(height: 7)
-                    Text("\(Int(appState.animalFood))%")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.65))
-                        .frame(width: 28, alignment: .trailing)
+                    .frame(width: 44, height: 6)
                 }
             }
-            .onTapGesture { showDailyFoodCheck = true }
+            .buttonStyle(.plain)
 
-            Divider().background(Color.white.opacity(0.12))
+            Spacer()
 
-            // Row 2: Streak + Level + Coins
-            HStack(spacing: 0) {
-                statCell("🔥", "\(appState.streak)d", "Streak")
-                Spacer()
-                Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 22)
-                Spacer()
-                statCell(appState.evolutionEmoji, "Lv.\(appState.level)", "Level")
-                Spacer()
-                Rectangle().fill(Color.white.opacity(0.12)).frame(width: 1, height: 22)
-                Spacer()
-                statCell("🪙", "\(appState.animalCoins)", "Coins")
-            }
+            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16).padding(.horizontal, 8)
+
+            // Stats
+            compactStat("🔥", "\(appState.streak)d")
+            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16).padding(.horizontal, 8)
+            compactStat(appState.evolutionEmoji, "Lv.\(appState.level)")
+            Rectangle().fill(Color.white.opacity(0.15)).frame(width: 1, height: 16).padding(.horizontal, 8)
+            compactStat("🪙", "\(appState.animalCoins)")
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 11)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 9)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.black.opacity(0.55))
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.16), lineWidth: 1))
-                .shadow(color: .black.opacity(0.4), radius: 14, y: 5)
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color.black.opacity(0.58))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                .shadow(color: .black.opacity(0.4), radius: 12, y: 4)
         )
     }
 
-    private func statCell(_ icon: String, _ value: String, _ label: String) -> some View {
-        VStack(spacing: 1) {
-            HStack(spacing: 3) {
-                Text(icon).font(.system(size: 13))
-                Text(value).font(.system(size: 13, weight: .black)).foregroundColor(.white)
-            }
-            Text(label)
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundColor(.white.opacity(0.40))
+    private func compactStat(_ icon: String, _ value: String) -> some View {
+        HStack(spacing: 3) {
+            Text(icon).font(.system(size: 12))
+            Text(value).font(.system(size: 12, weight: .black)).foregroundColor(.white)
         }
     }
 
@@ -674,74 +701,97 @@ struct HomeView: View {
 
     // MARK: - Monthly progress card
 
+    private var monthlyEncouragement: String {
+        let budget = appState.dailyBudget * 30
+        guard budget > 0 else { return "Set a budget to unlock insights 📊" }
+        let pct = min(appState.totalSpent / budget, 1.0)
+        if pct == 0       { return "Fresh start! Make it count ✨" }
+        if pct < 0.25     { return "Off to an amazing start! 🌱" }
+        if pct < 0.55     { return "You're on track, keep it up 💪" }
+        if pct < 0.80     { return "More than halfway, stay steady 🎯" }
+        if pct < 1.0      { return "Getting close to the limit 👀" }
+        return "Budget maxed! Time to chill 🛑"
+    }
+
     private var monthlyProgressCard: some View {
-        let budget  = appState.dailyBudget * 30
-        let spent   = appState.totalSpent
-        let pct     = budget > 0 ? min(spent / budget, 1.0) : 0
-        let diff    = appState.lastMonthSpent - spent
+        let budget    = appState.dailyBudget * 30
+        let spent     = appState.totalSpent
+        let pct       = budget > 0 ? min(spent / budget, 1.0) : 0
+        let diff      = appState.lastMonthSpent - spent
         let hasBudget = budget > 0
 
-        return HStack(spacing: 12) {
-            VStack(alignment: .leading, spacing: 5) {
-                Text("THIS MONTH")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundColor(.white.opacity(0.45))
-                    .tracking(1.5)
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("$\(String(format: "%.0f", spent))")
-                        .font(.system(size: 20, weight: .black))
-                        .foregroundColor(.white)
-                    if hasBudget {
-                        Text("/ $\(String(format: "%.0f", budget))")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.45))
-                    }
-                }
-                if hasBudget {
-                    GeometryReader { g in
-                        ZStack(alignment: .leading) {
-                            Capsule().fill(Color.white.opacity(0.10))
-                            Capsule()
-                                .fill(pct > 0.85
-                                      ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
-                                      : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
-                                .frame(width: g.size.width * CGFloat(pct))
-                                .animation(.spring(response: 0.7), value: pct)
+        return VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("THIS MONTH")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.42))
+                        .tracking(1.5)
+                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        Text("$\(String(format: "%.0f", spent))")
+                            .font(.system(size: 22, weight: .black))
+                            .foregroundColor(.white)
+                        if hasBudget {
+                            Text("/ $\(String(format: "%.0f", budget))")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.42))
                         }
                     }
-                    .frame(height: 5)
+                }
+
+                Spacer()
+
+                if appState.lastMonthSpent > 0 {
+                    VStack(spacing: 1) {
+                        Text(diff > 0 ? "🎉" : "📈").font(.system(size: 16))
+                        Text(diff > 0 ? "-$\(Int(diff))" : "+$\(Int(abs(diff)))")
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundColor(diff > 0
+                                             ? Color(red: 0.2, green: 0.85, blue: 0.45)
+                                             : .ajOrangeRed)
+                        Text("vs last mo.")
+                            .font(.system(size: 7, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.38))
+                    }
                 }
             }
 
-            Spacer()
-
-            if appState.lastMonthSpent > 0 {
-                VStack(spacing: 2) {
-                    Text(diff > 0 ? "🎉" : "📈").font(.system(size: 18))
-                    Text(diff > 0 ? "-$\(Int(diff))" : "+$\(Int(abs(diff)))")
-                        .font(.system(size: 12, weight: .black))
-                        .foregroundColor(diff > 0
-                                         ? Color(red: 0.2, green: 0.85, blue: 0.45)
-                                         : .ajOrangeRed)
-                    Text("vs last mo.")
-                        .font(.system(size: 8, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.40))
+            // Progress bar — always visible
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.10))
+                    Capsule()
+                        .fill(hasBudget
+                              ? (pct > 0.85
+                                 ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
+                                 : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                              : LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: hasBudget
+                               ? max(g.size.width * 0.04, g.size.width * CGFloat(pct))
+                               : g.size.width * 0.35)
+                        .animation(.spring(response: 0.7), value: pct)
                 }
             }
+            .frame(height: 5)
+
+            // Encouraging copy
+            Text(monthlyEncouragement)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.white.opacity(0.58))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.black.opacity(0.52))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.14), lineWidth: 1))
+                .fill(Color.black.opacity(0.54))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.16), lineWidth: 1))
         )
     }
 
     // MARK: - Bottom actions
 
     private var bottomActions: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             // Hero CTA
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -755,7 +805,7 @@ struct HomeView: View {
                 }
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 17)
+                .padding(.vertical, 15)
                 .background(
                     ZStack {
                         RoundedRectangle(cornerRadius: 18)
@@ -784,15 +834,16 @@ struct HomeView: View {
                     showShop = true
                 } label: {
                     HStack(spacing: 6) {
-                        Text("🛍️").font(.system(size: 16))
-                        Text("Shop").font(.system(size: 12, weight: .black)).foregroundColor(.white)
+                        Text("🛍️").font(.system(size: 17))
+                        Text("Shop").font(.system(size: 13, weight: .black)).foregroundColor(.white)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 15)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.50))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                            .fill(Color.black.opacity(0.48))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
+                            .shadow(color: .black.opacity(0.25), radius: 8, y: 3)
                     )
                 }
 
@@ -801,15 +852,16 @@ struct HomeView: View {
                     showAddGoal = true
                 } label: {
                     HStack(spacing: 6) {
-                        Text("🎯").font(.system(size: 16))
-                        Text("Goals").font(.system(size: 12, weight: .black)).foregroundColor(.white)
+                        Text("🎯").font(.system(size: 17))
+                        Text("Goals").font(.system(size: 13, weight: .black)).foregroundColor(.white)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 15)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.50))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.16), lineWidth: 1))
+                            .fill(Color.black.opacity(0.48))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
+                            .shadow(color: .black.opacity(0.25), radius: 8, y: 3)
                     )
                 }
             }
