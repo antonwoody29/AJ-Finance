@@ -66,6 +66,9 @@ struct SettingsView: View {
 
                     // Stats
                     statsCard
+
+                    // Data Export
+                    dataExportCard
                 }
                 .padding(20)
             }
@@ -780,6 +783,70 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Data Export
+
+    private var dataExportCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("DATA EXPORT")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    Text("📤").font(.system(size: 22))
+                }
+
+                Text("Export all your transactions to a CSV file — open in Excel, Numbers, or Google Sheets.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.65))
+
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(appState.transactions.count)")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                        Text("transactions")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                    Spacer()
+                    if appState.transactions.isEmpty {
+                        Text("No data yet")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.30))
+                    } else {
+                        ShareLink(
+                            item: csvExportFile(),
+                            subject: Text("AJ Finance – My Transactions"),
+                            message: Text("Here's my spending history from AJ Finance!")
+                        ) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 14, weight: .bold))
+                                Text("Export CSV")
+                                    .font(.system(size: 14, weight: .black))
+                            }
+                            .foregroundColor(.black)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 10)
+                            .background(
+                                Capsule().fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func csvExportFile() -> URL {
+        let csv  = appState.exportCSV()
+        let file = FileManager.default.temporaryDirectory.appendingPathComponent("AJFinance_Export.csv")
+        try? csv.write(to: file, atomically: true, encoding: .utf8)
+        return file
     }
 }
 

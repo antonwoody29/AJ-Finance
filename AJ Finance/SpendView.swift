@@ -11,20 +11,28 @@ struct SpendView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Monthly total hero card
-                    monthlyHeroCard
+                    if appState.monthlyTransactions.isEmpty {
+                        // Rich empty state
+                        spendEmptyState
+                    } else {
+                        // Monthly total hero card
+                        monthlyHeroCard
 
-                    // Spending personality card
-                    spendingPersonalityCard
+                        // Monthly recap story
+                        monthlyRecapCard
 
-                    // Month comparison
-                    comparisonCard
+                        // Spending personality card
+                        spendingPersonalityCard
 
-                    // Category breakdown
-                    categoryBreakdownCard
+                        // Month comparison
+                        comparisonCard
 
-                    // Transaction history
-                    transactionHistoryCard
+                        // Category breakdown
+                        categoryBreakdownCard
+
+                        // Transaction history
+                        transactionHistoryCard
+                    }
 
                     Spacer(minLength: 80)
                 }
@@ -59,6 +67,127 @@ struct SpendView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showScanner) {
             ReceiptScannerView()
+        }
+    }
+
+    // MARK: - Empty State
+
+    private var spendEmptyState: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 10) {
+                Text("🧾")
+                    .font(.system(size: 64))
+                Text("No receipts yet this month")
+                    .font(.system(size: 20, weight: .black))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                Text("Snap your first receipt and AJ will tell your money story.")
+                    .font(.system(size: 14))
+                    .foregroundColor(.white.opacity(0.50))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
+            }
+
+            // What you'll unlock
+            AJCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("ONCE YOU START LOGGING")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    ForEach(emptyStatePerks, id: \.icon) { perk in
+                        HStack(spacing: 12) {
+                            Text(perk.icon).font(.system(size: 20))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(perk.title)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text(perk.desc)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.50))
+                            }
+                        }
+                    }
+                }
+            }
+
+            Button { showScanner = true } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "camera.fill").font(.system(size: 16, weight: .bold))
+                    Text("Snap First Receipt").font(.system(size: 15, weight: .black))
+                }
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
+                        .shadow(color: .ajOrange.opacity(0.4), radius: 10, y: 4)
+                )
+            }
+        }
+        .padding(.top, 20)
+    }
+
+    private let emptyStatePerks: [(icon: String, title: String, desc: String)] = [
+        (icon: "🧠", title: "Your Spending Personality", desc: "Discover if you're a Planner, Chaos Goblin, or Foodie"),
+        (icon: "📊", title: "Category Breakdown",       desc: "See exactly where your money actually goes"),
+        (icon: "📖", title: "Your Month's Story",       desc: "AJ narrates your financial journey each month"),
+        (icon: "🏆", title: "Receipt Badges",           desc: "Earn achievements just for logging consistently"),
+    ]
+
+    // MARK: - Monthly Recap Story
+
+    private var monthlyRecapCard: some View {
+        let cats        = appState.spendingByCategory
+        let total       = appState.totalSpent
+        let topCat      = cats.max(by: { $0.value < $1.value })
+        let txCount     = appState.monthlyTransactions.count
+        let diff        = appState.totalSpent - appState.lastMonthSpent
+
+        return AJCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("YOUR MONTH'S STORY")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                // Narrative sentence
+                if let top = topCat, top.value > 0 {
+                    storyLine(
+                        icon: top.key.icon,
+                        text: "\(top.key.rawValue) was your biggest category this month — **$\(String(format: "%.0f", top.value))** out of $\(String(format: "%.0f", total)) total."
+                    )
+                }
+
+                storyLine(icon: "🧾", text: "You logged **\(txCount)** transaction\(txCount == 1 ? "" : "s") this month. \(txCount >= 10 ? "Incredible discipline! 🔥" : "Keep it up!")")
+
+                if appState.lastMonthSpent > 0 {
+                    let diffText = diff < 0
+                        ? "**$\(String(format: "%.0f", abs(diff))) less** than last month. You're trending in the right direction 🎉"
+                        : "**$\(String(format: "%.0f", diff)) more** than last month. Let's bring that down next month 💪"
+                    storyLine(icon: diff < 0 ? "📉" : "📈", text: diffText)
+                }
+
+                let budget = appState.dailyBudget * 30
+                if budget > 0 {
+                    let pct = total / budget
+                    let budgetLine = pct <= 1.0
+                        ? "You're **under budget** this month. Future you says thank you 🙏"
+                        : "You're **\(String(format: "%.0f", (pct - 1) * 100))% over budget**. Still recoverable bestie — just slow down 👀"
+                    storyLine(icon: pct <= 1.0 ? "🛡️" : "⚠️", text: budgetLine)
+                }
+            }
+        }
+    }
+
+    private func storyLine(icon: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Text(icon).font(.system(size: 16)).frame(width: 24)
+            Text(LocalizedStringKey(text))
+                .font(.system(size: 13))
+                .foregroundColor(.white.opacity(0.85))
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

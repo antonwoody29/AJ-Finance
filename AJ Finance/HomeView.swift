@@ -133,10 +133,17 @@ struct HomeView: View {
                     isNight: isNight
                 )
 
-                // ── Layer 5: Top HUD ───────────────────────────────────
-                statusCard
-                    .padding(.horizontal, 16)
-                    .padding(.top, max(geo.safeAreaInsets.top + 10, 60))
+                // ── Layer 5: Top HUD + daily snapshot ─────────────────
+                VStack(spacing: 6) {
+                    statusCard
+                    if appState.todayTransactionCount > 0 {
+                        dailySnapshotStrip
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, max(geo.safeAreaInsets.top + 10, 60))
+                .animation(.spring(response: 0.4), value: appState.todayTransactionCount)
 
                 // ── Layer 6: Speech bubble ────────────────────────────
                 if showSpeech && appState.animalIsAlive {
@@ -563,6 +570,47 @@ struct HomeView: View {
         coinBurstAmount = amount; coinBurstOffset = 0; coinBurstOpacity = 1.0
         withAnimation(.easeOut(duration: 1.05)) { coinBurstOffset = -88; coinBurstOpacity = 0 }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.1) { coinBurstOffset = 0 }
+    }
+
+    // MARK: - Daily Snapshot Strip
+
+    private var dailySnapshotStrip: some View {
+        let budget    = appState.dailyBudget
+        let spent     = appState.todaySpent
+        let count     = appState.todayTransactionCount
+        let underBudget = budget > 0 && spent <= budget
+        let pct       = budget > 0 ? min(spent / budget, 1.0) : 0
+
+        return HStack(spacing: 10) {
+            Text(underBudget ? "✅" : "⚠️").font(.system(size: 13))
+            Text("Today: **$\(String(format: "%.0f", spent))** · \(count) receipt\(count == 1 ? "" : "s")")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.90))
+            Spacer()
+            if budget > 0 {
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.10))
+                        Capsule()
+                            .fill(pct > 0.9
+                                  ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
+                                  : LinearGradient(colors: [.ajGreen, Color(red: 0, green: 0.7, blue: 0.3)], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: g.size.width * CGFloat(pct))
+                    }
+                }
+                .frame(width: 52, height: 5)
+                Text(underBudget ? "under" : "over")
+                    .font(.system(size: 9, weight: .bold))
+                    .foregroundColor(underBudget ? .ajGreen : .ajOrangeRed)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.black.opacity(0.48))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.12), lineWidth: 1))
+        )
     }
 
     // MARK: - Status Card (replaces scattered HUD pills)

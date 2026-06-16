@@ -130,15 +130,71 @@ struct GoalsView: View {
 
     private var emptyState: some View {
         VStack(spacing: 20) {
-            AJTiger(mood: .neutral, size: 120)
-            AJSpeechBubble(text: "No goals yet! Let's set one up 🎯")
-            Text("Add your first savings goal\nand AJ will help you crush it!")
-                .font(.system(size: 15))
-                .foregroundColor(.white.opacity(0.5))
-                .multilineTextAlignment(.center)
+            // Hero pet + speech
+            VStack(spacing: 10) {
+                AJTiger(mood: .happy, size: 100)
+                AJSpeechBubble(text: "No goals yet bestie 👀 Future you is waiting!")
+            }
+
+            // What are you saving for?
+            AJCard {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("WHAT ARE YOU SAVING FOR?")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                        ForEach(goalStarters, id: \.emoji) { starter in
+                            Button {
+                                showAddGoal = true
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text(starter.emoji).font(.system(size: 20))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(starter.name)
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(.white)
+                                        Text(starter.hint)
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.white.opacity(0.45))
+                                    }
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white.opacity(0.05))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.ajOrange.opacity(0.20), lineWidth: 1))
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+
+            // Motivational stat
+            HStack(spacing: 6) {
+                Text("💡")
+                Text("People with goals save 3× more than people without them.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+            .padding(.horizontal, 8)
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 10)
     }
+
+    private let goalStarters: [(emoji: String, name: String, hint: String)] = [
+        (emoji: "✈️", name: "Vacation",       hint: "Flights, hotels, fun"),
+        (emoji: "🏠", name: "Emergency Fund", hint: "3–6 months expenses"),
+        (emoji: "🚗", name: "New Car",        hint: "Down payment or full"),
+        (emoji: "🎓", name: "Education",      hint: "Classes, books, courses"),
+        (emoji: "💻", name: "Tech Upgrade",   hint: "New laptop or phone"),
+        (emoji: "🎁", name: "Holiday Gifts",  hint: "Stress-free gifting"),
+    ]
 
     private func sectionHeader(_ title: String, count: Int) -> some View {
         HStack {

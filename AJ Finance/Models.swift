@@ -307,40 +307,106 @@ enum SpendCategory: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum BadgeCategory: String, CaseIterable {
+    case streaks     = "Streaks"
+    case savings     = "Savings"
+    case receipts    = "Receipts"
+    case goals       = "Goals"
+    case milestones  = "Milestones"
+}
+
 enum BadgeType: String, CaseIterable, Codable, Identifiable {
-    case firstGoal    = "First Goal"
+    // Streaks
+    case streak3      = "3-Day Streak"
     case streak7      = "7-Day Streak"
+    case streak14     = "2-Week Streak"
     case streak30     = "30-Day Streak"
+    case weekWarrior  = "Week Warrior"
+    // Savings
+    case firstSave    = "First Save"
     case bigSaver     = "Big Saver"
-    case receiptKing  = "Receipt King"
-    case levelUp      = "Level Up"
-    case goalCrusher  = "Goal Crusher"
     case centurySaver = "Century Saver"
+    case thousandaire = "Thousandaire"
+    case coinCollector = "Coin Collector"
+    // Receipts
+    case firstReceipt = "First Receipt"
+    case receiptKing  = "Receipt King"
+    case budgetHero   = "Budget Hero"
+    case minimalist   = "Minimalist"
+    // Goals
+    case firstGoal    = "First Goal"
+    case goalCrusher  = "Goal Crusher"
+    case dreamBig     = "Dream Big"
+    case tripStarter  = "Trip Starter"
+    // Milestones
+    case levelUp      = "Level Up"
+    case level10      = "Level 10"
+    case petWhisperer = "Pet Whisperer"
+    case comeback     = "Comeback Kid"
+
     var id: String { rawValue }
+
+    var badgeCategory: BadgeCategory {
+        switch self {
+        case .streak3, .streak7, .streak14, .streak30, .weekWarrior: return .streaks
+        case .firstSave, .bigSaver, .centurySaver, .thousandaire, .coinCollector: return .savings
+        case .firstReceipt, .receiptKing, .budgetHero, .minimalist: return .receipts
+        case .firstGoal, .goalCrusher, .dreamBig, .tripStarter: return .goals
+        case .levelUp, .level10, .petWhisperer, .comeback: return .milestones
+        }
+    }
 
     var icon: String {
         switch self {
-        case .firstGoal:    return "🏆"
+        case .streak3:      return "🌱"
         case .streak7:      return "🔥"
-        case .streak30:     return "⚡"
+        case .streak14:     return "⚡"
+        case .streak30:     return "💫"
+        case .weekWarrior:  return "🗓️"
+        case .firstSave:    return "🐣"
         case .bigSaver:     return "💰"
-        case .receiptKing:  return "👑"
-        case .levelUp:      return "⭐"
-        case .goalCrusher:  return "💎"
         case .centurySaver: return "🎯"
+        case .thousandaire: return "💎"
+        case .coinCollector: return "🪙"
+        case .firstReceipt: return "🧾"
+        case .receiptKing:  return "👑"
+        case .budgetHero:   return "🛡️"
+        case .minimalist:   return "🧘"
+        case .firstGoal:    return "🏆"
+        case .goalCrusher:  return "💥"
+        case .dreamBig:     return "🌟"
+        case .tripStarter:  return "✈️"
+        case .levelUp:      return "⭐"
+        case .level10:      return "🚀"
+        case .petWhisperer: return "🐾"
+        case .comeback:     return "💙"
         }
     }
 
     var description: String {
         switch self {
-        case .firstGoal:    return "Completed your first savings goal!"
-        case .streak7:      return "Logged receipts 7 days in a row"
-        case .streak30:     return "Logged receipts 30 days in a row"
-        case .bigSaver:     return "Saved over $1,000 total"
-        case .receiptKing:  return "Logged 50+ receipts"
-        case .levelUp:      return "Reached level 5"
-        case .goalCrusher:  return "Completed 3 savings goals"
-        case .centurySaver: return "Saved $100+ in a single goal"
+        case .streak3:      return "Log 3 days in a row"
+        case .streak7:      return "Log 7 days in a row"
+        case .streak14:     return "Log 14 days in a row"
+        case .streak30:     return "Log 30 days in a row"
+        case .weekWarrior:  return "Log every day for a full week"
+        case .firstSave:    return "Make your first savings deposit"
+        case .bigSaver:     return "Save over $500 total"
+        case .centurySaver: return "Save $100+ in one goal"
+        case .thousandaire: return "Save $1,000+ total"
+        case .coinCollector: return "Collect 500 AJ coins"
+        case .firstReceipt: return "Log your very first receipt"
+        case .receiptKing:  return "Log 50+ receipts"
+        case .budgetHero:   return "Stay under budget all month"
+        case .minimalist:   return "Log a month with under $200 total"
+        case .firstGoal:    return "Complete your first savings goal"
+        case .goalCrusher:  return "Complete 3 savings goals"
+        case .dreamBig:     return "Set a goal over $1,000"
+        case .tripStarter:  return "Create your first trip"
+        case .levelUp:      return "Reach level 5"
+        case .level10:      return "Reach level 10"
+        case .petWhisperer: return "Keep your pet at 90%+ health for 7 days"
+        case .comeback:     return "Come back after your pet died"
         }
     }
 }

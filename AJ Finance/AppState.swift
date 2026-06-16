@@ -94,6 +94,72 @@ final class AppState {
         return sum
     }
 
+    var todaySpent: Double {
+        let cal = Calendar.current
+        return transactions.filter { !$0.isSaving && cal.isDateInToday($0.date) }.reduce(0) { $0 + $1.amount }
+    }
+
+    var todayTransactionCount: Int {
+        Calendar.current.isDateInToday(lastLogDate ?? .distantPast) ? transactions.filter { Calendar.current.isDateInToday($0.date) && !$0.isSaving }.count : 0
+    }
+
+    enum Season: String {
+        case spring = "Spring"
+        case summer = "Summer"
+        case fall   = "Fall"
+        case winter = "Winter"
+        var emoji: String {
+            switch self {
+            case .spring: return "🌸"
+            case .summer: return "☀️"
+            case .fall:   return "🍂"
+            case .winter: return "❄️"
+            }
+        }
+        var eventName: String {
+            switch self {
+            case .spring: return "Financial Glow-Up Month"
+            case .summer: return "Summer Vacation Event"
+            case .fall:   return "Back-to-School Savings"
+            case .winter: return "Holiday Survival Mode"
+            }
+        }
+        var tip: String {
+            switch self {
+            case .spring: return "Spring is for fresh financial starts 🌱"
+            case .summer: return "Summer trips hit different when you're funded ☀️"
+            case .fall:   return "Back-to-school season — protect the bag 🎒"
+            case .winter: return "Holiday mode: budget before you splurge 🎁"
+            }
+        }
+    }
+
+    var currentSeason: Season {
+        let month = Calendar.current.component(.month, from: Date())
+        switch month {
+        case 3...5: return .spring
+        case 6...8: return .summer
+        case 9...11: return .fall
+        default:    return .winter
+        }
+    }
+
+    func exportCSV() -> String {
+        var lines = ["Date,Category,Amount,Note,Type"]
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .none
+        for tx in transactions.sorted(by: { $0.date > $1.date }) {
+            let date  = formatter.string(from: tx.date)
+            let cat   = tx.isSaving ? "Saving" : tx.category.rawValue
+            let amt   = String(format: "%.2f", tx.amount)
+            let note  = tx.note.replacingOccurrences(of: ",", with: ";")
+            let type  = tx.isSaving ? "Saving" : "Expense"
+            lines.append("\(date),\(cat),\(amt),\(note),\(type)")
+        }
+        return lines.joined(separator: "\n")
+    }
+
     var xpForNextLevel: Int   { level * 150 }
     var xpProgress: Double    { Double(xp % max(xpForNextLevel, 1)) / Double(max(xpForNextLevel, 1)) }
 
@@ -564,15 +630,33 @@ final class AppState {
 
     func checkBadges() {
         let completed = completedGoals
+        // Streaks
+        if streak >= 3  { earnBadge(.streak3) }
+        if streak >= 7  { earnBadge(.streak7); earnBadge(.weekWarrior) }
+        if streak >= 14 { earnBadge(.streak14) }
+        if streak >= 30 { earnBadge(.streak30) }
+        // Receipts
+        if receiptCount >= 1  { earnBadge(.firstReceipt) }
+        if receiptCount >= 50 { earnBadge(.receiptKing) }
+        let budget = dailyBudget * 30
+        if budget > 0 && totalSpent <= budget && totalSpent > 0 { earnBadge(.budgetHero) }
+        if totalSpent > 0 && totalSpent < 200 { earnBadge(.minimalist) }
+        // Savings
+        if totalSaved >= 1    { earnBadge(.firstSave) }
+        if totalSaved >= 500  { earnBadge(.bigSaver) }
+        if totalSaved >= 1000 { earnBadge(.thousandaire) }
+        if animalCoins >= 500 { earnBadge(.coinCollector) }
+        for g in goals where g.currentAmount >= 100 { earnBadge(.centurySaver); break }
+        // Goals
         if completed.count >= 1 { earnBadge(.firstGoal) }
         if completed.count >= 3 { earnBadge(.goalCrusher) }
-        if streak >= 7           { earnBadge(.streak7) }
-        if streak >= 30          { earnBadge(.streak30) }
-        if totalSaved  >= 1000   { earnBadge(.bigSaver) }
-        if receiptCount >= 50    { earnBadge(.receiptKing) }
-        var hasBigGoal = false
-        for g in goals where g.currentAmount >= 100 { hasBigGoal = true; break }
-        if hasBigGoal { earnBadge(.centurySaver) }
+        for g in goals where g.targetAmount >= 1000 { earnBadge(.dreamBig); break }
+        if !trips.isEmpty { earnBadge(.tripStarter) }
+        // Milestones
+        if level >= 5  { earnBadge(.levelUp) }
+        if level >= 10 { earnBadge(.level10) }
+        if animalHealth >= 90 { earnBadge(.petWhisperer) }
+        if animalDeathCount >= 1 && animalIsAlive { earnBadge(.comeback) }
     }
 
     func earnBadge(_ type: BadgeType) {
