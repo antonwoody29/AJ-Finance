@@ -848,13 +848,7 @@ struct AnimalBodyView: View {
         ctx.fill(head, with: .color(cfg.body))
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u * 0.030)
 
-        if cfg.cheekBlush {
-            for side: CGFloat in [-1, 1] {
-                var blush = Path(ellipseIn: CGRect(x: hx + side*u*0.12 - u*0.060,
-                                                    y: hy + u*0.03, width: u*0.12, height: u*0.072))
-                ctx.fill(blush, with: .color(Color(red:1.0, green:0.58, blue:0.64).opacity(0.48)))
-            }
-        }
+        // Cheek blush moved to drawFace for mood-reactivity
     }
 
     // MARK: - Hamster cheek pouches
@@ -963,56 +957,146 @@ struct AnimalBodyView: View {
         }
     }
 
-    // MARK: - Face (big Pokémon eyes)
+    // MARK: - Face (expressive eyes matching AJTiger design language)
 
     func drawFace(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat, u: CGFloat,
                   cfg: CharConfig, mood: AJMood, blink: Bool) {
         let eyeSep = u * 0.096
         let eyeY   = hy - u * 0.040
-        let er     = u * 0.074   // eye radius — big!
+        let er     = u * 0.084   // bigger sclera — more expressive
+
+        // Mood-reactive cheek blush (drawn before eyes so they sit on top)
+        if cfg.cheekBlush {
+            let blushOpacity: Double = (mood == .happy || mood == .hype) ? 0.62 : 0.38
+            for side: CGFloat in [-1, 1] {
+                var blush = Path(ellipseIn: CGRect(x: hx + side*u*0.13 - u*0.068,
+                                                    y: hy + u*0.022, width: u*0.136, height: u*0.082))
+                ctx.fill(blush, with: .color(Color(red: 1.0, green: 0.58, blue: 0.64).opacity(blushOpacity)))
+            }
+        }
 
         for side: CGFloat in [-1, 1] {
             let ex = hx + side * eyeSep
             let ey = eyeY
+            let eh = cfg.eyeKind == .wide ? er * 1.16 : er
 
-            if blink || mood == .sleep {
-                // Cute curved blink line
+            if blink {
+                // Simple happy blink arc
                 var b = Path()
-                b.move(to:     CGPoint(x: ex - er * 0.88, y: ey))
-                b.addCurve(to: CGPoint(x: ex + er * 0.88, y: ey),
-                           control1: CGPoint(x: ex - er*0.40, y: ey - er*0.60),
-                           control2: CGPoint(x: ex + er*0.40, y: ey - er*0.60))
+                b.move(to:     CGPoint(x: ex - er*0.88, y: ey))
+                b.addCurve(to: CGPoint(x: ex + er*0.88, y: ey),
+                           control1: CGPoint(x: ex - er*0.40, y: ey - er*0.62),
+                           control2: CGPoint(x: ex + er*0.40, y: ey - er*0.62))
                 ctx.stroke(b, with: .color(cfg.outline), lineWidth: u*0.026)
+            } else if mood == .sleep {
+                // Droopy shut arc + 3 lashes
+                var b = Path()
+                b.move(to:     CGPoint(x: ex - er*0.92, y: ey))
+                b.addCurve(to: CGPoint(x: ex + er*0.92, y: ey),
+                           control1: CGPoint(x: ex - er*0.42, y: ey - er*0.68),
+                           control2: CGPoint(x: ex + er*0.42, y: ey - er*0.68))
+                ctx.stroke(b, with: .color(cfg.outline), lineWidth: u*0.030)
+                for i: CGFloat in [-1, 0, 1] {
+                    var lash = Path()
+                    lash.move(to: CGPoint(x: ex + i*er*0.58,  y: ey - er*0.22))
+                    lash.addLine(to: CGPoint(x: ex + i*er*0.76, y: ey - er*0.88))
+                    ctx.stroke(lash, with: .color(cfg.outline), lineWidth: u*0.020)
+                }
             } else {
-                let eh = cfg.eyeKind == .wide ? er * 1.16 : er
-                // White sclera
+                // White sclera (larger)
                 var white = Path(ellipseIn: CGRect(x: ex - er, y: ey - eh, width: er*2, height: eh*2))
                 ctx.fill(white, with: .color(.white))
-                ctx.stroke(white, with: .color(cfg.outline), lineWidth: u*0.026)
+                ctx.stroke(white, with: .color(cfg.outline), lineWidth: u*0.024)
 
-                // Colored iris
-                let ir = er * 0.66
-                var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir * (cfg.eyeKind == .wide ? 1.10 : 0.95), width: ir*2, height: ir*2))
-                ctx.fill(iris, with: .color(cfg.iris))
+                switch mood {
+                case .hype:
+                    // Full iris + sparkle gold ring + glints
+                    let ir = er * 0.70
+                    var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir, width: ir*2, height: ir*2))
+                    ctx.fill(iris, with: .color(cfg.iris))
+                    let pr = ir * 0.58
+                    var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr, width: pr*2, height: pr*2))
+                    ctx.fill(pupil, with: .color(.black))
+                    // Gold ring
+                    ctx.stroke(white, with: .color(Color(red: 1.0, green: 0.80, blue: 0.0)), lineWidth: u*0.018)
+                    // Sparkle highlights
+                    var hl = Path(ellipseIn: CGRect(x: ex + ir*0.12, y: ey - ir*0.72, width: pr*0.66, height: pr*0.66))
+                    ctx.fill(hl, with: .color(.white))
+                    var hl2 = Path(ellipseIn: CGRect(x: ex - ir*0.46, y: ey - ir*0.28, width: pr*0.36, height: pr*0.36))
+                    ctx.fill(hl2, with: .color(Color(red: 1.0, green: 0.85, blue: 0.0).opacity(0.80)))
 
-                // Dark pupil
-                let pr = ir * 0.62
-                var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr*0.92, width: pr*2, height: pr*2))
-                ctx.fill(pupil, with: .color(.black))
+                case .happy:
+                    // Iris + pupil
+                    let ir = er * 0.64
+                    var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir*0.92, width: ir*2, height: ir*2))
+                    ctx.fill(iris, with: .color(cfg.iris))
+                    let pr = ir * 0.60
+                    var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr*0.88, width: pr*2, height: pr*2))
+                    ctx.fill(pupil, with: .color(.black))
+                    var hl = Path(ellipseIn: CGRect(x: ex + ir*0.12, y: ey - ir*0.68, width: pr*0.58, height: pr*0.58))
+                    ctx.fill(hl, with: .color(.white))
+                    // Smiling squint: body-colored arch covers lower sclera
+                    var squint = Path()
+                    squint.move(to: CGPoint(x: ex - er, y: ey + er*0.40))
+                    squint.addQuadCurve(to: CGPoint(x: ex + er, y: ey + er*0.40),
+                                        control: CGPoint(x: ex, y: ey + er*0.04))
+                    squint.addLine(to: CGPoint(x: ex + er, y: ey + er*1.20))
+                    squint.addLine(to: CGPoint(x: ex - er, y: ey + er*1.20))
+                    squint.closeSubpath()
+                    ctx.fill(squint, with: .color(cfg.body))
 
-                // White highlight (signature Pokémon sparkle)
-                var hl = Path(ellipseIn: CGRect(x: ex + ir*0.14, y: ey - ir*0.68, width: pr*0.58, height: pr*0.58))
-                ctx.fill(hl, with: .color(.white))
-                // Second smaller highlight
-                var hl2 = Path(ellipseIn: CGRect(x: ex - ir*0.42, y: ey - ir*0.35, width: pr*0.28, height: pr*0.28))
-                ctx.fill(hl2, with: .color(.white.opacity(0.65)))
-
-                // Angry eyebrow
-                if mood == .angry {
+                case .sad:
+                    // Droopy iris position + cover lower sclera
+                    let ir = er * 0.64
+                    var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir*0.58, width: ir*2, height: ir*2))
+                    ctx.fill(iris, with: .color(cfg.iris))
+                    let pr = ir * 0.60
+                    var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr*0.52, width: pr*2, height: pr*2))
+                    ctx.fill(pupil, with: .color(.black))
+                    var hl = Path(ellipseIn: CGRect(x: ex + ir*0.12, y: ey - ir*0.36, width: pr*0.50, height: pr*0.50))
+                    ctx.fill(hl, with: .color(.white))
+                    // Lower-lid cover
+                    var cover = Path()
+                    cover.move(to: CGPoint(x: ex - er, y: ey + er*0.20))
+                    cover.addLine(to: CGPoint(x: ex + er, y: ey + er*0.20))
+                    cover.addLine(to: CGPoint(x: ex + er, y: ey + er*1.20))
+                    cover.addLine(to: CGPoint(x: ex - er, y: ey + er*1.20))
+                    cover.closeSubpath()
+                    ctx.fill(cover, with: .color(cfg.body))
+                    // Worried brows: inner corner dips DOWN
                     var brow = Path()
-                    brow.move(to: CGPoint(x: ex - er*0.80, y: ey - eh*0.88))
-                    brow.addLine(to: CGPoint(x: ex + er*0.80, y: ey - eh*0.64 - side*u*0.038))
+                    brow.move(to: CGPoint(x: ex - er*0.82, y: ey - eh*0.90 - side*u*0.024))
+                    brow.addLine(to: CGPoint(x: ex + er*0.82, y: ey - eh*0.90 + side*u*0.024))
                     ctx.stroke(brow, with: .color(cfg.outline), lineWidth: u*0.026)
+
+                case .angry:
+                    // Large iris + V-brows angled UP toward center
+                    let ir = er * 0.70
+                    var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir, width: ir*2, height: ir*2))
+                    ctx.fill(iris, with: .color(cfg.iris))
+                    let pr = ir * 0.60
+                    var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr, width: pr*2, height: pr*2))
+                    ctx.fill(pupil, with: .color(.black))
+                    var hl = Path(ellipseIn: CGRect(x: ex + ir*0.14, y: ey - ir*0.68, width: pr*0.55, height: pr*0.55))
+                    ctx.fill(hl, with: .color(.white))
+                    // V-brows: inner corner rises UP
+                    var brow = Path()
+                    brow.move(to: CGPoint(x: ex - er*0.82, y: ey - eh*0.90 + side*u*0.030))
+                    brow.addLine(to: CGPoint(x: ex + er*0.82, y: ey - eh*0.90 - side*u*0.030))
+                    ctx.stroke(brow, with: .color(cfg.outline), lineWidth: u*0.030)
+
+                default:
+                    // Standard: iris + pupil + two highlights
+                    let ir = er * 0.66
+                    var iris = Path(ellipseIn: CGRect(x: ex - ir, y: ey - ir*(cfg.eyeKind == .wide ? 1.10 : 0.95), width: ir*2, height: ir*2))
+                    ctx.fill(iris, with: .color(cfg.iris))
+                    let pr = ir * 0.62
+                    var pupil = Path(ellipseIn: CGRect(x: ex - pr, y: ey - pr*0.92, width: pr*2, height: pr*2))
+                    ctx.fill(pupil, with: .color(.black))
+                    var hl = Path(ellipseIn: CGRect(x: ex + ir*0.14, y: ey - ir*0.68, width: pr*0.58, height: pr*0.58))
+                    ctx.fill(hl, with: .color(.white))
+                    var hl2 = Path(ellipseIn: CGRect(x: ex - ir*0.42, y: ey - ir*0.35, width: pr*0.28, height: pr*0.28))
+                    ctx.fill(hl2, with: .color(.white.opacity(0.65)))
                 }
             }
         }
@@ -1058,6 +1142,15 @@ struct AnimalBodyView: View {
         var foot = Path(ellipseIn: CGRect(x: -lw*0.78, y: lh - lw*0.22, width: lw*1.56, height: lw*0.85))
         ctx.fill(foot.applying(t), with: .color(col))
         ctx.stroke(foot.applying(t), with: .color(cfg.outline.opacity(back ? 0.60 : 0.88)), lineWidth: u*0.020)
+        // Paw pads — 3 pink dots on front foot only
+        if !back {
+            let padColor = Color(red: 1.0, green: 0.66, blue: 0.74)
+            for i: CGFloat in [-1, 0, 1] {
+                var pad = Path(ellipseIn: CGRect(x: i*lw*0.44 - lw*0.14, y: lh - lw*0.08,
+                                                 width: lw*0.28, height: lw*0.20))
+                ctx.fill(pad.applying(t), with: .color(padColor))
+            }
+        }
     }
 
     // MARK: - Arms (tiny stubs)
@@ -1074,6 +1167,13 @@ struct AnimalBodyView: View {
         var paw = Path(ellipseIn: CGRect(x: -aw*0.74, y: ah - aw*0.24, width: aw*1.48, height: aw*0.88))
         ctx.fill(paw.applying(t), with: .color(cfg.body))
         ctx.stroke(paw.applying(t), with: .color(cfg.outline), lineWidth: u*0.020)
+        // Paw pads — 3 pink dots
+        let padColor = Color(red: 1.0, green: 0.66, blue: 0.74)
+        for i: CGFloat in [-1, 0, 1] {
+            var pad = Path(ellipseIn: CGRect(x: i*aw*0.42 - aw*0.12, y: ah - aw*0.10,
+                                             width: aw*0.24, height: aw*0.17))
+            ctx.fill(pad.applying(t), with: .color(padColor))
+        }
     }
 
     // MARK: - Tail
