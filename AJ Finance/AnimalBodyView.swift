@@ -3,21 +3,25 @@ import SwiftUI
 // MARK: - Character Config
 
 struct CharConfig {
-    var body:       Color
-    var belly:      Color
-    var accent:     Color
-    var iris:       Color       = Color(red: 0.36, green: 0.22, blue: 0.08)
-    var outline:    Color       = Color.black.opacity(0.88)
-    var nose:       Color       = Color(red: 0.88, green: 0.40, blue: 0.52)
-    var ear:        EarKind
-    var tail:       TailKind
-    var marking:    MarkKind    = .none
-    var special:    SpecialKind = .none
-    var cheekBlush: Bool        = false
-    var eyeKind:    EyeKind     = .standard
-    var bodyKind:   BodyKind    = .standard
+    var body:        Color
+    var belly:       Color
+    var accent:      Color
+    var iris:        Color       = Color(red: 0.36, green: 0.22, blue: 0.08)
+    var outline:     Color       = Color.black.opacity(0.88)
+    var nose:        Color       = Color(red: 0.88, green: 0.40, blue: 0.52)
+    var ear:         EarKind
+    var tail:        TailKind
+    var marking:     MarkKind    = .none
+    var special:     SpecialKind = .none
+    var special2:    SpecialKind = .none   // second special (e.g. horn + mane)
+    var cheekBlush:  Bool        = false
+    var whiskers:    Bool        = false   // cat/tiger/fox whisker lines
+    var muzzle:      Bool        = false   // lighter snout protrusion
+    var flipperArms: Bool        = false   // penguin-style wing flippers
+    var eyeKind:     EyeKind     = .standard
+    var bodyKind:    BodyKind    = .standard
 
-    enum EarKind   { case round, pointy, floppy, giant, huge, tiny, none }
+    enum EarKind   { case round, pointy, floppy, bunnyTall, giant, huge, tiny, none }
     enum TailKind  { case round, long, fluffy, ringed, flat, tuft, curled, fan, none }
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws }
@@ -31,8 +35,10 @@ struct CharConfig {
         case .tiger:
             return .init(body: Color(red:0.96,green:0.58,blue:0.10),
                          belly: Color(red:1.0,green:0.94,blue:0.82),
-                         accent: .white, iris: Color(red:0.45,green:0.28,blue:0.06),
-                         ear: .round, tail: .long, marking: .stripes)
+                         accent: Color(red:0.18,green:0.10,blue:0.04),
+                         iris: Color(red:0.45,green:0.28,blue:0.06),
+                         ear: .round, tail: .long, marking: .stripes,
+                         cheekBlush: true, whiskers: true, muzzle: true)
         case .panda:
             return .init(body: .white, belly: Color(red:0.97,green:0.97,blue:0.97),
                          accent: Color(red:0.12,green:0.12,blue:0.12),
@@ -44,33 +50,36 @@ struct CharConfig {
                          belly: Color(red:1.0,green:0.96,blue:0.88),
                          accent: Color(red:0.20,green:0.10,blue:0.04),
                          iris: Color(red:0.56,green:0.36,blue:0.04),
-                         ear: .pointy, tail: .fluffy, cheekBlush: true)
+                         ear: .pointy, tail: .fluffy,
+                         cheekBlush: true, whiskers: true, muzzle: true)
         case .bunny:
             return .init(body: Color(red:0.93,green:0.90,blue:0.95),
                          belly: Color(red:1.0,green:0.93,blue:0.93),
                          accent: Color(red:0.96,green:0.72,blue:0.80),
                          iris: Color(red:0.72,green:0.12,blue:0.18),
                          nose: Color(red:0.96,green:0.58,blue:0.64),
-                         ear: .floppy, tail: .round, cheekBlush: true)
+                         ear: .bunnyTall, tail: .round, cheekBlush: true)
         case .bear:
             return .init(body: Color(red:0.52,green:0.34,blue:0.18),
                          belly: Color(red:0.80,green:0.62,blue:0.42),
                          accent: Color(red:0.80,green:0.62,blue:0.42),
                          iris: Color(red:0.26,green:0.16,blue:0.08),
-                         ear: .round, tail: .round, cheekBlush: true)
+                         ear: .round, tail: .round,
+                         cheekBlush: true, muzzle: true)
         case .penguin:
             return .init(body: Color(red:0.10,green:0.10,blue:0.14),
                          belly: .white,
                          accent: Color(red:1.0,green:0.72,blue:0.14),
                          iris: Color(red:0.15,green:0.40,blue:0.80),
                          nose: Color(red:1.0,green:0.60,blue:0.10),
-                         ear: .none, tail: .flat)
+                         ear: .none, tail: .flat, flipperArms: true)
         case .lion:
             return .init(body: Color(red:0.94,green:0.76,blue:0.26),
                          belly: Color(red:1.0,green:0.94,blue:0.74),
                          accent: Color(red:0.72,green:0.46,blue:0.10),
                          iris: Color(red:0.54,green:0.34,blue:0.04),
-                         ear: .round, tail: .tuft, special: .mane)
+                         ear: .round, tail: .tuft, special: .mane,
+                         whiskers: true, muzzle: true)
         case .elephant:
             return .init(body: Color(red:0.58,green:0.58,blue:0.64),
                          belly: Color(red:0.78,green:0.78,blue:0.84),
@@ -90,13 +99,15 @@ struct CharConfig {
                          belly: Color(red:1.0,green:0.94,blue:0.84),
                          accent: Color(red:0.60,green:0.38,blue:0.14),
                          iris: Color(red:0.30,green:0.64,blue:0.22),
-                         ear: .pointy, tail: .long, marking: .stripes)
+                         ear: .pointy, tail: .long, marking: .stripes,
+                         cheekBlush: true, whiskers: true, muzzle: true)
         case .dog:
             return .init(body: Color(red:0.78,green:0.56,blue:0.26),
                          belly: Color(red:1.0,green:0.92,blue:0.78),
                          accent: Color(red:0.54,green:0.34,blue:0.10),
                          iris: Color(red:0.36,green:0.22,blue:0.08),
-                         ear: .floppy, tail: .long, cheekBlush: true)
+                         ear: .floppy, tail: .long,
+                         cheekBlush: true, muzzle: true)
         case .deer:
             return .init(body: Color(red:0.78,green:0.52,blue:0.28),
                          belly: Color(red:1.0,green:0.92,blue:0.78),
@@ -121,7 +132,9 @@ struct CharConfig {
                          belly: Color(red:1.0,green:0.96,blue:1.0),
                          accent: Color(red:0.88,green:0.58,blue:0.96),
                          iris: Color(red:0.68,green:0.32,blue:0.92),
-                         ear: .pointy, tail: .fluffy, special: .horn, cheekBlush: true)
+                         nose: Color(red:0.80,green:0.58,blue:0.92),
+                         ear: .pointy, tail: .fluffy,
+                         special: .horn, special2: .mane, cheekBlush: true)
         case .axolotl:
             return .init(body: Color(red:0.98,green:0.68,blue:0.78),
                          belly: Color(red:1.0,green:0.88,blue:0.92),
@@ -183,7 +196,8 @@ struct CharConfig {
                          belly: Color(red:0.88,green:0.88,blue:0.93),
                          accent: Color(red:0.32,green:0.34,blue:0.38),
                          iris: Color(red:0.22,green:0.50,blue:0.78),
-                         ear: .pointy, tail: .fluffy, marking: .stripes)
+                         ear: .pointy, tail: .fluffy, marking: .stripes,
+                         whiskers: true, muzzle: true)
         case .crab:
             return .init(body: Color(red:0.92,green:0.28,blue:0.16),
                          belly: Color(red:1.0,green:0.68,blue:0.54),
@@ -475,6 +489,14 @@ struct AnimalBodyView: View {
                 var inner = Path(ellipseIn: CGRect(x: cx + side*u*0.18 - u*0.046, y: headY - hR*0.54, width: u*0.078, height: u*0.14))
                 ctx.fill(inner, with: .color(cfg.accent.opacity(0.55)))
             }
+        case .bunnyTall:
+            for side: CGFloat in [-1, 1] {
+                var ear = Path(ellipseIn: CGRect(x: cx + side*u*0.14 - u*0.050, y: headY - hR*1.30, width: u*0.090, height: u*0.28))
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.020)
+                var inner = Path(ellipseIn: CGRect(x: cx + side*u*0.14 - u*0.028, y: headY - hR*1.22, width: u*0.050, height: u*0.18))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.62)))
+            }
         case .huge, .giant:
             for side: CGFloat in [-1, 1] {
                 var ear = Path(ellipseIn: CGRect(x: cx + side*u*0.22 - u*0.10, y: headY - hR*0.80, width: u*0.18, height: u*0.22))
@@ -590,10 +612,10 @@ struct AnimalBodyView: View {
         }
 
         // ── Mane (behind head, in front of body) ────────────────
-        if cfg.special == .mane { drawMane(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
+        if cfg.special == .mane || cfg.special2 == .mane { drawMane(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
         // ── Horn (behind head) ──────────────────────────────────
-        if cfg.special == .horn { drawHorn(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
+        if cfg.special == .horn || cfg.special2 == .horn { drawHorn(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
         // ── Gill fronds (sides of head) ─────────────────────────
         if cfg.special == .gills { drawGills(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
@@ -846,9 +868,14 @@ struct AnimalBodyView: View {
         let r = u * 0.27
         var head = Path(ellipseIn: CGRect(x: hx - r, y: hy - r * 1.02, width: r*2, height: r*2.04))
         ctx.fill(head, with: .color(cfg.body))
-        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u * 0.030)
 
-        // Cheek blush moved to drawFace for mood-reactivity
+        // Muzzle protrusion — lighter snout dome for snout-having animals
+        if cfg.muzzle {
+            var muzzle = Path(ellipseIn: CGRect(x: hx - u*0.112, y: hy + u*0.018, width: u*0.224, height: u*0.152))
+            ctx.fill(muzzle, with: .color(cfg.belly.opacity(0.90)))
+        }
+
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u * 0.030)
     }
 
     // MARK: - Hamster cheek pouches
@@ -951,6 +978,20 @@ struct AnimalBodyView: View {
                 ctx.stroke(outer, with: .color(cfg.outline), lineWidth: u*0.028)
                 var inner = Path(ellipseIn: CGRect(x: ex - er*0.64, y: ey - er*0.64, width: er*1.28, height: er*1.28))
                 ctx.fill(inner, with: .color(cfg.accent.opacity(0.68)))
+            }
+
+        case .bunnyTall:
+            // Long upright bunny ears — iconic rabbit look
+            for side: CGFloat in [-1, 1] {
+                let ex = hx + side * u * 0.112
+                let earTop = hy - u * 0.56
+                // Outer ear (tall ellipse)
+                var ear = Path(ellipseIn: CGRect(x: ex - u*0.064, y: earTop, width: u*0.128, height: u*0.40))
+                ctx.fill(ear, with: .color(cfg.body))
+                ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.026)
+                // Pink inner canal
+                var inner = Path(ellipseIn: CGRect(x: ex - u*0.036, y: earTop + u*0.030, width: u*0.072, height: u*0.28))
+                ctx.fill(inner, with: .color(cfg.accent.opacity(0.82)))
             }
 
         case .none: break
@@ -1124,6 +1165,19 @@ struct AnimalBodyView: View {
             mouth.addLine(to: CGPoint(x: hx + u*0.044, y: my + u*0.030))
         }
         ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Whiskers — cat, tiger, fox, lion, wolf
+        if cfg.whiskers {
+            let whiskerY: [CGFloat] = [-0.022, 0.004, 0.028]
+            for side: CGFloat in [-1, 1] {
+                for yo in whiskerY {
+                    var w = Path()
+                    w.move(to: CGPoint(x: hx + side*u*0.030, y: hy + u*0.068 + yo))
+                    w.addLine(to: CGPoint(x: hx + side*u*0.212, y: hy + u*0.060 + yo))
+                    ctx.stroke(w, with: .color(cfg.outline.opacity(0.36)), lineWidth: u*0.013)
+                }
+            }
+        }
     }
 
     // MARK: - Legs (short Pokémon stubs)
@@ -1157,9 +1211,29 @@ struct AnimalBodyView: View {
 
     func drawArm(_ ctx: GraphicsContext, x: CGFloat, y: CGFloat, u: CGFloat,
                  cfg: CharConfig, angle: CGFloat) {
-        let aw = u * 0.082, ah = u * 0.122
         let t = CGAffineTransform(translationX: x, y: y)
             .rotated(by: angle * .pi / 180)
+
+        if cfg.flipperArms {
+            // Penguin wing/flipper — flat paddle shape
+            let fw = u * 0.068, fh = u * 0.172
+            var flipper = Path()
+            flipper.move(to: CGPoint(x: 0,  y: 0))
+            flipper.addCurve(to: CGPoint(x: fw*1.8, y: fh*0.48),
+                             control1: CGPoint(x: fw*2.2, y: fh*0.10),
+                             control2: CGPoint(x: fw*2.2, y: fh*0.36))
+            flipper.addCurve(to: CGPoint(x: 0, y: fh),
+                             control1: CGPoint(x: fw*1.8, y: fh*0.66),
+                             control2: CGPoint(x: fw*0.8, y: fh*0.88))
+            flipper.addCurve(to: CGPoint(x: 0, y: 0),
+                             control1: CGPoint(x: -fw*0.4, y: fh*0.60),
+                             control2: CGPoint(x: -fw*0.4, y: fh*0.20))
+            ctx.fill(flipper.applying(t), with: .color(cfg.body))
+            ctx.stroke(flipper.applying(t), with: .color(cfg.outline), lineWidth: u*0.022)
+            return
+        }
+
+        let aw = u * 0.082, ah = u * 0.122
         var arm = Path(roundedRect: CGRect(x: -aw/2, y: 0, width: aw, height: ah),
                        cornerRadius: u*0.038)
         ctx.fill(arm.applying(t), with: .color(cfg.body))
@@ -1396,6 +1470,7 @@ struct AnimalBodyView: View {
                       bx: CGFloat, by: CGFloat, u: CGFloat, cfg: CharConfig) {
         switch cfg.marking {
         case .stripes:
+            // Body stripes
             for i: CGFloat in [-1, 0, 1] {
                 let sx = bx + i * u * 0.12
                 var stripe = Path()
@@ -1405,6 +1480,21 @@ struct AnimalBodyView: View {
                 stripe.addLine(to: CGPoint(x: sx - u*0.028, y: by + u*0.10))
                 stripe.closeSubpath()
                 ctx.fill(stripe, with: .color(cfg.accent.opacity(0.68)))
+            }
+            // Forehead/head stripe
+            var fStripe = Path()
+            fStripe.move(to:    CGPoint(x: hx - u*0.016, y: hy - u*0.30))
+            fStripe.addLine(to: CGPoint(x: hx + u*0.016, y: hy - u*0.30))
+            fStripe.addLine(to: CGPoint(x: hx + u*0.022, y: hy - u*0.10))
+            fStripe.addLine(to: CGPoint(x: hx - u*0.022, y: hy - u*0.10))
+            fStripe.closeSubpath()
+            ctx.fill(fStripe, with: .color(cfg.accent.opacity(0.56)))
+            // Side head marks (like tiger cheek marks)
+            for side: CGFloat in [-1, 1] {
+                var mark = Path()
+                mark.move(to:    CGPoint(x: hx + side*u*0.10, y: hy - u*0.14))
+                mark.addLine(to: CGPoint(x: hx + side*u*0.22, y: hy - u*0.04))
+                ctx.stroke(mark, with: .color(cfg.accent.opacity(0.52)), lineWidth: u*0.028)
             }
 
         case .spots:
