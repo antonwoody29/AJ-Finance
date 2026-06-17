@@ -1,69 +1,146 @@
 import SwiftUI
 import AuthenticationServices
 
+// MARK: - Floating Head crop helper
+
+struct FloatingAnimalHead: View {
+    var type: AnimalType
+    var mood: AJMood
+    var cropSize: CGFloat = 160   // displayed diameter
+    var canvasSize: CGFloat = 320 // full-body render size (we crop the head from the top)
+
+    var body: some View {
+        // The head center lives at ~38% of canvas height.
+        // We show the top `cropSize` pixels by centering the large canvas in a
+        // cropSize frame, then shifting it DOWN so the top edge is flush with
+        // the frame's top, then clipping.
+        let shift = (canvasSize - cropSize) / 2
+
+        ZStack {
+            // Soft glow ring matching the animal colour
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [type.bodyColor.opacity(0.55), type.bodyColor.opacity(0.0)],
+                        center: .center, startRadius: cropSize * 0.30, endRadius: cropSize * 0.52
+                    )
+                )
+                .frame(width: cropSize * 1.10, height: cropSize * 1.10)
+
+            // Full-body canvas, shifted down so the head region is visible
+            AnimalCanvas(type: type, mood: mood, size: canvasSize,
+                         isWalking: false, evolutionStage: 2)
+                .frame(width: canvasSize, height: canvasSize)
+                .offset(y: shift)           // move content down → top of canvas visible
+                .frame(width: cropSize, height: cropSize)
+                .clipShape(Circle())
+
+            // Subtle rim
+            Circle()
+                .stroke(type.bodyColor.opacity(0.45), lineWidth: 2.5)
+                .frame(width: cropSize, height: cropSize)
+        }
+        .frame(width: cropSize, height: cropSize)
+    }
+}
+
+// MARK: - Sign In View
+
 struct SignInView: View {
     @Environment(AppState.self) private var appState
-    @State private var isSigningIn = false
     @State private var errorMessage: String? = nil
-    @State private var animalFloat = false
-    @State private var glowPulse   = false
-    @State private var starPhase   = false
+    @State private var headFloat    = false
+    @State private var glowPulse    = false
+    @State private var starPhase    = false
 
-    // Cycle through a few teaser animals on the login screen
-    private let teaserAnimals: [AnimalType] = [.tiger, .bee, .kangaroo, .panda, .lion]
-    @State private var animalIndex = 0
-    @State private var animalOpacity: Double = 1.0
+    // Animal + mood pairs — each shows a distinct facial expression
+    private let teaserPairs: [(AnimalType, AJMood)] = [
+        (.tiger,    .hype),    // ✨ star sparkles, excited wide eyes
+        (.panda,    .sad),     // 💧 teardrop eyes, droopy cute
+        (.bee,      .sleep),   // 💤 Z bubbles, squinty sleepy
+        (.lion,     .angry),   // 💢 anger marks, puffed up
+        (.unicorn,  .hype),    // ✨ sparkle, rainbow energy
+        (.fox,      .hype),    // ✨ sly excited
+        (.kangaroo, .hype),    // ✨ pumped up
+        (.dragon,   .angry),   // 💢 fierce flame energy
+    ]
+
+    @State private var pairIndex:    Int    = 0
+    @State private var headOpacity:  Double = 1.0
+    @State private var headScale:    Double = 1.0
+
+    private var currentPair: (AnimalType, AJMood) { teaserPairs[pairIndex] }
 
     var body: some View {
         ZStack {
-            // ── Background ──────────────────────────────────────────
+            // ── Background ─────────────────────────────────────────
             LinearGradient(
                 colors: [
-                    Color(red: 0.04, green: 0.06, blue: 0.12),
+                    Color(red: 0.04, green: 0.06, blue: 0.14),
                     Color(red: 0.08, green: 0.10, blue: 0.22),
-                    Color(red: 0.12, green: 0.06, blue: 0.08),
+                    Color(red: 0.10, green: 0.05, blue: 0.10),
                 ],
                 startPoint: .topLeading, endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
 
-            // Star field
-            StarFieldLayer(phase: starPhase)
+            // Stars
+            SignInStarField(phase: starPhase)
 
-            // Glow orb behind animal
+            // Large ambient glow that pulses with the animal colour
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color.ajOrange.opacity(0.28), .clear],
-                        center: .center, startRadius: 0, endRadius: 140
+                        colors: [currentPair.0.bodyColor.opacity(0.22), .clear],
+                        center: .center, startRadius: 0, endRadius: 200
                     )
                 )
-                .frame(width: 280, height: 280)
-                .offset(y: -60 + (glowPulse ? -8 : 8))
-                .animation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true), value: glowPulse)
+                .frame(width: 400, height: 400)
+                .offset(y: -80 + (glowPulse ? -10 : 10))
+                .animation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true), value: glowPulse)
+                .animation(.easeInOut(duration: 0.6), value: currentPair.0)
 
             VStack(spacing: 0) {
                 Spacer()
 
-                // ── Animated animal mascot ─────────────────────────
-                AnimalCanvas(
-                    type: teaserAnimals[animalIndex],
-                    mood: .hype,
-                    size: 180,
-                    isWalking: false,
-                    evolutionStage: 2
+                // ── Floating head ──────────────────────────────────
+                FloatingAnimalHead(
+                    type:       currentPair.0,
+                    mood:       currentPair.1,
+                    cropSize:   185,
+                    canvasSize: 360
                 )
-                .offset(y: animalFloat ? -12 : 12)
-                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: animalFloat)
-                .opacity(animalOpacity)
-                .animation(.easeInOut(duration: 0.35), value: animalOpacity)
+                .offset(y: headFloat ? -14 : 14)
+                .animation(
+                    .easeInOut(duration: 1.9).repeatForever(autoreverses: true),
+                    value: headFloat
+                )
+                .scaleEffect(headScale)
+                .opacity(headOpacity)
+                .animation(.spring(response: 0.38, dampingFraction: 0.72), value: headScale)
+                .animation(.easeInOut(duration: 0.28), value: headOpacity)
 
-                Spacer().frame(height: 28)
+                // Animal name tag
+                Text(currentPair.0.rawValue)
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundColor(currentPair.0.bodyColor)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(currentPair.0.bodyColor.opacity(0.16))
+                            .overlay(Capsule().stroke(currentPair.0.bodyColor.opacity(0.35), lineWidth: 1))
+                    )
+                    .opacity(headOpacity)
+                    .animation(.easeInOut(duration: 0.28), value: headOpacity)
+                    .padding(.top, 10)
 
-                // ── App name & tagline ─────────────────────────────
-                VStack(spacing: 8) {
+                Spacer().frame(height: 30)
+
+                // ── App name ───────────────────────────────────────
+                VStack(spacing: 6) {
                     Text("AJ Finance")
-                        .font(.system(size: 38, weight: .black))
+                        .font(.system(size: 40, weight: .black))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [.ajOrange, .ajGold],
@@ -72,20 +149,20 @@ struct SignInView: View {
                         )
 
                     Text("Your money. Your pet. Your life.")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white.opacity(0.60))
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(.white.opacity(0.55))
                 }
 
-                Spacer().frame(height: 40)
+                Spacer().frame(height: 32)
 
                 // ── Feature pills ──────────────────────────────────
                 HStack(spacing: 10) {
-                    FeaturePill(icon: "🐾", label: "Live pet")
-                    FeaturePill(icon: "💰", label: "Goals")
-                    FeaturePill(icon: "📊", label: "Spending")
+                    SignInPill(icon: "🐾", label: "Live pet")
+                    SignInPill(icon: "💰", label: "Goals")
+                    SignInPill(icon: "📊", label: "Spending")
                 }
 
-                Spacer().frame(height: 50)
+                Spacer().frame(height: 44)
 
                 // ── Sign in with Apple ─────────────────────────────
                 VStack(spacing: 14) {
@@ -98,7 +175,7 @@ struct SignInView: View {
                     .frame(height: 54)
                     .cornerRadius(16)
                     .padding(.horizontal, 32)
-                    .shadow(color: .white.opacity(0.12), radius: 12, y: 4)
+                    .shadow(color: .white.opacity(0.10), radius: 14, y: 4)
 
                     if let error = errorMessage {
                         Text(error)
@@ -110,55 +187,56 @@ struct SignInView: View {
 
                     Text("Your data stays on your device.\nSign in to keep your account safe.")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.35))
+                        .foregroundColor(.white.opacity(0.32))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                 }
 
-                Spacer().frame(height: 60)
+                Spacer().frame(height: 56)
             }
         }
         .onAppear {
-            animalFloat = true
-            glowPulse   = true
-            starPhase   = true
-            startAnimalCycle()
+            headFloat = true
+            glowPulse = true
+            starPhase = true
+            startCycle()
         }
     }
 
-    // MARK: - Animal cycle
+    // MARK: - Cycle animals with pop-in bounce
 
-    private func startAnimalCycle() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            withAnimation { animalOpacity = 0 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.40) {
-                animalIndex = (animalIndex + 1) % teaserAnimals.count
-                withAnimation { animalOpacity = 1 }
-                startAnimalCycle()
+    private func startCycle() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.8) {
+            // Shrink + fade out
+            withAnimation { headOpacity = 0; headScale = 0.72 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.30) {
+                pairIndex = (pairIndex + 1) % teaserPairs.count
+                // Pop in with overshoot
+                headScale  = 0.72
+                headOpacity = 0
+                withAnimation(.spring(response: 0.42, dampingFraction: 0.58)) {
+                    headOpacity = 1.0
+                    headScale   = 1.0
+                }
+                startCycle()
             }
         }
     }
 
-    // MARK: - Handle Sign in with Apple result
+    // MARK: - Apple Sign In handler
 
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
-            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential else { return }
-            let userID = credential.user
-            let name   = [
-                credential.fullName?.givenName,
-                credential.fullName?.familyName
-            ].compactMap { $0 }.joined(separator: " ")
-            // Apple only sends name on first sign-in, so fall back to stored name
-            let storedName = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
-            let displayName = name.isEmpty ? storedName : name
-            appState.login(userID: userID, name: displayName)
+            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential else { return }
+            let name = [cred.fullName?.givenName, cred.fullName?.familyName]
+                .compactMap { $0 }.joined(separator: " ")
+            let stored = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
+            appState.login(userID: cred.user, name: name.isEmpty ? stored : name)
 
         case .failure(let error):
-            let nsError = error as NSError
-            // Code 1000 = user cancelled — don't show error
-            if nsError.code != 1000 {
+            let code = (error as NSError).code
+            if code != 1000 {   // 1000 = user cancelled
                 errorMessage = "Sign in failed. Please try again."
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3) { errorMessage = nil }
             }
@@ -166,78 +244,72 @@ struct SignInView: View {
     }
 }
 
-// MARK: - Feature Pill
+// MARK: - Feature pill
 
-private struct FeaturePill: View {
+private struct SignInPill: View {
     var icon: String
     var label: String
 
     var body: some View {
         HStack(spacing: 6) {
-            Text(icon).font(.system(size: 14))
+            Text(icon).font(.system(size: 13))
             Text(label)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.white.opacity(0.80))
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundColor(.white.opacity(0.78))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 13)
+        .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(.white.opacity(0.08))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(.white.opacity(0.12), lineWidth: 1)
-                )
+                .fill(.white.opacity(0.07))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(.white.opacity(0.12), lineWidth: 1))
         )
     }
 }
 
-// MARK: - Star Field layer (reuses existing StarField if available, else draws its own)
+// MARK: - Star field
 
-private struct StarFieldLayer: View {
+private struct SignInStarField: View {
     var phase: Bool
+    private let positions: [(CGFloat, CGFloat, CGFloat)] = {
+        var pts = [(CGFloat, CGFloat, CGFloat)]()
+        let xs: [CGFloat] = [0.03,0.08,0.15,0.21,0.28,0.34,0.41,0.47,0.54,0.60,
+                              0.67,0.73,0.80,0.86,0.93,0.97,0.06,0.12,0.19,0.25,
+                              0.32,0.38,0.45,0.52,0.58,0.65,0.71,0.78,0.84,0.90,
+                              0.02,0.10,0.17,0.23,0.50,0.69,0.88,0.36,0.43,0.77]
+        let ys: [CGFloat] = [0.04,0.10,0.16,0.22,0.28,0.34,0.40,0.07,0.13,0.19,
+                              0.25,0.31,0.37,0.43,0.49,0.05,0.11,0.17,0.23,0.29,
+                              0.35,0.41,0.47,0.03,0.09,0.15,0.21,0.27,0.33,0.39,
+                              0.45,0.06,0.12,0.26,0.32,0.38,0.44,0.08,0.18,0.30]
+        for i in 0..<40 {
+            pts.append((xs[i], ys[i], CGFloat(i % 3 == 0 ? 3 : i % 3 == 1 ? 2 : 1.4)))
+        }
+        return pts
+    }()
 
     var body: some View {
         GeometryReader { geo in
             let W = geo.size.width, H = geo.size.height
-            ForEach(0..<40, id: \.self) { i in
-                let x = W * starX(i)
-                let y = H * starY(i)
-                let sz: CGFloat = i % 5 == 0 ? 3 : 1.5
+            ForEach(0..<positions.count, id: \.self) { i in
+                let (nx, ny, sz) = positions[i]
                 Circle()
                     .fill(.white)
                     .frame(width: sz, height: sz)
-                    .opacity(phase ? starAlpha(i, bright: true) : starAlpha(i, bright: false))
+                    .opacity(phase ? baseAlpha(i, bright: true) : baseAlpha(i, bright: false))
                     .animation(
-                        .easeInOut(duration: 1.2 + Double(i % 7) * 0.3)
+                        .easeInOut(duration: 1.1 + Double(i % 7) * 0.28)
                         .repeatForever(autoreverses: true)
-                        .delay(Double(i % 11) * 0.18),
+                        .delay(Double(i % 11) * 0.16),
                         value: phase
                     )
-                    .position(x: x, y: y)
+                    .position(x: W * nx, y: H * ny)
             }
         }
         .ignoresSafeArea()
     }
 
-    private func starX(_ i: Int) -> CGFloat {
-        let primes: [CGFloat] = [0.03,0.08,0.14,0.21,0.27,0.33,0.39,0.46,0.52,0.58,
-                                  0.63,0.69,0.75,0.81,0.87,0.92,0.97,0.05,0.11,0.18,
-                                  0.24,0.30,0.36,0.43,0.49,0.55,0.61,0.67,0.73,0.79,
-                                  0.85,0.91,0.96,0.02,0.09,0.16,0.22,0.48,0.72,0.88]
-        return primes[i % primes.count]
-    }
-
-    private func starY(_ i: Int) -> CGFloat {
-        let ys: [CGFloat] = [0.05,0.11,0.17,0.23,0.28,0.34,0.40,0.08,0.14,0.19,
-                              0.25,0.31,0.37,0.43,0.49,0.06,0.12,0.18,0.24,0.30,
-                              0.36,0.42,0.48,0.03,0.09,0.15,0.21,0.27,0.33,0.39,
-                              0.45,0.07,0.13,0.26,0.32,0.38,0.44,0.10,0.20,0.35]
-        return ys[i % ys.count]
-    }
-
-    private func starAlpha(_ i: Int, bright: Bool) -> Double {
-        let base = i % 3 == 0 ? 0.70 : (i % 3 == 1 ? 0.45 : 0.25)
-        return bright ? base : base * 0.30
+    private func baseAlpha(_ i: Int, bright: Bool) -> Double {
+        let b = i % 3 == 0 ? 0.75 : i % 3 == 1 ? 0.45 : 0.22
+        return bright ? b : b * 0.25
     }
 }
