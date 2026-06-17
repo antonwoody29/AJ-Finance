@@ -24,9 +24,9 @@ struct CharConfig {
     enum EarKind   { case round, pointy, floppy, bunnyTall, giant, huge, tiny, none }
     enum TailKind  { case round, long, fluffy, ringed, flat, tuft, curled, fan, none }
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
-    enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws }
+    enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator }
 
     // MARK: - Per-animal configs
 
@@ -252,6 +252,89 @@ struct CharConfig {
                          iris: Color(red:0.22,green:0.18,blue:0.28),
                          nose: Color(red:0.92,green:0.44,blue:0.58),
                          ear: .huge, tail: .long, cheekBlush: true)
+
+        // MARK: - New animals
+        case .zebra:
+            return .init(body: Color(red:0.96,green:0.96,blue:0.96),
+                         belly: .white,
+                         accent: Color(red:0.10,green:0.10,blue:0.10),
+                         iris: Color(red:0.14,green:0.10,blue:0.06),
+                         nose: Color(red:0.30,green:0.26,blue:0.22),
+                         ear: .round, tail: .tuft, marking: .stripes,
+                         muzzle: true)
+        case .guineaPig:
+            return .init(body: Color(red:0.90,green:0.62,blue:0.24),
+                         belly: Color(red:1.0,green:0.88,blue:0.68),
+                         accent: Color(red:0.72,green:0.38,blue:0.10),
+                         iris: Color(red:0.30,green:0.16,blue:0.06),
+                         nose: Color(red:0.90,green:0.50,blue:0.56),
+                         ear: .round, tail: .none,
+                         cheekBlush: true, eyeKind: .wide)
+        case .alligator:
+            return .init(body: Color(red:0.22,green:0.48,blue:0.18),
+                         belly: Color(red:0.66,green:0.84,blue:0.52),
+                         accent: Color(red:0.14,green:0.34,blue:0.10),
+                         iris: Color(red:0.78,green:0.62,blue:0.08),
+                         nose: Color(red:0.20,green:0.44,blue:0.16),
+                         ear: .none, tail: .flat, bodyKind: .alligator)
+        case .cow:
+            return .init(body: .white,
+                         belly: Color(red:0.97,green:0.96,blue:0.94),
+                         accent: Color(red:0.08,green:0.08,blue:0.08),
+                         iris: Color(red:0.28,green:0.16,blue:0.06),
+                         nose: Color(red:0.90,green:0.62,blue:0.66),
+                         ear: .floppy, tail: .tuft, marking: .spots,
+                         special: .horns, cheekBlush: true, muzzle: true)
+        case .rooster:
+            return .init(body: Color(red:0.80,green:0.28,blue:0.14),
+                         belly: Color(red:0.96,green:0.62,blue:0.30),
+                         accent: Color(red:0.98,green:0.84,blue:0.14),
+                         iris: Color(red:0.88,green:0.60,blue:0.06),
+                         nose: Color(red:0.96,green:0.54,blue:0.10),
+                         ear: .none, tail: .fan, special: .crest)
+        case .pig:
+            return .init(body: Color(red:0.98,green:0.72,blue:0.76),
+                         belly: Color(red:1.0,green:0.86,blue:0.88),
+                         accent: Color(red:0.94,green:0.54,blue:0.62),
+                         iris: Color(red:0.30,green:0.14,blue:0.06),
+                         nose: Color(red:0.96,green:0.58,blue:0.64),
+                         ear: .round, tail: .curled,
+                         cheekBlush: true, muzzle: true, bodyKind: .pig)
+        case .ant:
+            return .init(body: Color(red:0.16,green:0.10,blue:0.08),
+                         belly: Color(red:0.28,green:0.18,blue:0.14),
+                         accent: Color(red:0.36,green:0.22,blue:0.16),
+                         iris: Color(red:0.92,green:0.14,blue:0.08),
+                         nose: Color(red:0.18,green:0.10,blue:0.08),
+                         ear: .none, tail: .none, bodyKind: .insect)
+        case .beetle:
+            return .init(body: Color(red:0.10,green:0.36,blue:0.14),
+                         belly: Color(red:0.22,green:0.58,blue:0.26),
+                         accent: Color(red:0.06,green:0.24,blue:0.08),
+                         iris: Color(red:0.08,green:0.08,blue:0.08),
+                         nose: Color(red:0.08,green:0.28,blue:0.10),
+                         ear: .none, tail: .none, bodyKind: .insect)
+        case .swordfish:
+            return .init(body: Color(red:0.20,green:0.44,blue:0.78),
+                         belly: Color(red:0.74,green:0.88,blue:0.98),
+                         accent: Color(red:0.12,green:0.28,blue:0.58),
+                         iris: Color(red:0.08,green:0.08,blue:0.20),
+                         nose: Color(red:0.16,green:0.36,blue:0.70),
+                         ear: .none, tail: .flat, bodyKind: .fish)
+        case .shark:
+            return .init(body: Color(red:0.46,green:0.52,blue:0.62),
+                         belly: .white,
+                         accent: Color(red:0.32,green:0.38,blue:0.48),
+                         iris: Color(red:0.06,green:0.06,blue:0.10),
+                         nose: Color(red:0.40,green:0.46,blue:0.56),
+                         ear: .none, tail: .flat, bodyKind: .fish)
+        case .snappingTurtle:
+            return .init(body: Color(red:0.22,green:0.38,blue:0.16),
+                         belly: Color(red:0.44,green:0.62,blue:0.30),
+                         accent: Color(red:0.14,green:0.26,blue:0.10),
+                         iris: Color(red:0.56,green:0.44,blue:0.06),
+                         nose: Color(red:0.20,green:0.34,blue:0.14),
+                         ear: .none, tail: .flat, bodyKind: .turtle)
         }
     }
 }
@@ -567,13 +650,17 @@ struct AnimalBodyView: View {
         let cx = sz.width / 2
 
         switch cfg.bodyKind {
-        case .frog:     drawFrogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .flamingo: drawFlamingoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .crab:     drawCrabBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
-        case .turtle:   drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .hippo:    drawHippoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .giraffe:  drawGiraffeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .standard: drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .frog:      drawFrogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .flamingo:  drawFlamingoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .crab:      drawCrabBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .turtle:    drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .hippo:     drawHippoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .giraffe:   drawGiraffeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .pig:       drawPigBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .insect:    drawInsectBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .fish:      drawFishBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .alligator: drawAlligatorBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         }
     }
 
@@ -616,6 +703,9 @@ struct AnimalBodyView: View {
 
         // ── Horn (behind head) ──────────────────────────────────
         if cfg.special == .horn || cfg.special2 == .horn { drawHorn(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
+
+        // ── Cow horns (pair of horns) ────────────────────────────
+        if cfg.special == .horns { drawCowHorns(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
         // ── Gill fronds (sides of head) ─────────────────────────
         if cfg.special == .gills { drawGills(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
@@ -1749,5 +1839,377 @@ struct AnimalBodyView: View {
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Cow horns (pair)
+
+    func drawCowHorns(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat, u: CGFloat, cfg: CharConfig) {
+        for side: CGFloat in [-1, 1] {
+            let bx = hx + side * u * 0.14
+            let by = hy - u * 0.24
+            var horn = Path()
+            horn.move(to:    CGPoint(x: bx,              y: by))
+            horn.addCurve(to: CGPoint(x: bx + side*u*0.14, y: by - u*0.14),
+                          control1: CGPoint(x: bx + side*u*0.04, y: by - u*0.10),
+                          control2: CGPoint(x: bx + side*u*0.12, y: by - u*0.06))
+            ctx.stroke(horn, with: .color(cfg.accent), lineWidth: u*0.052)
+            ctx.stroke(horn, with: .color(cfg.outline), lineWidth: u*0.018)
+            var tip = Path(ellipseIn: CGRect(x: bx + side*u*0.12 - u*0.022, y: by - u*0.158, width: u*0.044, height: u*0.036))
+            ctx.fill(tip, with: .color(cfg.accent))
+        }
+    }
+
+    // MARK: - Pig body (round, low body, stubby legs)
+
+    func drawPigBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                     cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let feetY = sz.height * 0.88
+        let bodyY = sz.height * 0.62 + bob
+        let headY = sz.height * 0.32 + bob
+
+        // Curly tail
+        var tail = Path()
+        tail.move(to: CGPoint(x: cx + u*0.17, y: bodyY - u*0.04))
+        tail.addCurve(to: CGPoint(x: cx + u*0.26, y: bodyY + u*0.04),
+                      control1: CGPoint(x: cx + u*0.28, y: bodyY - u*0.10),
+                      control2: CGPoint(x: cx + u*0.32, y: bodyY + u*0.00))
+        tail.addCurve(to: CGPoint(x: cx + u*0.20, y: bodyY + u*0.09),
+                      control1: CGPoint(x: cx + u*0.28, y: bodyY + u*0.10),
+                      control2: CGPoint(x: cx + u*0.22, y: bodyY + u*0.12))
+        ctx.stroke(tail, with: .color(cfg.body), lineWidth: u*0.040)
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u*0.014)
+
+        // Stubby back legs
+        drawLeg(ctx, x: cx + u*0.09, y: feetY, u: u, cfg: cfg, angle: -legSwing * 0.50, back: true)
+
+        // Round fat body
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.22, y: bodyY - u*0.16, width: u*0.44, height: u*0.30))
+        ctx.fill(body, with: .color(cfg.body))
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.14, y: bodyY - u*0.10, width: u*0.28, height: u*0.22))
+        ctx.fill(belly, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Stubby front leg
+        drawLeg(ctx, x: cx - u*0.09, y: feetY, u: u, cfg: cfg, angle: legSwing * 0.50, back: false)
+
+        // Arms (stubby)
+        drawArm(ctx, x: cx - u*0.18, y: bodyY - u*0.04, u: u, cfg: cfg, angle: legSwing * 0.30)
+        drawArm(ctx, x: cx + u*0.18, y: bodyY - u*0.04, u: u, cfg: cfg, angle: -legSwing * 0.30)
+
+        // Head (round, big)
+        drawHead(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+        drawEars(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+        drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+
+        // Pig snout (prominent round disc)
+        var snout = Path(ellipseIn: CGRect(x: cx - u*0.098, y: headY + u*0.056, width: u*0.196, height: u*0.136))
+        ctx.fill(snout, with: .color(cfg.nose.opacity(0.85)))
+        ctx.stroke(snout, with: .color(cfg.outline), lineWidth: u*0.022)
+        for side: CGFloat in [-1, 1] {
+            var nostril = Path(ellipseIn: CGRect(x: cx + side*u*0.032 - u*0.020, y: headY + u*0.094, width: u*0.040, height: u*0.032))
+            ctx.fill(nostril, with: .color(cfg.outline.opacity(0.55)))
+        }
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Insect body (3 segments, 6 legs, antennae)
+
+    func drawInsectBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                        cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let headY    = sz.height * 0.28 + bob
+        let thoraxY  = sz.height * 0.52 + bob
+        let abdomenY = sz.height * 0.74 + bob
+
+        // Antennae
+        for side: CGFloat in [-1, 1] {
+            var ant = Path()
+            ant.move(to: CGPoint(x: cx + side*u*0.06, y: headY - u*0.22))
+            ant.addCurve(to: CGPoint(x: cx + side*u*0.22, y: headY - u*0.40),
+                         control1: CGPoint(x: cx + side*u*0.10, y: headY - u*0.32),
+                         control2: CGPoint(x: cx + side*u*0.18, y: headY - u*0.38))
+            ctx.stroke(ant, with: .color(cfg.body), lineWidth: u*0.022)
+            ctx.stroke(ant, with: .color(cfg.outline), lineWidth: u*0.010)
+            var tip = Path(ellipseIn: CGRect(x: cx + side*u*0.19, y: headY - u*0.438, width: u*0.040, height: u*0.040))
+            ctx.fill(tip, with: .color(cfg.accent))
+        }
+
+        // Abdomen (rear segment, biggest)
+        var abdomen = Path(ellipseIn: CGRect(x: cx - u*0.19, y: abdomenY - u*0.17, width: u*0.38, height: u*0.28))
+        ctx.fill(abdomen, with: .color(cfg.body))
+        var abdBelly = Path(ellipseIn: CGRect(x: cx - u*0.12, y: abdomenY - u*0.10, width: u*0.24, height: u*0.18))
+        ctx.fill(abdBelly, with: .color(cfg.belly))
+        ctx.stroke(abdomen, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // 6 Legs (3 per side off thorax)
+        let legOffsets: [(CGFloat, CGFloat)] = [(-0.12, 0.16), (0.0, 0.20), (0.12, 0.16)]
+        for (dy, dx) in legOffsets {
+            for side: CGFloat in [-1, 1] {
+                let lx = cx + side * u * 0.18
+                let ly = thoraxY + u * dy
+                var leg = Path()
+                leg.move(to: CGPoint(x: lx, y: ly))
+                leg.addLine(to: CGPoint(x: lx + side*u*dx, y: ly + u*0.16))
+                leg.addLine(to: CGPoint(x: lx + side*u*(dx + 0.08), y: ly + u*0.10))
+                ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.028)
+                ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.010)
+            }
+        }
+
+        // Thorax (middle segment)
+        var thorax = Path(ellipseIn: CGRect(x: cx - u*0.14, y: thoraxY - u*0.14, width: u*0.28, height: u*0.24))
+        ctx.fill(thorax, with: .color(cfg.body))
+        ctx.stroke(thorax, with: .color(cfg.outline), lineWidth: u*0.024)
+
+        // Head (round)
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.18, y: headY - u*0.18, width: u*0.36, height: u*0.34))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Big compound eyes
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.10
+            let ey = headY - u * 0.04
+            var eye = Path(ellipseIn: CGRect(x: ex - u*0.064, y: ey - u*0.064, width: u*0.128, height: u*0.128))
+            ctx.fill(eye, with: .color(cfg.iris))
+            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.020)
+            var pupil = Path(ellipseIn: CGRect(x: ex - u*0.028, y: ey - u*0.032, width: u*0.056, height: u*0.060))
+            ctx.fill(pupil, with: .color(.black))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.024, width: u*0.022, height: u*0.022))
+            ctx.fill(hl, with: .color(.white.opacity(0.85)))
+        }
+
+        // Mandibles / small mouth
+        var mouth = Path()
+        mouth.move(to: CGPoint(x: cx - u*0.04, y: headY + u*0.12))
+        mouth.addLine(to: CGPoint(x: cx + u*0.04, y: headY + u*0.12))
+        ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.016)
+    }
+
+    // MARK: - Fish body (horizontal torpedo shape)
+
+    func drawFishBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                      cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.54 + bob
+        let isSwordfish = (type == .swordfish)
+
+        // Tail fin (rear/right)
+        var tailFin = Path()
+        tailFin.move(to:    CGPoint(x: cx + u*0.28, y: cy))
+        tailFin.addLine(to: CGPoint(x: cx + u*0.44, y: cy - u*0.14))
+        tailFin.addLine(to: CGPoint(x: cx + u*0.44, y: cy + u*0.14))
+        tailFin.closeSubpath()
+        ctx.fill(tailFin, with: .color(cfg.body))
+        ctx.stroke(tailFin, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Top dorsal fin
+        var dorsal = Path()
+        dorsal.move(to:    CGPoint(x: cx - u*0.06, y: cy - u*0.18))
+        dorsal.addCurve(to: CGPoint(x: cx + u*0.16, y: cy - u*0.18),
+                        control1: CGPoint(x: cx, y: cy - u*0.30),
+                        control2: CGPoint(x: cx + u*0.12, y: cy - u*0.28))
+        dorsal.addLine(to: CGPoint(x: cx + u*0.16, y: cy - u*0.10))
+        dorsal.addLine(to: CGPoint(x: cx - u*0.06, y: cy - u*0.10))
+        dorsal.closeSubpath()
+        ctx.fill(dorsal, with: .color(cfg.accent))
+        ctx.stroke(dorsal, with: .color(cfg.outline), lineWidth: u*0.018)
+
+        // Pectoral fin (side fin, bottom)
+        var pectoral = Path()
+        pectoral.move(to:    CGPoint(x: cx, y: cy + u*0.06))
+        pectoral.addLine(to: CGPoint(x: cx - u*0.08, y: cy + u*0.22))
+        pectoral.addLine(to: CGPoint(x: cx + u*0.10, y: cy + u*0.18))
+        pectoral.closeSubpath()
+        ctx.fill(pectoral, with: .color(cfg.accent))
+        ctx.stroke(pectoral, with: .color(cfg.outline), lineWidth: u*0.016)
+
+        // Main body (torpedo)
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.30, y: cy - u*0.16, width: u*0.60, height: u*0.32))
+        ctx.fill(body, with: .color(cfg.body))
+        // Belly stripe
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.22, y: cy - u*0.04, width: u*0.40, height: u*0.16))
+        ctx.fill(belly, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Sword bill (swordfish only)
+        if isSwordfish {
+            var sword = Path()
+            sword.move(to:    CGPoint(x: cx - u*0.24, y: cy - u*0.028))
+            sword.addLine(to: CGPoint(x: cx - u*0.56, y: cy - u*0.010))
+            sword.addLine(to: CGPoint(x: cx - u*0.24, y: cy + u*0.010))
+            ctx.fill(sword, with: .color(cfg.accent))
+            ctx.stroke(sword, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
+
+        // Eye
+        let ex = cx - u * (isSwordfish ? 0.12 : 0.16)
+        let ey = cy - u * 0.04
+        var white = Path(ellipseIn: CGRect(x: ex - u*0.060, y: ey - u*0.060, width: u*0.120, height: u*0.120))
+        ctx.fill(white, with: .color(.white))
+        ctx.stroke(white, with: .color(cfg.outline), lineWidth: u*0.020)
+        var pupil = Path(ellipseIn: CGRect(x: ex - u*0.026, y: ey - u*0.030, width: u*0.052, height: u*0.056))
+        ctx.fill(pupil, with: .color(cfg.iris))
+        var darkPup = Path(ellipseIn: CGRect(x: ex - u*0.014, y: ey - u*0.018, width: u*0.030, height: u*0.034))
+        ctx.fill(darkPup, with: .color(.black))
+        var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.020, width: u*0.018, height: u*0.018))
+        ctx.fill(hl, with: .color(.white))
+
+        // Shark grin (for shark)
+        if !isSwordfish {
+            var grin = Path()
+            grin.move(to: CGPoint(x: cx - u*0.24, y: cy + u*0.04))
+            grin.addCurve(to: CGPoint(x: cx - u*0.14, y: cy + u*0.06),
+                          control1: CGPoint(x: cx - u*0.22, y: cy + u*0.08),
+                          control2: CGPoint(x: cx - u*0.16, y: cy + u*0.08))
+            ctx.stroke(grin, with: .color(cfg.outline), lineWidth: u*0.020)
+            // Shark teeth
+            for i: CGFloat in [0, 1, 2] {
+                let tx = cx - u*0.234 + i * u*0.032
+                var tooth = Path()
+                tooth.move(to:    CGPoint(x: tx,          y: cy + u*0.042))
+                tooth.addLine(to: CGPoint(x: tx + u*0.012, y: cy + u*0.076))
+                tooth.addLine(to: CGPoint(x: tx + u*0.024, y: cy + u*0.042))
+                ctx.fill(tooth, with: .color(.white))
+            }
+        }
+    }
+
+    // MARK: - Alligator body (long flat reptile, big snout)
+
+    func drawAlligatorBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                           cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let headY = sz.height * 0.30 + bob
+        let bodyY = sz.height * 0.60 + bob
+        let feetY = sz.height * 0.86
+
+        // Long tapered tail
+        var tail = Path()
+        tail.move(to:    CGPoint(x: cx + u*0.20,  y: bodyY - u*0.06))
+        tail.addCurve(to: CGPoint(x: cx + u*0.48, y: bodyY + u*0.10),
+                      control1: CGPoint(x: cx + u*0.34, y: bodyY - u*0.04),
+                      control2: CGPoint(x: cx + u*0.46, y: bodyY + u*0.02))
+        tail.addLine(to: CGPoint(x: cx + u*0.48, y: bodyY + u*0.16))
+        tail.addCurve(to: CGPoint(x: cx + u*0.20, y: bodyY + u*0.06),
+                      control1: CGPoint(x: cx + u*0.44, y: bodyY + u*0.18),
+                      control2: CGPoint(x: cx + u*0.30, y: bodyY + u*0.10))
+        tail.closeSubpath()
+        ctx.fill(tail, with: .color(cfg.body))
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Back legs (short, splayed)
+        for side: CGFloat in [-1, 1] {
+            let lx = cx + side * u * 0.14
+            var leg = Path()
+            leg.move(to: CGPoint(x: lx, y: bodyY + u*0.12))
+            leg.addLine(to: CGPoint(x: lx + side*u*0.10, y: feetY))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.058)
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.018)
+            var foot = Path(ellipseIn: CGRect(x: lx + side*u*0.06 - u*0.058, y: feetY - u*0.018, width: u*0.10, height: u*0.044))
+            ctx.fill(foot, with: .color(cfg.body))
+            ctx.stroke(foot, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
+
+        // Wide flat body
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.22, y: bodyY - u*0.14, width: u*0.44, height: u*0.24))
+        ctx.fill(body, with: .color(cfg.body))
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.14, y: bodyY - u*0.08, width: u*0.28, height: u*0.14))
+        ctx.fill(belly, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Dorsal bumps (scutes)
+        for i: CGFloat in [-2, -1, 0, 1, 2] {
+            var bump = Path(ellipseIn: CGRect(x: cx + i*u*0.052 - u*0.018, y: bodyY - u*0.175, width: u*0.036, height: u*0.036))
+            ctx.fill(bump, with: .color(cfg.accent))
+            ctx.stroke(bump, with: .color(cfg.outline), lineWidth: u*0.012)
+        }
+
+        // Front legs
+        for side: CGFloat in [-1, 1] {
+            let lx = cx + side * u * 0.16
+            var leg = Path()
+            leg.move(to: CGPoint(x: lx, y: bodyY - u*0.04))
+            leg.addLine(to: CGPoint(x: lx + side*u*0.12, y: feetY - u*0.08))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.054)
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.016)
+            var foot = Path(ellipseIn: CGRect(x: lx + side*u*0.08 - u*0.058, y: feetY - u*0.10, width: u*0.10, height: u*0.044))
+            ctx.fill(foot, with: .color(cfg.body))
+            ctx.stroke(foot, with: .color(cfg.outline), lineWidth: u*0.014)
+        }
+
+        // Wide flat head with long snout
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.22, y: headY - u*0.13, width: u*0.44, height: u*0.26))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Long snout
+        var snout = Path()
+        snout.move(to:    CGPoint(x: cx - u*0.20, y: headY + u*0.04))
+        snout.addLine(to: CGPoint(x: cx - u*0.44, y: headY + u*0.020))
+        snout.addLine(to: CGPoint(x: cx - u*0.44, y: headY + u*0.080))
+        snout.addLine(to: CGPoint(x: cx - u*0.20, y: headY + u*0.100))
+        snout.closeSubpath()
+        ctx.fill(snout, with: .color(cfg.body))
+        ctx.stroke(snout, with: .color(cfg.outline), lineWidth: u*0.024)
+
+        // Teeth row on snout
+        for i: CGFloat in [0, 1, 2, 3] {
+            let tx = cx - u*0.22 - i * u*0.050
+            var tooth = Path()
+            tooth.move(to:    CGPoint(x: tx,            y: headY + u*0.038))
+            tooth.addLine(to: CGPoint(x: tx - u*0.010,  y: headY + u*0.068))
+            tooth.addLine(to: CGPoint(x: tx - u*0.022,  y: headY + u*0.038))
+            ctx.fill(tooth, with: .color(.white))
+        }
+
+        // Nostrils on top of snout
+        for side: CGFloat in [-1, 1] {
+            var nostril = Path(ellipseIn: CGRect(x: cx - u*0.40 + side*u*0.018, y: headY + u*0.002, width: u*0.022, height: u*0.016))
+            ctx.fill(nostril, with: .color(cfg.outline.opacity(0.55)))
+        }
+
+        // Eyes (on top/sides of head)
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.10
+            let ey = headY - u * 0.08
+            var eyeW = Path(ellipseIn: CGRect(x: ex - u*0.056, y: ey - u*0.056, width: u*0.112, height: u*0.112))
+            ctx.fill(eyeW, with: .color(.white))
+            ctx.stroke(eyeW, with: .color(cfg.outline), lineWidth: u*0.022)
+            var pupil = Path(ellipseIn: CGRect(x: ex - u*0.022, y: ey - u*0.030, width: u*0.044, height: u*0.056))
+            ctx.fill(pupil, with: .color(cfg.iris))
+            var darkPup = Path(ellipseIn: CGRect(x: ex - u*0.010, y: ey - u*0.018, width: u*0.022, height: u*0.034))
+            ctx.fill(darkPup, with: .color(.black))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.004, y: ey - u*0.018, width: u*0.014, height: u*0.014))
+            ctx.fill(hl, with: .color(.white))
+        }
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+}
+
+// MARK: - Temporary Gallery (debug only — remove before ship)
+
+struct AnimalGalleryView: View {
+    private let columns = [GridItem(.adaptive(minimum: 56), spacing: 2)]
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 2) {
+                ForEach(AnimalType.allCases) { animal in
+                    VStack(spacing: 1) {
+                        AnimalBodyView(type: animal, mood: .happy, size: 56, evolutionStage: 2)
+                            .frame(width: 56, height: 56)
+                        Text(animal.rawValue)
+                            .font(.system(size: 6, weight: .medium))
+                            .foregroundColor(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                    .padding(2)
+                    .background(animal.bodyColor.opacity(0.35))
+                    .cornerRadius(6)
+                }
+            }
+            .padding(4)
+        }
+        .background(Color.black)
     }
 }

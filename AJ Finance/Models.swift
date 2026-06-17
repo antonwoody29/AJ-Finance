@@ -687,10 +687,21 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case peacock     = "Peacock"
     case hedgehog    = "Hedgehog"
     case chameleon   = "Chameleon"
-    case turtle      = "Turtle"
-    case hippo       = "Hippo"
-    case giraffe     = "Giraffe"
-    case mouse       = "Mouse"
+    case turtle         = "Turtle"
+    case hippo          = "Hippo"
+    case giraffe        = "Giraffe"
+    case mouse          = "Mouse"
+    case zebra          = "Zebra"
+    case guineaPig      = "Guinea Pig"
+    case alligator      = "Alligator"
+    case cow            = "Cow"
+    case rooster        = "Rooster"
+    case pig            = "Pig"
+    case ant            = "Ant"
+    case beetle         = "Beetle"
+    case swordfish      = "Swordfish"
+    case shark          = "Shark"
+    case snappingTurtle = "Snapping Turtle"
     var id: String { rawValue }
 
     var emoji: String {
@@ -727,7 +738,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "🐢"
         case .hippo:       return "🦛"
         case .giraffe:     return "🦒"
-        case .mouse:       return "🐭"
+        case .mouse:          return "🐭"
+        case .zebra:          return "🦓"
+        case .guineaPig:      return "🐾"
+        case .alligator:      return "🐊"
+        case .cow:            return "🐄"
+        case .rooster:        return "🐓"
+        case .pig:            return "🐷"
+        case .ant:            return "🐜"
+        case .beetle:         return "🪲"
+        case .swordfish:      return "🐟"
+        case .shark:          return "🦈"
+        case .snappingTurtle: return "🐢"
         }
     }
 
@@ -765,7 +787,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return Color(red: 0.28, green: 0.65, blue: 0.24)
         case .hippo:       return Color(red: 0.62, green: 0.55, blue: 0.75)
         case .giraffe:     return Color(red: 0.96, green: 0.80, blue: 0.36)
-        case .mouse:       return Color(red: 0.72, green: 0.70, blue: 0.74)
+        case .mouse:          return Color(red: 0.72, green: 0.70, blue: 0.74)
+        case .zebra:          return Color(red: 0.94, green: 0.94, blue: 0.94)
+        case .guineaPig:      return Color(red: 0.80, green: 0.52, blue: 0.22)
+        case .alligator:      return Color(red: 0.22, green: 0.52, blue: 0.20)
+        case .cow:            return Color(red: 0.96, green: 0.96, blue: 0.96)
+        case .rooster:        return Color(red: 0.84, green: 0.28, blue: 0.12)
+        case .pig:            return Color(red: 0.98, green: 0.72, blue: 0.76)
+        case .ant:            return Color(red: 0.14, green: 0.10, blue: 0.10)
+        case .beetle:         return Color(red: 0.14, green: 0.28, blue: 0.88)
+        case .swordfish:      return Color(red: 0.22, green: 0.44, blue: 0.80)
+        case .shark:          return Color(red: 0.44, green: 0.48, blue: 0.58)
+        case .snappingTurtle: return Color(red: 0.22, green: 0.40, blue: 0.18)
         }
     }
 
@@ -803,7 +836,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return .ocean
         case .hippo:       return .hotSprings
         case .giraffe:     return .savanna
-        case .mouse:       return .burrow
+        case .mouse:          return .burrow
+        case .zebra:          return .savanna
+        case .guineaPig:      return .meadow
+        case .alligator:      return .river
+        case .cow:            return .meadow
+        case .rooster:        return .meadow
+        case .pig:            return .meadow
+        case .ant:            return .forest
+        case .beetle:         return .forest
+        case .swordfish:      return .ocean
+        case .shark:          return .ocean
+        case .snappingTurtle: return .pond
         }
     }
 
@@ -841,7 +885,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "Slow & steady wins the savings 🐢"
         case .hippo:       return "Big energy, big savings 🦛"
         case .giraffe:     return "Head above the rest 🦒"
-        case .mouse:       return "Tiny saver, huge ambitions 🐭"
+        case .mouse:          return "Tiny saver, huge ambitions 🐭"
+        case .zebra:          return "Stripes tell no lies 🦓"
+        case .guineaPig:      return "Soft life, serious savings 🐾"
+        case .alligator:      return "Patient predator of wealth 🐊"
+        case .cow:            return "Steady supply, steady bag 🐄"
+        case .rooster:        return "First up, first paid 🐓"
+        case .pig:            return "Rolling in it (the savings) 🐷"
+        case .ant:            return "Small but unstoppable 🐜"
+        case .beetle:         return "Tough shell, bigger wallet 🪲"
+        case .swordfish:      return "Cutting through debt like a blade 🐟"
+        case .shark:          return "Apex earner, zero chill 🦈"
+        case .snappingTurtle: return "Don't test the bag 🐢"
         }
     }
 
@@ -876,10 +931,21 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .snowLeopard: return "Rare Find"
         case .axolotl:     return "Resilient Rebuilder"
         case .crab:        return "Side Hustle King"
-        case .mouse:       return "Micro-Savings Master"
-        case .hippo:       return "Big Moves Only"
-        case .giraffe:     return "Big Picture Thinker"
-        case .frog:        return "Lucky Leaper"
+        case .mouse:          return "Micro-Savings Master"
+        case .hippo:          return "Big Moves Only"
+        case .giraffe:        return "Big Picture Thinker"
+        case .frog:           return "Lucky Leaper"
+        case .zebra:          return "Pattern Recognizer"
+        case .guineaPig:      return "Comfort Saver"
+        case .alligator:      return "Patience Hunter"
+        case .cow:            return "Steady Provider"
+        case .rooster:        return "Early Bird Earner"
+        case .pig:            return "Abundance Collector"
+        case .ant:            return "Colony Builder"
+        case .beetle:         return "Armored Accumulator"
+        case .swordfish:      return "Precision Cutter"
+        case .shark:          return "Apex Earner"
+        case .snappingTurtle: return "Defensive Wealth Guard"
         }
     }
 
@@ -950,7 +1016,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "Slow and STEADY means saving every damn day 🐢"
         case .hippo:       return "Big energy, big bank account — open wide and SAVE 🦛"
         case .giraffe:     return "Head above the rest means your finances better be too 🦒"
-        case .mouse:       return "Tiny but fierce — squeeze every penny until it screams 🐭"
+        case .mouse:          return "Tiny but fierce — squeeze every penny until it screams 🐭"
+        case .zebra:          return "No two savings plans alike — YOURS hits different 🦓"
+        case .guineaPig:      return "Soft life don't come free, stack that cozy bag NOW 🐾"
+        case .alligator:      return "Be still, be patient, then SNAP on that savings goal 🐊"
+        case .cow:            return "Steady and strong, you're the whole dairy of this situation 🐄"
+        case .rooster:        return "First up wins the bag — wake your ass up and SAVE 🐓"
+        case .pig:            return "Roll in those savings, oink oink, the pen is FULL bestie 🐷"
+        case .ant:            return "One crumb at a time builds an empire — start RIGHT NOW 🐜"
+        case .beetle:         return "Hard shell, harder savings — nothing cracks your financial armor 🪲"
+        case .swordfish:      return "Cut through excuses like a blade — SAVE THAT CASH 🐟"
+        case .shark:          return "Apex earner mentality — nothing in the water stops you 🦈"
+        case .snappingTurtle: return "Move slow, bite HARD — don't let anyone take your bag 🐢"
         }
     }
 
@@ -988,7 +1065,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "Slow and steady really does win the savings race 🐢"
         case .hippo:       return "Big smiles, big hearts, big savings — that's you! 🦛"
         case .giraffe:     return "Reach for the highest savings goals — you can do it! 🦒"
-        case .mouse:       return "Small actions lead to BIG results — start saving now! 🐭"
+        case .mouse:          return "Small actions lead to BIG results — start saving now! 🐭"
+        case .zebra:          return "Your stripes make you unique — just like your savings plan! 🦓"
+        case .guineaPig:      return "Fluffy hugs and big savings — you can do both! 🐾"
+        case .alligator:      return "Be patient like a gator — your goal is on the way! 🐊"
+        case .cow:            return "Steady and strong, every moo-ment counts! 🐄"
+        case .rooster:        return "Rise and shine early savers — morning wins! 🐓"
+        case .pig:            return "Put a coin in the piggy bank — you're doing amazing! 🐷"
+        case .ant:            return "Even tiny saves add up to something huge — keep going! 🐜"
+        case .beetle:         return "Strong shell, strong savings — you're unbreakable! 🪲"
+        case .swordfish:      return "Slice through your savings goals like a champion! 🐟"
+        case .shark:          return "Swim strong and save strong — you've got this! 🦈"
+        case .snappingTurtle: return "Slow and snappy — your savings always land right! 🐢"
         }
     }
 
@@ -1019,6 +1107,17 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:                                      return "🥬"
         case .giraffe:                                     return "🌴"
         case .mouse:                                       return "🧀"
+        case .zebra:                                       return "🌾"
+        case .guineaPig:                                   return "🥦"
+        case .alligator:                                   return "🐸"
+        case .cow:                                         return "🌽"
+        case .rooster:                                     return "🌾"
+        case .pig:                                         return "🍎"
+        case .ant:                                         return "🍬"
+        case .beetle:                                      return "🍃"
+        case .swordfish:                                   return "🦐"
+        case .shark:                                       return "🐟"
+        case .snappingTurtle:                              return "🐠"
         }
     }
 
@@ -1056,7 +1155,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "Sea Lettuce"
         case .hippo:       return "Watermelon"
         case .giraffe:     return "Tree Leaves"
-        case .mouse:       return "Aged Cheese"
+        case .mouse:          return "Aged Cheese"
+        case .zebra:          return "Savanna Grass"
+        case .guineaPig:      return "Fresh Broccoli"
+        case .alligator:      return "River Frogs"
+        case .cow:            return "Sweet Corn"
+        case .rooster:        return "Morning Grain"
+        case .pig:            return "Garden Apples"
+        case .ant:            return "Sugar Crystals"
+        case .beetle:         return "Forest Leaves"
+        case .swordfish:      return "Ocean Shrimp"
+        case .shark:          return "Deep Sea Fish"
+        case .snappingTurtle: return "Pond Minnows"
         }
     }
 
@@ -1108,7 +1218,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "The marathoner. Consistency beats intensity. Every. Single. Time."
         case .hippo:       return "Big moves only. Massive energy, massive savings potential."
         case .giraffe:     return "Head above the rest. Big picture thinking, tall ambitions."
-        case .mouse:       return "Micro-savings master. Small but fierce. Every penny screams."
+        case .mouse:          return "Micro-savings master. Small but fierce. Every penny screams."
+        case .zebra:          return "Pattern reader. Sees the rhythm in every market move."
+        case .guineaPig:      return "Cozy accumulator. Soft energy, surprisingly solid savings habit."
+        case .alligator:      return "Patient predator. Waits, watches, then snaps up every deal."
+        case .cow:            return "Steady provider. Consistent, reliable, never misses a deposit."
+        case .rooster:        return "Early riser. Beats the market, beats the alarm, beats the day."
+        case .pig:            return "Abundance mindset. More is more — more saving, more life."
+        case .ant:            return "Colony thinker. Every tiny action builds toward something massive."
+        case .beetle:         return "Armored saver. Hard exterior hides a rock-solid financial core."
+        case .swordfish:      return "Precision cutter. Slices debt, slices doubt, saves with purpose."
+        case .shark:          return "Apex earner. No hesitation, no mercy — just relentless growth."
+        case .snappingTurtle: return "Defensive guardian. Moves slow, protects hard, wealth never leaves."
         }
     }
 
@@ -1146,7 +1267,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "🎒 Shell backpack"
         case .hippo:       return "🦺 Life vest"
         case .giraffe:     return "🔭 Telescope"
-        case .mouse:       return "👛 Coin purse"
+        case .mouse:          return "👛 Coin purse"
+        case .zebra:          return "📋 Striped savings plan"
+        case .guineaPig:      return "🎀 Tiny bow accessory"
+        case .alligator:      return "⌚ Vintage watch"
+        case .cow:            return "🔔 Cowbell"
+        case .rooster:        return "🌅 Sunrise alarm"
+        case .pig:            return "🐖 Piggy bank"
+        case .ant:            return "🪙 Tiny gold coin"
+        case .beetle:         return "🛡️ Shield charm"
+        case .swordfish:      return "⚔️ Mini sword pin"
+        case .shark:          return "🦷 Shark tooth necklace"
+        case .snappingTurtle: return "🪨 River stone"
         }
     }
 
@@ -1184,7 +1316,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .turtle:      return "Determined slow march"
         case .hippo:       return "Joyful water splash"
         case .giraffe:     return "Neck stretch lookout"
-        case .mouse:       return "Tiny savings victory dance"
+        case .mouse:          return "Tiny savings victory dance"
+        case .zebra:          return "Stripe pattern victory stomp"
+        case .guineaPig:      return "Excited little popcorn jump"
+        case .alligator:      return "Slow stalk then victory snap"
+        case .cow:            return "Gentle slow happy moo nod"
+        case .rooster:        return "Wing-flap sunrise crow"
+        case .pig:            return "Happy rolling oink spin"
+        case .ant:            return "Six-leg march celebration"
+        case .beetle:         return "Shell-click victory rattle"
+        case .swordfish:      return "Speed slash victory leap"
+        case .shark:          return "Fin-circle apex loop"
+        case .snappingTurtle: return "Shell retract then snap reveal"
         }
     }
 }
