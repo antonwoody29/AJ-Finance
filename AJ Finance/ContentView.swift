@@ -22,7 +22,10 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if !appState.hasSeenAgeWarning {
+            if !appState.isLoggedIn {
+                SignInView()
+                    .environment(appState)
+            } else if !appState.hasSeenAgeWarning {
                 AgeVerificationView()
                     .environment(appState)
             } else if !appState.hasCompletedOnboarding {

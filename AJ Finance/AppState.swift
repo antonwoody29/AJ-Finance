@@ -27,6 +27,11 @@ final class AppState {
     var reminderHour: Int = 20
     var reminderMinute: Int = 0
 
+    // MARK: - Login (UserDefaults)
+    var isLoggedIn: Bool = false
+    var appleUserID: String = ""
+    var appleUserName: String = ""
+
     // MARK: - Age & Kid Mode (UserDefaults, not SaveData)
     var hasSeenAgeWarning: Bool = false
     var isKidMode: Bool = false
@@ -768,6 +773,9 @@ final class AppState {
         UserDefaults.standard.set(reminderHour, forKey: "aj_reminderHour")
         UserDefaults.standard.set(reminderMinute, forKey: "aj_reminderMin")
         // Age/mode flags
+        UserDefaults.standard.set(isLoggedIn,    forKey: "aj_isLoggedIn")
+        UserDefaults.standard.set(appleUserID,   forKey: "aj_appleUserID")
+        UserDefaults.standard.set(appleUserName, forKey: "aj_appleUserName")
         UserDefaults.standard.set(hasSeenAgeWarning, forKey: "aj_ageWarning")
         UserDefaults.standard.set(isKidMode, forKey: "aj_kidMode")
         UserDefaults.standard.set(kidModePin, forKey: "aj_kidPin")
@@ -797,7 +805,32 @@ final class AppState {
         }
     }
 
+    func login(userID: String, name: String) {
+        appleUserID   = userID
+        appleUserName = name.isEmpty ? "Money Bestie" : name
+        isLoggedIn    = true
+        if userName.isEmpty { userName = appleUserName }
+        save()
+        NotificationManager.scheduleAll(
+            animalName: selectedAnimal.rawValue,
+            reminderHour: reminderHour,
+            reminderMinute: reminderMinute,
+            reminderEnabled: true
+        )
+    }
+
+    func signOut() {
+        isLoggedIn  = false
+        appleUserID = ""
+        UserDefaults.standard.set(false, forKey: "aj_isLoggedIn")
+        UserDefaults.standard.set("",    forKey: "aj_appleUserID")
+    }
+
     func load() {
+        // Load login state
+        isLoggedIn    = UserDefaults.standard.bool(forKey: "aj_isLoggedIn")
+        appleUserID   = UserDefaults.standard.string(forKey: "aj_appleUserID")   ?? ""
+        appleUserName = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
         // Load age/mode flags
         hasSeenAgeWarning = UserDefaults.standard.bool(forKey: "aj_ageWarning")
         isKidMode = UserDefaults.standard.bool(forKey: "aj_kidMode")
