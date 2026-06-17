@@ -251,6 +251,9 @@ struct AnimalWorldBackground: View {
                 }
                 .ignoresSafeArea()
 
+                // ── Habitat-specific drawn background scene ───────────
+                HabitatBackLayer(habitat: habitat, isAlive: isAlive, parallaxX: parallaxX)
+
                 // ── Mid layer: trees rooted on back hills (42% speed) ─
                 Group {
                     Text(decor[0 % decor.count])
@@ -297,6 +300,9 @@ struct AnimalWorldBackground: View {
                     .frame(height: H * 0.42)
                 }
                 .ignoresSafeArea()
+
+                // ── Habitat ground texture overlay ────────────────────
+                HabitatGroundLayer(habitat: habitat, isAlive: isAlive, parallaxX: parallaxX)
 
                 // ── Near parallax: closest ground decorations (65%) ───
                 let nearItems: [(Int, CGFloat, CGFloat, CGFloat, Bool)] = [
