@@ -868,12 +868,120 @@ struct HabitatBackLayer: View {
 
     private func drawWaterfall(_ ctx: GraphicsContext, cx: CGFloat, topY: CGFloat, bottomY: CGFloat, W: CGFloat) {
         let h = bottomY - topY
-        // Water column
-        var fall = Path(CGRect(x: cx - W*0.022, y: topY, width: W*0.044, height: h))
-        ctx.fill(fall, with: .color(Color(red: 0.50, green: 0.78, blue: 1.00).opacity(0.55)))
-        // Mist at bottom
-        var mist = Path(ellipseIn: CGRect(x: cx - W*0.06, y: bottomY - h*0.08, width: W*0.12, height: h*0.12))
-        ctx.fill(mist, with: .color(.white.opacity(0.25)))
+        let fw = W * 0.058
+
+        // Which side does the cliff body extend toward?
+        // cx > W*0.5 → right-side cliff, water falls off left face
+        // cx < W*0.5 → left-side cliff, water falls off right face
+        let rightSide = cx > W * 0.5
+        let edgeX: CGFloat = rightSide ? W + 20 : -20
+        let faceX: CGFloat = rightSide ? cx - fw * 0.40 : cx + fw * 0.40  // where water runs
+
+        // ── Cliff body — big rocky mass from topY to screen edge ─────
+        var cliff = Path()
+        cliff.move(to: CGPoint(x: edgeX, y: -10))
+        cliff.addLine(to: CGPoint(x: edgeX, y: bottomY + 20))
+        cliff.addLine(to: CGPoint(x: faceX + (rightSide ? fw*0.10 : -fw*0.10), y: bottomY + 20))
+        // Rough rocky base edge
+        cliff.addCurve(to: CGPoint(x: faceX - (rightSide ? fw*0.30 : -fw*0.30), y: bottomY - h*0.18),
+                       control1: CGPoint(x: faceX + (rightSide ? -fw*0.05 : fw*0.05), y: bottomY + 10),
+                       control2: CGPoint(x: faceX - (rightSide ? fw*0.20 : -fw*0.20), y: bottomY - h*0.08))
+        // Irregular cliff face going up — rocky jags
+        cliff.addCurve(to: CGPoint(x: faceX + (rightSide ? fw*0.12 : -fw*0.12), y: topY + h*0.55),
+                       control1: CGPoint(x: faceX - (rightSide ? fw*0.28 : -fw*0.28), y: bottomY - h*0.38),
+                       control2: CGPoint(x: faceX + (rightSide ? fw*0.10 : -fw*0.10), y: topY + h*0.70))
+        cliff.addCurve(to: CGPoint(x: faceX - (rightSide ? fw*0.18 : -fw*0.18), y: topY + h*0.28),
+                       control1: CGPoint(x: faceX + (rightSide ? fw*0.14 : -fw*0.14), y: topY + h*0.45),
+                       control2: CGPoint(x: faceX - (rightSide ? fw*0.06 : -fw*0.06), y: topY + h*0.35))
+        cliff.addCurve(to: CGPoint(x: faceX + (rightSide ? fw*0.05 : -fw*0.05), y: topY - 2),
+                       control1: CGPoint(x: faceX - (rightSide ? fw*0.26 : -fw*0.26), y: topY + h*0.16),
+                       control2: CGPoint(x: faceX - (rightSide ? fw*0.08 : -fw*0.08), y: topY + h*0.06))
+        cliff.addLine(to: CGPoint(x: edgeX, y: -10))
+        cliff.closeSubpath()
+
+        // Dark rocky base
+        ctx.fill(cliff, with: .color(Color(red: 0.22, green: 0.18, blue: 0.14).opacity(0.92)))
+        // Lighter face highlight (left/right face catches light)
+        ctx.stroke(cliff, with: .color(Color(red: 0.40, green: 0.34, blue: 0.28).opacity(0.50)), lineWidth: 2)
+
+        // ── Overhanging ledge where water spills ──────────────────────
+        let ledgeDir: CGFloat = rightSide ? -1 : 1
+        var ledge = Path()
+        ledge.move(to: CGPoint(x: faceX, y: topY - 2))
+        ledge.addLine(to: CGPoint(x: faceX + ledgeDir * fw * 0.90, y: topY - 2))
+        ledge.addLine(to: CGPoint(x: faceX + ledgeDir * fw * 0.90, y: topY + 12))
+        ledge.addCurve(to: CGPoint(x: faceX - ledgeDir * fw * 0.06, y: topY + 14),
+                       control1: CGPoint(x: faceX + ledgeDir * fw * 0.40, y: topY + 18),
+                       control2: CGPoint(x: faceX + ledgeDir * fw * 0.10, y: topY + 16))
+        ledge.addLine(to: CGPoint(x: faceX, y: topY - 2))
+        ledge.closeSubpath()
+        ctx.fill(ledge, with: .color(Color(red: 0.30, green: 0.24, blue: 0.18).opacity(0.95)))
+        // Ledge highlight edge
+        var ledgeEdge = Path()
+        ledgeEdge.move(to: CGPoint(x: faceX + ledgeDir * fw * 0.85, y: topY - 2))
+        ledgeEdge.addLine(to: CGPoint(x: faceX - ledgeDir * fw * 0.04, y: topY + 14))
+        ctx.stroke(ledgeEdge, with: .color(.white.opacity(0.25)), lineWidth: 2)
+
+        // ── Main water body flowing down cliff face ───────────────────
+        var water = Path()
+        water.move(to: CGPoint(x: faceX - fw*0.30, y: topY + 14))
+        water.addCurve(to: CGPoint(x: faceX - fw*0.42, y: bottomY - 8),
+                       control1: CGPoint(x: faceX - fw*0.22, y: topY + h*0.38),
+                       control2: CGPoint(x: faceX - fw*0.38, y: topY + h*0.72))
+        water.addLine(to: CGPoint(x: faceX + fw*0.30, y: bottomY - 8))
+        water.addCurve(to: CGPoint(x: faceX + fw*0.18, y: topY + 14),
+                       control1: CGPoint(x: faceX + fw*0.26, y: topY + h*0.72),
+                       control2: CGPoint(x: faceX + fw*0.10, y: topY + h*0.38))
+        water.closeSubpath()
+        ctx.fill(water, with: .color(Color(red: 0.28, green: 0.66, blue: 0.95).opacity(0.60)))
+
+        // ── Foam streaks down the water face ──────────────────────────
+        let streaks: [(CGFloat, CGFloat, CGFloat)] = [
+            (-fw*0.22, -fw*0.18, 0.85),
+            (-fw*0.06, -fw*0.02, 0.92),
+            ( fw*0.08,  fw*0.12, 0.80),
+            ( fw*0.22,  fw*0.18, 0.70),
+        ]
+        for (x0, x1, alpha) in streaks {
+            var s = Path()
+            s.move(to: CGPoint(x: faceX + x0, y: topY + 16))
+            s.addCurve(to: CGPoint(x: faceX + x1, y: bottomY - 12),
+                       control1: CGPoint(x: faceX + x0 * 0.9, y: topY + h * 0.40),
+                       control2: CGPoint(x: faceX + x1 * 1.1, y: topY + h * 0.72))
+            ctx.stroke(s, with: .color(.white.opacity(alpha)), lineWidth: fw * 0.16)
+        }
+
+        // Centre shimmer
+        var shimmer = Path()
+        shimmer.move(to: CGPoint(x: faceX - fw*0.04, y: topY + 16))
+        shimmer.addCurve(to: CGPoint(x: faceX + fw*0.02, y: bottomY - 12),
+                         control1: CGPoint(x: faceX - fw*0.08, y: topY + h*0.45),
+                         control2: CGPoint(x: faceX + fw*0.06, y: topY + h*0.70))
+        ctx.stroke(shimmer, with: .color(Color(red: 0.70, green: 0.96, blue: 1.00).opacity(0.55)), lineWidth: fw * 0.20)
+
+        // ── Rock boulders at cliff base ───────────────────────────────
+        let boulderSide: CGFloat = rightSide ? -1 : 1
+        for (boff, bsize): (CGFloat, CGFloat) in [(0, fw*0.55), (boulderSide * fw*0.55, fw*0.38), (boulderSide * fw*1.0, fw*0.30)] {
+            var boulder = Path(ellipseIn: CGRect(x: faceX + boff - bsize*0.5,
+                                                  y: bottomY - bsize*0.5,
+                                                  width: bsize, height: bsize * 0.65))
+            ctx.fill(boulder, with: .color(Color(red: 0.26, green: 0.22, blue: 0.18).opacity(0.88)))
+            ctx.stroke(boulder, with: .color(Color(red: 0.40, green: 0.34, blue: 0.28).opacity(0.50)), lineWidth: 1.5)
+        }
+
+        // ── Splash pool ───────────────────────────────────────────────
+        var pool = Path(ellipseIn: CGRect(x: faceX - fw*1.10, y: bottomY - 6,
+                                          width: fw*2.20, height: h*0.09))
+        ctx.fill(pool, with: .color(Color(red: 0.28, green: 0.68, blue: 0.95).opacity(0.50)))
+        var foamRing = Path(ellipseIn: CGRect(x: faceX - fw*0.80, y: bottomY - 3,
+                                              width: fw*1.60, height: h*0.050))
+        ctx.stroke(foamRing, with: .color(.white.opacity(0.50)), lineWidth: 2)
+
+        // ── Mist spray above pool ─────────────────────────────────────
+        for (mx, mr): (CGFloat, CGFloat) in [(faceX - fw*0.3, fw*0.8), (faceX, fw), (faceX + fw*0.3, fw*0.7)] {
+            var mist = Path(ellipseIn: CGRect(x: mx - mr, y: bottomY - h*0.07, width: mr*2, height: h*0.08))
+            ctx.fill(mist, with: .color(.white.opacity(0.16)))
+        }
     }
 
     private func drawAurora(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
@@ -1273,6 +1381,128 @@ struct HabitatGroundLayer: View {
             let sx = W*(0.05 + CGFloat(i)*0.09) - px
             var sp = Path(ellipseIn: CGRect(x: sx - 4, y: top + H*0.02, width: 8, height: 8))
             ctx.fill(sp, with: .color(Color(red: 0.80, green: 0.60, blue: 1.00).opacity(0.65)))
+        }
+    }
+}
+
+// MARK: - Habitat Catchables
+// Animated items floating / arcing through the scene that the animal can "catch"
+
+struct HabitatCatchables: View {
+    var habitat: AnimalHabitat
+    var isAlive: Bool
+
+    @State private var phase: Double = 0
+    @State private var phase2: Double = 0.33
+    @State private var phase3: Double = 0.66
+
+    var body: some View {
+        GeometryReader { geo in
+            let W = geo.size.width
+            let H = geo.size.height
+            let items = catchables(for: habitat)
+            ZStack {
+                // Three independent floating items with staggered timing
+                ForEach(0..<min(items.count, 5), id: \.self) { i in
+                    let item = items[i % items.count]
+                    let p = [phase, phase2, phase3, (phase + 0.5).truncatingRemainder(dividingBy: 1), (phase2 + 0.5).truncatingRemainder(dividingBy: 1)][i]
+                    let lane = laneForIndex(i, W: W)
+                    let pos  = positionOnArc(p: p, lane: lane, W: W, H: H)
+                    Text(item)
+                        .font(.system(size: fontSizeForIndex(i)))
+                        .opacity(isAlive ? arcOpacity(p: p) : 0)
+                        .scaleEffect(arcScale(p: p))
+                        .rotationEffect(.degrees(arcRotation(i: i, p: p)))
+                        .position(pos)
+                        .shadow(color: shadowColor(for: habitat).opacity(0.55), radius: 6)
+                }
+            }
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            withAnimation(.linear(duration: arcDuration(0)).repeatForever(autoreverses: false)) { phase  = 1 }
+            withAnimation(.linear(duration: arcDuration(1)).repeatForever(autoreverses: false).delay(arcDuration(1)*0.33)) { phase2 = 1 }
+            withAnimation(.linear(duration: arcDuration(2)).repeatForever(autoreverses: false).delay(arcDuration(2)*0.66)) { phase3 = 1 }
+        }
+    }
+
+    // Habitat-specific catchable items
+    private func catchables(for h: AnimalHabitat) -> [String] {
+        switch h {
+        case .meadow:        return ["🌼", "💰", "🌿", "⭐", "🦋"]
+        case .flowerGarden:  return ["🌸", "💰", "🌺", "✨", "🐝"]
+        case .forest:        return ["🍄", "💰", "🌰", "⭐", "🍃"]
+        case .jungle:        return ["🍌", "💰", "🦜", "✨", "🌺"]
+        case .savanna:       return ["🌾", "💰", "🦁", "⭐", "🌻"]
+        case .ocean:         return ["🐠", "💰", "🐚", "✨", "💎"]
+        case .arctic:        return ["❄️", "💰", "⭐", "💎", "🌟"]
+        case .bamboo:        return ["🎋", "💰", "🌸", "⭐", "🍵"]
+        case .beach:         return ["🐚", "💰", "⭐", "🌊", "🦀"]
+        case .mountain:      return ["⭐", "💰", "🌲", "❄️", "💎"]
+        case .woodland:      return ["🍂", "💰", "🌙", "⭐", "🍄"]
+        case .pond:          return ["🐸", "💰", "🌸", "⭐", "🎣"]
+        case .river:         return ["🐟", "💰", "💧", "⭐", "🌿"]
+        case .burrow:        return ["🌰", "💰", "🪲", "⭐", "🥕"]
+        case .cloudland:     return ["⭐", "💰", "✨", "🌟", "💎"]
+        case .volcano:       return ["🔥", "💰", "💎", "⭐", "🪨"]
+        case .hotSprings:    return ["💧", "💰", "🌸", "⭐", "✨"]
+        case .candy:         return ["🍬", "💰", "🍭", "⭐", "🧁"]
+        }
+    }
+
+    private func fontSizeForIndex(_ i: Int) -> CGFloat {
+        [28, 24, 20, 22, 18][i % 5]
+    }
+
+    private func arcDuration(_ i: Int) -> Double {
+        [5.8, 7.2, 6.4][i % 3]
+    }
+
+    private func laneForIndex(_ i: Int, W: CGFloat) -> CGFloat {
+        // Five horizontal lanes evenly spaced across the middle of the screen
+        let lanes: [CGFloat] = [0.12, 0.30, 0.52, 0.70, 0.88]
+        return W * lanes[i % lanes.count]
+    }
+
+    // Arc: item rises from below ground, arcs over midscreen, fades out at top
+    private func positionOnArc(p: Double, lane: CGFloat, W: CGFloat, H: CGFloat) -> CGPoint {
+        // p goes 0→1 linearly (animation drives this)
+        // Path: start below ground (H*0.88), arc up through H*0.35, exit at H*0.08
+        let t = p
+        let startY = H * 0.90
+        let peakY  = H * 0.28
+        let endY   = H * 0.08
+        // Bezier-style arc using quadratic interpolation
+        let y = (1-t)*(1-t)*startY + 2*(1-t)*t*peakY + t*t*endY
+        // Slight horizontal drift
+        let xDrift = CGFloat(sin(t * .pi * 1.5)) * W * 0.06
+        return CGPoint(x: lane + xDrift, y: y)
+    }
+
+    private func arcOpacity(p: Double) -> Double {
+        if p < 0.08 { return p / 0.08 }
+        if p > 0.80 { return (1 - p) / 0.20 }
+        return 0.92
+    }
+
+    private func arcScale(p: Double) -> CGFloat {
+        if p < 0.12 { return CGFloat(0.4 + p / 0.12 * 0.6) }
+        if p > 0.80 { return CGFloat(1.0 - (p - 0.80) / 0.20 * 0.4) }
+        return 1.0
+    }
+
+    private func arcRotation(i: Int, p: Double) -> Double {
+        let dir: Double = i % 2 == 0 ? 1 : -1
+        return dir * p * 180
+    }
+
+    private func shadowColor(for h: AnimalHabitat) -> Color {
+        switch h {
+        case .candy, .cloudland: return .purple
+        case .volcano:           return .orange
+        case .arctic:            return .cyan
+        case .ocean:             return .blue
+        default:                 return .yellow
         }
     }
 }

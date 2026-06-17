@@ -26,7 +26,7 @@ struct CharConfig {
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator, kangaroo, plant, grasshopper, bee }
 
     // MARK: - Per-animal configs
 
@@ -335,6 +335,34 @@ struct CharConfig {
                          iris: Color(red:0.56,green:0.44,blue:0.06),
                          nose: Color(red:0.20,green:0.34,blue:0.14),
                          ear: .none, tail: .flat, bodyKind: .turtle)
+        case .kangaroo:
+            return .init(body: Color(red:0.78,green:0.56,blue:0.34),
+                         belly: Color(red:0.92,green:0.80,blue:0.64),
+                         accent: Color(red:0.58,green:0.38,blue:0.20),
+                         iris: Color(red:0.12,green:0.08,blue:0.04),
+                         nose: Color(red:0.62,green:0.30,blue:0.24),
+                         ear: .huge, tail: .long, bodyKind: .kangaroo)
+        case .weedPlant:
+            return .init(body: Color(red:0.16,green:0.54,blue:0.12),
+                         belly: Color(red:0.26,green:0.72,blue:0.20),
+                         accent: Color(red:0.10,green:0.36,blue:0.08),
+                         iris: Color(red:0.08,green:0.30,blue:0.06),
+                         nose: Color(red:0.14,green:0.46,blue:0.10),
+                         ear: .none, tail: .none, bodyKind: .plant)
+        case .grasshopper:
+            return .init(body: Color(red:0.34,green:0.60,blue:0.16),
+                         belly: Color(red:0.50,green:0.76,blue:0.28),
+                         accent: Color(red:0.22,green:0.42,blue:0.10),
+                         iris: Color(red:0.06,green:0.18,blue:0.04),
+                         nose: Color(red:0.28,green:0.50,blue:0.14),
+                         ear: .tiny, tail: .none, bodyKind: .grasshopper)
+        case .bee:
+            return .init(body: Color(red:0.96,green:0.78,blue:0.08),
+                         belly: Color(red:0.14,green:0.10,blue:0.06),
+                         accent: Color(red:0.96,green:0.78,blue:0.08),
+                         iris: Color(red:0.06,green:0.04,blue:0.02),
+                         nose: Color(red:0.80,green:0.56,blue:0.06),
+                         ear: .tiny, tail: .none, special: .wings, bodyKind: .bee)
         }
     }
 }
@@ -659,7 +687,11 @@ struct AnimalBodyView: View {
         case .pig:       drawPigBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .insect:    drawInsectBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .fish:      drawFishBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
-        case .alligator: drawAlligatorBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .alligator:    drawAlligatorBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .kangaroo:     drawKangarooBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .plant:        drawPlantBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .grasshopper:  drawGrasshopperBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .bee:          drawBeeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         }
     }
@@ -2183,6 +2215,472 @@ struct AnimalBodyView: View {
         }
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Kangaroo
+    func drawKangarooBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                          cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let bodyY  = sz.height * 0.62 + bob
+        let headY  = bodyY - u * 0.46
+        let feetY  = sz.height * 0.82
+
+        // Big powerful tail — thick and curved down
+        var tail = Path()
+        tail.move(to: CGPoint(x: cx + u*0.18, y: bodyY + u*0.08))
+        tail.addCurve(to: CGPoint(x: cx + u*0.52, y: feetY - u*0.04),
+                      control1: CGPoint(x: cx + u*0.42, y: bodyY + u*0.10),
+                      control2: CGPoint(x: cx + u*0.58, y: bodyY + u*0.38))
+        ctx.stroke(tail, with: .color(cfg.body), lineWidth: u * 0.12)
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u * 0.022)
+
+        // Muscular legs — big hind legs
+        for (side, swing): (CGFloat, CGFloat) in [(-1, legSwing), (1, -legSwing)] {
+            let kx = cx + side * u * 0.16
+            let ky = bodyY + u * 0.14
+            // Upper leg (thick)
+            var upper = Path()
+            upper.move(to: CGPoint(x: kx, y: bodyY))
+            upper.addLine(to: CGPoint(x: kx + side*u*0.04, y: ky))
+            ctx.stroke(upper, with: .color(cfg.body), lineWidth: u*0.14)
+            ctx.stroke(upper, with: .color(cfg.outline), lineWidth: u*0.024)
+            // Lower leg — angled back
+            var lower = Path()
+            lower.move(to: CGPoint(x: kx + side*u*0.04, y: ky))
+            lower.addLine(to: CGPoint(x: kx - side*u*0.04 + swing*u*0.04, y: feetY - u*0.08))
+            ctx.stroke(lower, with: .color(cfg.body), lineWidth: u*0.10)
+            ctx.stroke(lower, with: .color(cfg.outline), lineWidth: u*0.020)
+            // Big foot
+            var foot = Path()
+            foot.move(to: CGPoint(x: kx - side*u*0.02 + swing*u*0.04, y: feetY - u*0.06))
+            foot.addLine(to: CGPoint(x: kx - side*u*0.02 + swing*u*0.04 + side*u*0.18, y: feetY - u*0.04))
+            ctx.stroke(foot, with: .color(cfg.body), lineWidth: u*0.07)
+            ctx.stroke(foot, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
+        // Small front arms
+        for side: CGFloat in [-1, 1] {
+            var arm = Path()
+            arm.move(to: CGPoint(x: cx + side*u*0.14, y: bodyY - u*0.22))
+            arm.addCurve(to: CGPoint(x: cx + side*u*0.26, y: bodyY - u*0.04),
+                         control1: CGPoint(x: cx + side*u*0.22, y: bodyY - u*0.18),
+                         control2: CGPoint(x: cx + side*u*0.30, y: bodyY - u*0.10))
+            ctx.stroke(arm, with: .color(cfg.body), lineWidth: u*0.07)
+            ctx.stroke(arm, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
+
+        // Body — tall and lean
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.20, y: bodyY - u*0.34, width: u*0.40, height: u*0.42))
+        ctx.fill(body, with: .color(cfg.body))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.030)
+        // Belly pouch
+        var pouch = Path(ellipseIn: CGRect(x: cx - u*0.12, y: bodyY - u*0.10, width: u*0.24, height: u*0.20))
+        ctx.fill(pouch, with: .color(cfg.belly))
+        ctx.stroke(pouch, with: .color(cfg.outline), lineWidth: u*0.018)
+        // Joey peeking from pouch
+        var joey = Path(ellipseIn: CGRect(x: cx - u*0.07, y: bodyY - u*0.10, width: u*0.14, height: u*0.11))
+        ctx.fill(joey, with: .color(cfg.accent))
+        ctx.stroke(joey, with: .color(cfg.outline), lineWidth: u*0.014)
+        // Joey tiny eyes
+        for eside: CGFloat in [-1, 1] {
+            var je = Path(ellipseIn: CGRect(x: cx + eside*u*0.026 - u*0.012, y: bodyY - u*0.096, width: u*0.022, height: u*0.018))
+            ctx.fill(je, with: .color(cfg.iris))
+        }
+
+        // Neck
+        var neck = Path(ellipseIn: CGRect(x: cx - u*0.10, y: headY + u*0.14, width: u*0.20, height: u*0.16))
+        ctx.fill(neck, with: .color(cfg.body))
+
+        // Head — smaller than body, more oval
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.18, y: headY - u*0.20, width: u*0.36, height: u*0.34))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Long pointed ears
+        for eside: CGFloat in [-1, 1] {
+            var ear = Path()
+            ear.move(to: CGPoint(x: cx + eside*u*0.08, y: headY - u*0.16))
+            ear.addCurve(to: CGPoint(x: cx + eside*u*0.16, y: headY - u*0.44),
+                         control1: CGPoint(x: cx + eside*u*0.06, y: headY - u*0.28),
+                         control2: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.40))
+            ear.addCurve(to: CGPoint(x: cx + eside*u*0.10, y: headY - u*0.16),
+                         control1: CGPoint(x: cx + eside*u*0.18, y: headY - u*0.36),
+                         control2: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.22))
+            ear.closeSubpath()
+            ctx.fill(ear, with: .color(cfg.body))
+            ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.022)
+            // Inner ear
+            var inner = Path()
+            inner.move(to: CGPoint(x: cx + eside*u*0.09, y: headY - u*0.18))
+            inner.addCurve(to: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.40),
+                           control1: CGPoint(x: cx + eside*u*0.08, y: headY - u*0.28),
+                           control2: CGPoint(x: cx + eside*u*0.12, y: headY - u*0.36))
+            inner.addCurve(to: CGPoint(x: cx + eside*u*0.10, y: headY - u*0.18),
+                           control1: CGPoint(x: cx + eside*u*0.16, y: headY - u*0.32),
+                           control2: CGPoint(x: cx + eside*u*0.13, y: headY - u*0.22))
+            inner.closeSubpath()
+            ctx.fill(inner, with: .color(Color(red:0.90,green:0.66,blue:0.66)))
+        }
+
+        // Muzzle — elongated snout
+        var muzzle = Path(ellipseIn: CGRect(x: cx - u*0.14, y: headY - u*0.04, width: u*0.28, height: u*0.16))
+        ctx.fill(muzzle, with: .color(cfg.belly))
+        ctx.stroke(muzzle, with: .color(cfg.outline), lineWidth: u*0.020)
+        // Nose
+        var nose = Path(ellipseIn: CGRect(x: cx - u*0.05, y: headY - u*0.02, width: u*0.10, height: u*0.07))
+        ctx.fill(nose, with: .color(cfg.nose))
+
+        // Eyes
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u * 0.088
+            let ey = headY - u * 0.10
+            var eye = Path(ellipseIn: CGRect(x: ex - u*0.054, y: ey - u*0.054, width: u*0.108, height: u*0.108))
+            ctx.fill(eye, with: .color(.white))
+            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.034, y: ey - u*0.034 + (blink ? u*0.020 : 0), width: u*0.068, height: blink ? u*0.008 : u*0.068))
+            ctx.fill(iris, with: .color(cfg.iris))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.004, y: ey - u*0.022, width: u*0.016, height: u*0.016))
+            ctx.fill(hl, with: .color(.white))
+        }
+    }
+
+    // MARK: - Weed Plant
+    func drawPlantBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                       cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let groundY = sz.height * 0.82
+        let stemTop = sz.height * 0.38 + bob
+
+        // Pot — terracotta at ground
+        var potBase = Path()
+        potBase.move(to: CGPoint(x: cx - u*0.20, y: groundY - u*0.06))
+        potBase.addLine(to: CGPoint(x: cx - u*0.15, y: groundY - u*0.26))
+        potBase.addLine(to: CGPoint(x: cx + u*0.15, y: groundY - u*0.26))
+        potBase.addLine(to: CGPoint(x: cx + u*0.20, y: groundY - u*0.06))
+        potBase.closeSubpath()
+        ctx.fill(potBase, with: .color(Color(red:0.72,green:0.38,blue:0.20)))
+        ctx.stroke(potBase, with: .color(Color(red:0.50,green:0.24,blue:0.10)), lineWidth: u*0.020)
+        // Pot rim
+        var rim = Path(ellipseIn: CGRect(x: cx - u*0.18, y: groundY - u*0.30, width: u*0.36, height: u*0.08))
+        ctx.fill(rim, with: .color(Color(red:0.78,green:0.44,blue:0.24)))
+        ctx.stroke(rim, with: .color(Color(red:0.50,green:0.24,blue:0.10)), lineWidth: u*0.018)
+        // Soil top
+        var soil = Path(ellipseIn: CGRect(x: cx - u*0.14, y: groundY - u*0.28, width: u*0.28, height: u*0.06))
+        ctx.fill(soil, with: .color(Color(red:0.32,green:0.20,blue:0.10)))
+
+        // Main stem — thick, slightly curved
+        var stem = Path()
+        stem.move(to: CGPoint(x: cx, y: groundY - u*0.24))
+        stem.addCurve(to: CGPoint(x: cx + u*0.04, y: stemTop),
+                      control1: CGPoint(x: cx - u*0.06, y: groundY - u*0.50),
+                      control2: CGPoint(x: cx + u*0.08, y: stemTop + u*0.20))
+        ctx.stroke(stem, with: .color(cfg.accent), lineWidth: u*0.065)
+        ctx.stroke(stem, with: .color(cfg.body.opacity(0.4)), lineWidth: u*0.030)
+
+        // Branch stems left and right
+        for (side, frac): (CGFloat, CGFloat) in [(-1, 0.35), (1, 0.55), (-1, 0.72)] {
+            let branchY = groundY - u*0.24 + (stemTop - groundY + u*0.24) * frac
+            var branch = Path()
+            branch.move(to: CGPoint(x: cx + u*0.02, y: branchY))
+            branch.addCurve(to: CGPoint(x: cx + side*u*0.24, y: branchY - u*0.08),
+                            control1: CGPoint(x: cx + side*u*0.08, y: branchY - u*0.04),
+                            control2: CGPoint(x: cx + side*u*0.18, y: branchY - u*0.10))
+            ctx.stroke(branch, with: .color(cfg.accent), lineWidth: u*0.038)
+        }
+
+        // Cannabis-style serrated leaves — 5 or 7 finger fan leaf shape
+        let leafPositions: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            (cx + u*0.04, stemTop,            0,    1.0),
+            (cx - u*0.22, stemTop + u*0.18,  -0.4,  0.80),
+            (cx + u*0.26, stemTop + u*0.24,   0.4,  0.76),
+            (cx - u*0.18, stemTop + u*0.42,  -0.3,  0.68),
+        ]
+        for (lx, ly, tilt, scale) in leafPositions {
+            drawCannabisLeaf(ctx, cx: lx, cy: ly, u: u * scale, tilt: tilt, color: cfg.body)
+        }
+
+        // Face on the main stem / top bud
+        let faceY = stemTop + u*0.10
+        // Bud head
+        var bud = Path(ellipseIn: CGRect(x: cx - u*0.18, y: stemTop - u*0.14, width: u*0.36, height: u*0.28))
+        ctx.fill(bud, with: .color(cfg.body))
+        ctx.stroke(bud, with: .color(cfg.accent), lineWidth: u*0.022)
+        // Happy eyes
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u*0.076
+            let ey = faceY - u*0.08
+            var eye = Path(ellipseIn: CGRect(x: ex - u*0.046, y: ey - u*0.046, width: u*0.092, height: u*0.092))
+            ctx.fill(eye, with: .color(.white))
+            ctx.stroke(eye, with: .color(cfg.accent), lineWidth: u*0.014)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.028, y: ey - u*0.028 + (blink ? u*0.018 : 0), width: u*0.056, height: blink ? u*0.008 : u*0.056))
+            ctx.fill(iris, with: .color(cfg.iris))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.016, width: u*0.012, height: u*0.012))
+            ctx.fill(hl, with: .color(.white))
+        }
+        // Smile
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.06, y: faceY + u*0.01))
+        smile.addCurve(to: CGPoint(x: cx + u*0.06, y: faceY + u*0.01),
+                       control1: CGPoint(x: cx - u*0.02, y: faceY + u*0.04),
+                       control2: CGPoint(x: cx + u*0.02, y: faceY + u*0.04))
+        ctx.stroke(smile, with: .color(cfg.accent), lineWidth: u*0.018)
+        // Sparkle haze emoji vibes — little star dots
+        for (sdx, sdy): (CGFloat, CGFloat) in [(-u*0.22, -u*0.06), (u*0.24, -u*0.10), (-u*0.20, u*0.12)] {
+            var star = Path(ellipseIn: CGRect(x: cx + sdx - u*0.018, y: stemTop + sdy - u*0.018, width: u*0.036, height: u*0.036))
+            ctx.fill(star, with: .color(Color(red:0.88,green:1.00,blue:0.30).opacity(0.70)))
+        }
+    }
+
+    private func drawCannabisLeaf(_ ctx: GraphicsContext, cx: CGFloat, cy: CGFloat, u: CGFloat, tilt: CGFloat, color: Color) {
+        // Fan of 5 pointed finger-leaves around a center spine
+        let fingers: [(CGFloat, CGFloat)] = [(-0.40, 0.80), (-0.20, 0.95), (0, 1.0), (0.20, 0.95), (0.40, 0.80)]
+        for (ang, len) in fingers {
+            let angle = (ang + tilt) * 1.2
+            let tipX = cx + CGFloat(sin(Double(angle))) * u * 0.28 * len
+            let tipY = cy - CGFloat(cos(Double(angle))) * u * 0.28 * len
+            var finger = Path()
+            finger.move(to: CGPoint(x: cx, y: cy))
+            finger.addCurve(to: CGPoint(x: tipX, y: tipY),
+                            control1: CGPoint(x: cx + CGFloat(sin(Double(angle)))*u*0.10, y: cy - u*0.08),
+                            control2: CGPoint(x: tipX - CGFloat(sin(Double(angle)))*u*0.04, y: tipY + u*0.06))
+            ctx.stroke(finger, with: .color(color), lineWidth: u * 0.055)
+        }
+        // Central leaf body fill
+        var leaf = Path(ellipseIn: CGRect(x: cx - u*0.10, y: cy - u*0.20, width: u*0.20, height: u*0.22))
+        ctx.fill(leaf, with: .color(color.opacity(0.85)))
+    }
+
+    // MARK: - Grasshopper
+    func drawGrasshopperBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                              cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let bodyY  = sz.height * 0.62 + bob
+        let headY  = bodyY - u * 0.28
+        let feetY  = sz.height * 0.82
+
+        // Long back jumping legs — most distinctive feature
+        for side: CGFloat in [-1, 1] {
+            let hipX = cx + side * u * 0.14
+            let kneeX = cx + side * u * 0.42
+            let kneeY = bodyY - u * 0.10
+            let footX = cx + side * u * 0.20
+            // Upper thigh — thick, angled up and out
+            var thigh = Path()
+            thigh.move(to: CGPoint(x: hipX, y: bodyY - u*0.06))
+            thigh.addLine(to: CGPoint(x: kneeX, y: kneeY))
+            ctx.stroke(thigh, with: .color(cfg.body), lineWidth: u*0.10)
+            ctx.stroke(thigh, with: .color(cfg.outline), lineWidth: u*0.018)
+            // Lower leg — angled down to foot
+            var lower = Path()
+            lower.move(to: CGPoint(x: kneeX, y: kneeY))
+            lower.addLine(to: CGPoint(x: footX, y: feetY - u*0.06))
+            ctx.stroke(lower, with: .color(cfg.body), lineWidth: u*0.056)
+            ctx.stroke(lower, with: .color(cfg.outline), lineWidth: u*0.016)
+            // Foot
+            var foot = Path(ellipseIn: CGRect(x: footX - u*0.04, y: feetY - u*0.08, width: u*0.08, height: u*0.04))
+            ctx.fill(foot, with: .color(cfg.body))
+        }
+        // Small front walking legs
+        for (side, yOff): (CGFloat, CGFloat) in [(-1, 0), (1, 0), (-1, u*0.10), (1, u*0.10)] {
+            var leg = Path()
+            leg.move(to: CGPoint(x: cx + side*u*0.10, y: bodyY - u*0.08 + yOff))
+            leg.addLine(to: CGPoint(x: cx + side*u*0.24, y: bodyY + u*0.04 + yOff))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.032)
+        }
+
+        // Segmented body — elongated, tapers to rear point
+        var body = Path()
+        body.move(to: CGPoint(x: cx - u*0.18, y: bodyY - u*0.10))
+        body.addCurve(to: CGPoint(x: cx + u*0.32, y: bodyY - u*0.06),
+                      control1: CGPoint(x: cx + u*0.06, y: bodyY - u*0.22),
+                      control2: CGPoint(x: cx + u*0.24, y: bodyY - u*0.18))
+        body.addCurve(to: CGPoint(x: cx + u*0.44, y: bodyY),
+                      control1: CGPoint(x: cx + u*0.38, y: bodyY - u*0.02),
+                      control2: CGPoint(x: cx + u*0.44, y: bodyY - u*0.02))
+        body.addCurve(to: CGPoint(x: cx - u*0.18, y: bodyY + u*0.10),
+                      control1: CGPoint(x: cx + u*0.24, y: bodyY + u*0.14),
+                      control2: CGPoint(x: cx + u*0.02, y: bodyY + u*0.16))
+        body.closeSubpath()
+        ctx.fill(body, with: .color(cfg.body))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.024)
+        // Body segments
+        for seg: CGFloat in [0.35, 0.55, 0.72] {
+            let sx = cx - u*0.18 + u*0.62 * seg
+            var segLine = Path()
+            segLine.move(to: CGPoint(x: sx, y: bodyY - u*0.10 + u*0.04*seg))
+            segLine.addLine(to: CGPoint(x: sx + u*0.02, y: bodyY + u*0.08))
+            ctx.stroke(segLine, with: .color(cfg.accent), lineWidth: u*0.014)
+        }
+        // Wing covers — two triangular folded wings on back
+        for side: CGFloat in [-1, 1] {
+            var wing = Path()
+            wing.move(to: CGPoint(x: cx + side*u*0.04, y: bodyY - u*0.12))
+            wing.addLine(to: CGPoint(x: cx + side*u*0.18, y: bodyY - u*0.08))
+            wing.addLine(to: CGPoint(x: cx + side*u*0.14, y: bodyY + u*0.06))
+            wing.addLine(to: CGPoint(x: cx + side*u*0.02, y: bodyY + u*0.04))
+            wing.closeSubpath()
+            ctx.fill(wing, with: .color(cfg.belly.opacity(0.55)))
+            ctx.stroke(wing, with: .color(cfg.accent), lineWidth: u*0.016)
+        }
+
+        // Head — rounded, slightly forward
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.22, y: headY - u*0.18, width: u*0.36, height: u*0.28))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
+        // Cheek plates
+        var cheek = Path(ellipseIn: CGRect(x: cx - u*0.20, y: headY - u*0.04, width: u*0.16, height: u*0.12))
+        ctx.fill(cheek, with: .color(cfg.belly.opacity(0.50)))
+        // Mandibles
+        for mside: CGFloat in [-1, 1] {
+            var mand = Path()
+            mand.move(to: CGPoint(x: cx - u*0.10, y: headY + u*0.06))
+            mand.addLine(to: CGPoint(x: cx - u*0.10 + mside*u*0.08, y: headY + u*0.12))
+            ctx.stroke(mand, with: .color(cfg.accent), lineWidth: u*0.020)
+        }
+        // Long antennae
+        for aside: CGFloat in [-1, 1] {
+            var ant = Path()
+            ant.move(to: CGPoint(x: cx + aside*u*0.08, y: headY - u*0.14))
+            ant.addCurve(to: CGPoint(x: cx + aside*u*0.32, y: headY - u*0.48),
+                         control1: CGPoint(x: cx + aside*u*0.14, y: headY - u*0.28),
+                         control2: CGPoint(x: cx + aside*u*0.28, y: headY - u*0.42))
+            ctx.stroke(ant, with: .color(cfg.accent), lineWidth: u*0.018)
+            var antBall = Path(ellipseIn: CGRect(x: cx + aside*u*0.30 - u*0.022, y: headY - u*0.50, width: u*0.044, height: u*0.044))
+            ctx.fill(antBall, with: .color(cfg.body))
+            ctx.stroke(antBall, with: .color(cfg.accent), lineWidth: u*0.012)
+        }
+        // Big compound eyes
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u * 0.10
+            let ey = headY - u * 0.06
+            var eye = Path(ellipseIn: CGRect(x: ex - u*0.058, y: ey - u*0.058, width: u*0.116, height: u*0.116))
+            ctx.fill(eye, with: .color(.white))
+            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.036, y: ey - u*0.036 + (blink ? u*0.024 : 0), width: u*0.072, height: blink ? u*0.008 : u*0.072))
+            ctx.fill(iris, with: .color(cfg.iris))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.022, width: u*0.016, height: u*0.016))
+            ctx.fill(hl, with: .color(.white))
+        }
+    }
+
+    // MARK: - Bee
+    func drawBeeBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                     cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let bodyY  = sz.height * 0.62 + bob
+        let headY  = bodyY - u * 0.38
+        let feetY  = sz.height * 0.82
+
+        // Stinger — pointed tail
+        var stinger = Path()
+        stinger.move(to: CGPoint(x: cx + u*0.20, y: bodyY + u*0.04))
+        stinger.addCurve(to: CGPoint(x: cx + u*0.46, y: bodyY + u*0.02),
+                         control1: CGPoint(x: cx + u*0.30, y: bodyY),
+                         control2: CGPoint(x: cx + u*0.44, y: bodyY - u*0.02))
+        ctx.stroke(stinger, with: .color(Color(red:0.70,green:0.48,blue:0.10)), lineWidth: u*0.048)
+        ctx.stroke(stinger, with: .color(cfg.outline), lineWidth: u*0.014)
+
+        // Six legs
+        let legPositions: [(CGFloat, CGFloat, CGFloat)] = [
+            (-u*0.14, bodyY - u*0.06, -1), (-u*0.14, bodyY + u*0.02, -1), (-u*0.14, bodyY + u*0.10, -1),
+            ( u*0.14, bodyY - u*0.06,  1), ( u*0.14, bodyY + u*0.02,  1), ( u*0.14, bodyY + u*0.10,  1),
+        ]
+        for (lx, ly, side) in legPositions {
+            var leg = Path()
+            leg.move(to: CGPoint(x: cx + lx, y: ly))
+            leg.addLine(to: CGPoint(x: cx + lx + side*u*0.22, y: feetY - u*0.14))
+            ctx.stroke(leg, with: .color(Color(red:0.14,green:0.10,blue:0.06)), lineWidth: u*0.022)
+        }
+
+        // Round fuzzy body with black/yellow stripes
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.22, y: bodyY - u*0.24, width: u*0.44, height: u*0.36))
+        ctx.fill(body, with: .color(cfg.body))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.028)
+        // Stripe bands
+        for stripe: CGFloat in [0.22, 0.46, 0.70] {
+            let sy = bodyY - u*0.24 + u*0.36 * stripe
+            var band = Path()
+            band.move(to: CGPoint(x: cx - u*0.22, y: sy))
+            band.addCurve(to: CGPoint(x: cx + u*0.22, y: sy + u*0.002),
+                          control1: CGPoint(x: cx - u*0.08, y: sy - u*0.020),
+                          control2: CGPoint(x: cx + u*0.08, y: sy + u*0.020))
+            ctx.stroke(band, with: .color(cfg.belly), lineWidth: u*0.058)
+        }
+        // Fuzzy texture dots on body
+        for (dx, dy): (CGFloat, CGFloat) in [(-u*0.12, -u*0.14), (u*0.06, -u*0.18), (-u*0.04, u*0.04), (u*0.14, -u*0.04)] {
+            var fuzz = Path(ellipseIn: CGRect(x: cx + dx - u*0.016, y: bodyY + dy - u*0.016, width: u*0.032, height: u*0.032))
+            ctx.fill(fuzz, with: .color(.white.opacity(0.22)))
+        }
+
+        // Wings — translucent, iridescent, slightly above body
+        for (side, tilt): (CGFloat, CGFloat) in [(-1, 0.15), (1, -0.15)] {
+            let wx = cx + side * u * 0.10
+            let wy = bodyY - u * 0.26
+            var wing = Path()
+            wing.move(to: CGPoint(x: wx, y: wy))
+            wing.addCurve(to: CGPoint(x: wx + side*u*0.44, y: wy - u*0.18),
+                          control1: CGPoint(x: wx + side*u*0.14, y: wy - u*0.32),
+                          control2: CGPoint(x: wx + side*u*0.38, y: wy - u*0.28))
+            wing.addCurve(to: CGPoint(x: wx + side*u*0.46, y: wy + u*0.08),
+                          control1: CGPoint(x: wx + side*u*0.52, y: wy - u*0.04),
+                          control2: CGPoint(x: wx + side*u*0.50, y: wy + u*0.04))
+            wing.addCurve(to: CGPoint(x: wx, y: wy),
+                          control1: CGPoint(x: wx + side*u*0.28, y: wy + u*0.14),
+                          control2: CGPoint(x: wx + side*u*0.10, y: wy + u*0.08))
+            wing.closeSubpath()
+            ctx.fill(wing, with: .color(Color(red:0.70,green:0.90,blue:1.00).opacity(0.35)))
+            ctx.stroke(wing, with: .color(Color(red:0.50,green:0.70,blue:0.90).opacity(0.60)), lineWidth: u*0.014)
+            // Wing veins
+            var vein = Path()
+            vein.move(to: CGPoint(x: wx, y: wy))
+            vein.addCurve(to: CGPoint(x: wx + side*u*0.36, y: wy - u*0.06),
+                          control1: CGPoint(x: wx + side*u*0.14, y: wy - u*0.14),
+                          control2: CGPoint(x: wx + side*u*0.28, y: wy - u*0.10))
+            ctx.stroke(vein, with: .color(Color(red:0.40,green:0.60,blue:0.80).opacity(0.40)), lineWidth: u*0.010)
+        }
+
+        // Neck
+        var neck = Path(ellipseIn: CGRect(x: cx - u*0.10, y: headY + u*0.12, width: u*0.20, height: u*0.14))
+        ctx.fill(neck, with: .color(Color(red:0.14,green:0.10,blue:0.06)))
+
+        // Round head — fuzzy, dark
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.20, y: headY - u*0.20, width: u*0.40, height: u*0.34))
+        ctx.fill(head, with: .color(Color(red:0.16,green:0.12,blue:0.06)))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
+        // Yellow face patch
+        var face = Path(ellipseIn: CGRect(x: cx - u*0.14, y: headY - u*0.14, width: u*0.28, height: u*0.24))
+        ctx.fill(face, with: .color(cfg.body.opacity(0.45)))
+        // Fuzzy head texture
+        for (fdx, fdy): (CGFloat, CGFloat) in [(-u*0.14, -u*0.12), (u*0.14, -u*0.10), (0, -u*0.16)] {
+            var fuzz = Path(ellipseIn: CGRect(x: cx + fdx - u*0.018, y: headY + fdy - u*0.018, width: u*0.036, height: u*0.036))
+            ctx.fill(fuzz, with: .color(.white.opacity(0.15)))
+        }
+        // Antennae with balls
+        for aside: CGFloat in [-1, 1] {
+            var ant = Path()
+            ant.move(to: CGPoint(x: cx + aside*u*0.08, y: headY - u*0.16))
+            ant.addCurve(to: CGPoint(x: cx + aside*u*0.22, y: headY - u*0.42),
+                         control1: CGPoint(x: cx + aside*u*0.10, y: headY - u*0.28),
+                         control2: CGPoint(x: cx + aside*u*0.20, y: headY - u*0.36))
+            ctx.stroke(ant, with: .color(Color(red:0.14,green:0.10,blue:0.06)), lineWidth: u*0.022)
+            var ball = Path(ellipseIn: CGRect(x: cx + aside*u*0.20 - u*0.028, y: headY - u*0.46, width: u*0.054, height: u*0.054))
+            ctx.fill(ball, with: .color(cfg.body))
+            ctx.stroke(ball, with: .color(cfg.outline), lineWidth: u*0.014)
+        }
+        // Big eyes
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u * 0.086
+            let ey = headY - u * 0.06
+            var eye = Path(ellipseIn: CGRect(x: ex - u*0.056, y: ey - u*0.056, width: u*0.112, height: u*0.112))
+            ctx.fill(eye, with: .color(.white))
+            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.034, y: ey - u*0.034 + (blink ? u*0.022 : 0), width: u*0.068, height: blink ? u*0.008 : u*0.068))
+            ctx.fill(iris, with: .color(cfg.iris))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.020, width: u*0.016, height: u*0.016))
+            ctx.fill(hl, with: .color(.white))
+        }
+        // Smile
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.06, y: headY + u*0.04))
+        smile.addCurve(to: CGPoint(x: cx + u*0.06, y: headY + u*0.04),
+                       control1: CGPoint(x: cx - u*0.02, y: headY + u*0.08),
+                       control2: CGPoint(x: cx + u*0.02, y: headY + u*0.08))
+        ctx.stroke(smile, with: .color(cfg.body), lineWidth: u*0.018)
     }
 }
 

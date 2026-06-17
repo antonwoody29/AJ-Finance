@@ -304,6 +304,9 @@ struct AnimalWorldBackground: View {
                 // ── Habitat ground texture overlay ────────────────────
                 HabitatGroundLayer(habitat: habitat, isAlive: isAlive, parallaxX: parallaxX)
 
+                // ── Catchable items floating through scene ────────────
+                HabitatCatchables(habitat: habitat, isAlive: isAlive)
+
                 // ── Near parallax: closest ground decorations (65%) ───
                 let nearItems: [(Int, CGFloat, CGFloat, CGFloat, Bool)] = [
                     (2, 0.14, 0.65, 42, false),

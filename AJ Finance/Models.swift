@@ -702,6 +702,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case swordfish      = "Swordfish"
     case shark          = "Shark"
     case snappingTurtle = "Snapping Turtle"
+    case kangaroo       = "Kangaroo"
+    case weedPlant      = "Weed Plant"
+    case grasshopper    = "Grasshopper"
+    case bee            = "Bee"
     var id: String { rawValue }
 
     var emoji: String {
@@ -750,6 +754,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "🐟"
         case .shark:          return "🦈"
         case .snappingTurtle: return "🐢"
+        case .kangaroo:       return "🦘"
+        case .weedPlant:      return "🌿"
+        case .grasshopper:    return "🦗"
+        case .bee:            return "🐝"
         }
     }
 
@@ -799,6 +807,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return Color(red: 0.22, green: 0.44, blue: 0.80)
         case .shark:          return Color(red: 0.44, green: 0.48, blue: 0.58)
         case .snappingTurtle: return Color(red: 0.22, green: 0.40, blue: 0.18)
+        case .kangaroo:       return Color(red: 0.76, green: 0.54, blue: 0.34)
+        case .weedPlant:      return Color(red: 0.18, green: 0.56, blue: 0.14)
+        case .grasshopper:    return Color(red: 0.36, green: 0.60, blue: 0.18)
+        case .bee:            return Color(red: 0.94, green: 0.76, blue: 0.10)
         }
     }
 
@@ -848,6 +860,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return .ocean
         case .shark:          return .ocean
         case .snappingTurtle: return .pond
+        case .kangaroo:       return .savanna
+        case .weedPlant:      return .forest
+        case .grasshopper:    return .meadow
+        case .bee:            return .flowerGarden
         }
     }
 
@@ -897,6 +913,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Cutting through debt like a blade 🐟"
         case .shark:          return "Apex earner, zero chill 🦈"
         case .snappingTurtle: return "Don't test the bag 🐢"
+        case .kangaroo:       return "Bounce back bigger 🦘"
+        case .weedPlant:      return "Grow in silence 🌿"
+        case .grasshopper:    return "Jump on every opportunity 🦗"
+        case .bee:            return "Hustle and stack that honey 🐝"
         }
     }
 
@@ -946,6 +966,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Precision Cutter"
         case .shark:          return "Apex Earner"
         case .snappingTurtle: return "Defensive Wealth Guard"
+        case .kangaroo:       return "Comeback Investor"
+        case .weedPlant:      return "Patient Growth Cultivator"
+        case .grasshopper:    return "Opportunity Leaper"
+        case .bee:            return "Compounding Colony Builder"
         }
     }
 
@@ -1028,6 +1052,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Cut through excuses like a blade — SAVE THAT CASH 🐟"
         case .shark:          return "Apex earner mentality — nothing in the water stops you 🦈"
         case .snappingTurtle: return "Move slow, bite HARD — don't let anyone take your bag 🐢"
+        case .kangaroo:       return "You got knocked down? Good. Bounce back with MORE than you started with 🦘"
+        case .weedPlant:      return "The best returns take time. Plant the seed, go live your life 🌿"
+        case .grasshopper:    return "Most people walk past opportunity. You jump straight into it 🦗"
+        case .bee:            return "Every deposit is a drop of honey. Keep adding — the colony compounds 🐝"
         }
     }
 
@@ -1077,6 +1105,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Slice through your savings goals like a champion! 🐟"
         case .shark:          return "Swim strong and save strong — you've got this! 🦈"
         case .snappingTurtle: return "Slow and snappy — your savings always land right! 🐢"
+        case .kangaroo:       return "If you fall down, just bounce back up even higher! 🦘"
+        case .weedPlant:      return "Good things grow when you give them time and care! 🌿"
+        case .grasshopper:    return "Big jumps start with little hops — keep going! 🦗"
+        case .bee:            return "Every little bit of honey adds up to something sweet! 🐝"
         }
     }
 
@@ -1118,6 +1150,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:                                   return "🦐"
         case .shark:                                       return "🐟"
         case .snappingTurtle:                              return "🐠"
+        case .kangaroo:                                    return "🌾"
+        case .weedPlant:                                   return "💧"
+        case .grasshopper:                                 return "🌱"
+        case .bee:                                         return "🌸"
         }
     }
 
@@ -1167,6 +1203,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Ocean Shrimp"
         case .shark:          return "Deep Sea Fish"
         case .snappingTurtle: return "Pond Minnows"
+        case .kangaroo:       return "Outback Grass"
+        case .weedPlant:      return "Rain Water"
+        case .grasshopper:    return "Meadow Sprouts"
+        case .bee:            return "Wildflower Pollen"
         }
     }
 
@@ -1230,6 +1270,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Precision cutter. Slices debt, slices doubt, saves with purpose."
         case .shark:          return "Apex earner. No hesitation, no mercy — just relentless growth."
         case .snappingTurtle: return "Defensive guardian. Moves slow, protects hard, wealth never leaves."
+        case .kangaroo:       return "Resilient bouncer. Falls hard, comes back harder. Built for setbacks."
+        case .weedPlant:      return "Silent grower. Thrives anywhere, grows in all conditions, always returns."
+        case .grasshopper:    return "Agile opportunist. Sees gaps others miss, leaps before hesitation kills the move."
+        case .bee:            return "Compound hustler. Builds the colony drop by drop until it overflows."
         }
     }
 
@@ -1279,6 +1323,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "⚔️ Mini sword pin"
         case .shark:          return "🦷 Shark tooth necklace"
         case .snappingTurtle: return "🪨 River stone"
+        case .kangaroo:       return "🥊 Boxing gloves"
+        case .weedPlant:      return "🪴 Growth pot"
+        case .grasshopper:    return "🎵 Leg fiddle"
+        case .bee:            return "🍯 Honey jar"
         }
     }
 
@@ -1328,6 +1376,10 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .swordfish:      return "Speed slash victory leap"
         case .shark:          return "Fin-circle apex loop"
         case .snappingTurtle: return "Shell retract then snap reveal"
+        case .kangaroo:       return "Big bounce with joey peek"
+        case .weedPlant:      return "Leaves unfurl and glow pulse"
+        case .grasshopper:    return "Spring coil and power jump"
+        case .bee:            return "Wing flutter waggle dance"
         }
     }
 }
