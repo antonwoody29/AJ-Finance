@@ -41,7 +41,7 @@ struct FloatingAnimalHead: View {
 
             // Full-body canvas, shifted down so the head region is visible
             AnimalCanvas(type: type, mood: mood, size: canvasSize,
-                         isWalking: false, evolutionStage: 2)
+                         isWalking: false, evolutionStage: 0)
                 .frame(width: canvasSize, height: canvasSize)
                 .offset(y: shift)           // move content down → top of canvas visible
                 .frame(width: cropSize, height: cropSize)
