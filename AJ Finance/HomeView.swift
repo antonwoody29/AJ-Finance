@@ -146,7 +146,7 @@ struct HomeView: View {
                 .animation(.spring(response: 0.4), value: appState.todayTransactionCount)
 
                 // ── Layer 6: Speech bubble ────────────────────────────
-                if showSpeech && appState.animalIsAlive {
+                if showSpeech {
                     AJSpeechBubble(text: appState.currentSpeech)
                         .frame(maxWidth: 270)
                         .position(
@@ -213,6 +213,7 @@ struct HomeView: View {
         .onAppear {
             currentHour = Calendar.current.component(.hour, from: Date())
             appState.checkHealthDecay()
+            appState.checkGoalDeadlines()
             appState.checkFoodDecay()
             appState.currentSpeech = appState.generateContextualGreeting()
             cloudDrift = true

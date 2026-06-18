@@ -112,12 +112,12 @@ struct NotificationManager {
     // MARK: - Master Schedule (call on every app open & save)
 
     static func scheduleAll(animalName: String, reminderHour: Int, reminderMinute: Int, reminderEnabled: Bool) {
-        scheduleMorningGreetings(hour: reminderHour, minute: reminderMinute, enabled: reminderEnabled)
-        scheduleStreakProtector()
+        scheduleMorningGreetings(animalName: animalName, hour: reminderHour, minute: reminderMinute, enabled: reminderEnabled)
+        scheduleStreakProtector(animalName: animalName)
         scheduleWeeklySummary()
         schedulePaydayNotifications()
         scheduleLateNightReminders()
-        scheduleWeekendCheckIn()
+        scheduleWeekendCheckIn(animalName: animalName)
         cancelMissYou()   // user is in the app right now
     }
 
@@ -135,8 +135,8 @@ struct NotificationManager {
 
     // MARK: - Legacy compatibility (called from AppState.applyNotificationSchedule)
 
-    static func scheduleReceiptReminder(hour: Int, minute: Int, enabled: Bool) {
-        scheduleMorningGreetings(hour: hour, minute: minute, enabled: enabled)
+    static func scheduleReceiptReminder(animalName: String = "AJ", hour: Int, minute: Int, enabled: Bool) {
+        scheduleMorningGreetings(animalName: animalName, hour: hour, minute: minute, enabled: enabled)
     }
 
     static func scheduleWeeklySummary() {
@@ -209,31 +209,31 @@ struct NotificationManager {
 
     // MARK: - Recurring Schedules
 
-    private static func scheduleMorningGreetings(hour: Int, minute: Int, enabled: Bool) {
+    private static func scheduleMorningGreetings(animalName: String, hour: Int, minute: Int, enabled: Bool) {
         center.removePendingNotificationRequests(withIdentifiers: [
             AJID.morning, "aj_morning_mon", "aj_morning_fri"
         ])
         guard enabled else { return }
 
         // Monday special
-        let cMon = content(title: "AJ 💼", body: AJCopy.pick(AJCopy.monday), badge: 0)
+        let cMon = content(title: "\(animalName) 💼", body: AJCopy.pick(AJCopy.monday), badge: 0)
         var monComps = DateComponents(); monComps.weekday = 2; monComps.hour = hour; monComps.minute = minute
         schedule(id: "aj_morning_mon", content: cMon, trigger: calendar(monComps, repeats: true))
 
         // Friday special
-        let cFri = content(title: "AJ 🎉", body: AJCopy.pick(AJCopy.friday), badge: 0)
+        let cFri = content(title: "\(animalName) 🎉", body: AJCopy.pick(AJCopy.friday), badge: 0)
         var friComps = DateComponents(); friComps.weekday = 6; friComps.hour = hour; friComps.minute = minute
         schedule(id: "aj_morning_fri", content: cFri, trigger: calendar(friComps, repeats: true))
 
         // All other days — general morning message
-        let cGen = content(title: "AJ ☀️", body: AJCopy.pick(AJCopy.morning), badge: 0)
+        let cGen = content(title: "\(animalName) ☀️", body: AJCopy.pick(AJCopy.morning), badge: 0)
         var genComps = DateComponents(); genComps.hour = hour; genComps.minute = minute
         schedule(id: AJID.morning, content: cGen, trigger: calendar(genComps, repeats: true))
     }
 
-    private static func scheduleStreakProtector() {
+    private static func scheduleStreakProtector(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.streak])
-        let c = content(title: "AJ checking in 🔥", body: AJCopy.pick(AJCopy.streakProtect), badge: 1)
+        let c = content(title: "\(animalName) checking in 🔥", body: AJCopy.pick(AJCopy.streakProtect), badge: 1)
         var comps = DateComponents(); comps.hour = 22; comps.minute = 0
         schedule(id: AJID.streak, content: c, trigger: calendar(comps, repeats: true))
     }
@@ -262,9 +262,9 @@ struct NotificationManager {
         schedule(id: AJID.lateSat, content: cSat, trigger: calendar(saComps, repeats: true))
     }
 
-    private static func scheduleWeekendCheckIn() {
+    private static func scheduleWeekendCheckIn(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.weekend])
-        let c = content(title: "AJ ✨", body: AJCopy.pick(AJCopy.weekend), badge: 0)
+        let c = content(title: "\(animalName) ✨", body: AJCopy.pick(AJCopy.weekend), badge: 0)
         var comps = DateComponents(); comps.weekday = 7; comps.hour = 10; comps.minute = 30
         schedule(id: AJID.weekend, content: c, trigger: calendar(comps, repeats: true))
     }

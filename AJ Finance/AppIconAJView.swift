@@ -141,6 +141,7 @@ private struct IconAnimalCell: View {
         switch type {
         case .kangaroo:    fraction = 0.16
         case .bee:         fraction = 0.24
+        case .spider:      fraction = 0.25
         case .grasshopper: fraction = 0.34
         case .weedPlant:   fraction = 0.38
         default:           fraction = 0.30

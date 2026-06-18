@@ -17,8 +17,9 @@ struct FloatingAnimalHead: View {
         switch type {
         case .kangaroo:    return 0.16
         case .bee:         return 0.24
-        case .grasshopper: return 0.34  // bodyY-u*0.28
-        case .weedPlant:   return 0.38  // stemTop = h*0.38
+        case .spider:      return 0.25  // cephY = h*0.36, eyes at top of ceph
+        case .grasshopper: return 0.34
+        case .weedPlant:   return 0.38
         default:           return 0.30
         }
     }
@@ -76,6 +77,7 @@ struct SignInView: View {
         (.fox,      .hype),    // ✨ sly excited
         (.kangaroo, .hype),    // ✨ pumped up
         (.dragon,   .angry),   // 💢 fierce flame energy
+        (.spider,   .hype),    // ✨ 8 big eyes, jumpy energy
     ]
 
     @State private var pairIndex:    Int    = 0

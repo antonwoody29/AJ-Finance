@@ -69,6 +69,9 @@ struct SettingsView: View {
 
                     // Data Export
                     dataExportCard
+
+                    // Sign Out
+                    signOutCard
                 }
                 .padding(20)
             }
@@ -839,6 +842,40 @@ struct SettingsView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private var signOutCard: some View {
+        AJCard {
+            VStack(spacing: 14) {
+                HStack {
+                    Text("ACCOUNT")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    Text("👤").font(.system(size: 22))
+                }
+                Button {
+                    appState.signOut()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "rectangle.portrait.and.arrow.right")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Sign Out")
+                            .font(.system(size: 16, weight: .black))
+                    }
+                    .foregroundColor(.ajOrangeRed)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.ajOrangeRed.opacity(0.12))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrangeRed.opacity(0.4), lineWidth: 1.5))
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }

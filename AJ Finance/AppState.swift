@@ -325,6 +325,11 @@ final class AppState {
             "Late night check-in appreciated 👀 Keep the bag safe.",
         ]
 
+        // Occasionally drop an animal-specific line (1 in 4 chance)
+        if Int.random(in: 0..<4) == 0 {
+            return selectedAnimal.tagline
+        }
+
         switch hour {
         case 5..<12: return morningLines.randomElement()!
         case 12..<17: return afternoonLines.randomElement()!
@@ -531,6 +536,24 @@ final class AppState {
             let decayAmount = Double(daysPassed) * 8.0
             drainHealth(by: decayAmount)
             lastHealthDecayDate = now
+            save()
+        }
+    }
+
+    // Called daily alongside checkHealthDecay — drains health for every overdue savings goal
+    func checkGoalDeadlines() {
+        let now = Date()
+        var damaged = false
+        for goal in goals where !goal.isCompleted {
+            guard let due = goal.targetDate, due < now else { continue }
+            let daysOverdue = Calendar.current.dateComponents([.day], from: due, to: now).day ?? 0
+            guard daysOverdue >= 1 else { continue }
+            drainHealth(by: 8.0)
+            damaged = true
+        }
+        if damaged {
+            let goalName = goals.first(where: { !$0.isCompleted && ($0.targetDate.map { $0 < now } ?? false) })?.name ?? "your goal"
+            setMood(.sad, speech: "You missed the deadline for \(goalName) 💔 It's costing me health. Let's fix this fr.")
             save()
         }
     }

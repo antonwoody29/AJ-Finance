@@ -26,7 +26,7 @@ struct CharConfig {
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator, kangaroo, plant, grasshopper, bee }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator, kangaroo, plant, grasshopper, bee, spider }
 
     // MARK: - Per-animal configs
 
@@ -363,6 +363,13 @@ struct CharConfig {
                          iris: Color(red:0.06,green:0.04,blue:0.02),
                          nose: Color(red:0.80,green:0.56,blue:0.06),
                          ear: .tiny, tail: .none, special: .wings, bodyKind: .bee)
+        case .spider:
+            return .init(body: Color(red:0.12,green:0.10,blue:0.16),
+                         belly: Color(red:0.22,green:0.18,blue:0.28),
+                         accent: Color(red:0.10,green:0.85,blue:0.90),
+                         iris: Color(red:0.08,green:0.82,blue:0.88),
+                         nose: Color(red:0.14,green:0.12,blue:0.18),
+                         ear: .none, tail: .none, bodyKind: .spider)
         }
     }
 }
@@ -692,6 +699,7 @@ struct AnimalBodyView: View {
         case .plant:        drawPlantBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .grasshopper:  drawGrasshopperBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .bee:          drawBeeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .spider:       drawSpiderBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         }
     }
@@ -2724,6 +2732,137 @@ struct AnimalBodyView: View {
                        control1: CGPoint(x: cx - u*0.02, y: headY + u*0.08),
                        control2: CGPoint(x: cx + u*0.02, y: headY + u*0.08))
         ctx.stroke(smile, with: .color(cfg.body), lineWidth: u*0.018)
+    }
+
+    func drawSpiderBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                        cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cephY = sz.height * 0.36 + bob
+        let abdY  = sz.height * 0.63 + bob
+        let feetY = sz.height * 0.86
+
+        // Web silk strand hanging from bottom of abdomen
+        var webStrand = Path()
+        webStrand.move(to: CGPoint(x: cx, y: abdY + u*0.32))
+        webStrand.addLine(to: CGPoint(x: cx, y: feetY + u*0.10))
+        ctx.stroke(webStrand, with: .color(.white.opacity(0.50)), lineWidth: u*0.010)
+
+        // 8 Legs in crawling position — drawn before body so body covers attach points
+        // Each leg: attach → joint → tip, two segments (femur + tarsus)
+        struct LegDef { var ax: CGFloat; var ay: CGFloat; var jx: CGFloat; var jy: CGFloat; var tx: CGFloat; var ty: CGFloat }
+        let legs: [LegDef] = [
+            // Left side (4 legs)
+            LegDef(ax: cx-u*0.14, ay: cephY-u*0.12, jx: cx-u*0.50, jy: cephY-u*0.22, tx: cx-u*0.60, ty: cephY+u*0.10),
+            LegDef(ax: cx-u*0.14, ay: cephY-u*0.04, jx: cx-u*0.54, jy: cephY+u*0.00, tx: cx-u*0.64, ty: cephY+u*0.28),
+            LegDef(ax: cx-u*0.14, ay: cephY+u*0.04, jx: cx-u*0.52, jy: cephY+u*0.12, tx: cx-u*0.60, ty: cephY+u*0.40),
+            LegDef(ax: cx-u*0.14, ay: cephY+u*0.10, jx: cx-u*0.44, jy: cephY+u*0.24, tx: cx-u*0.50, ty: cephY+u*0.50),
+            // Right side (4 legs, mirrored)
+            LegDef(ax: cx+u*0.14, ay: cephY-u*0.12, jx: cx+u*0.50, jy: cephY-u*0.22, tx: cx+u*0.60, ty: cephY+u*0.10),
+            LegDef(ax: cx+u*0.14, ay: cephY-u*0.04, jx: cx+u*0.54, jy: cephY+u*0.00, tx: cx+u*0.64, ty: cephY+u*0.28),
+            LegDef(ax: cx+u*0.14, ay: cephY+u*0.04, jx: cx+u*0.52, jy: cephY+u*0.12, tx: cx+u*0.60, ty: cephY+u*0.40),
+            LegDef(ax: cx+u*0.14, ay: cephY+u*0.10, jx: cx+u*0.44, jy: cephY+u*0.24, tx: cx+u*0.50, ty: cephY+u*0.50),
+        ]
+        for leg in legs {
+            var path = Path()
+            path.move(to: CGPoint(x: leg.ax, y: leg.ay))
+            path.addLine(to: CGPoint(x: leg.jx, y: leg.jy))
+            path.addLine(to: CGPoint(x: leg.tx, y: leg.ty))
+            ctx.stroke(path, with: .color(cfg.body), lineWidth: u*0.032)
+            ctx.stroke(path, with: .color(cfg.accent.opacity(0.18)), lineWidth: u*0.014)
+            // Tiny claw tips
+            var claw = Path(ellipseIn: CGRect(x: leg.tx - u*0.018, y: leg.ty - u*0.018, width: u*0.036, height: u*0.036))
+            ctx.fill(claw, with: .color(cfg.accent.opacity(0.55)))
+        }
+
+        // Abdomen — large round, dark body with iridescent teal spots
+        var abd = Path(ellipseIn: CGRect(x: cx - u*0.30, y: abdY - u*0.30, width: u*0.60, height: u*0.54))
+        ctx.fill(abd, with: .color(cfg.body))
+        ctx.stroke(abd, with: .color(cfg.body.opacity(0.60)), lineWidth: u*0.020)
+        // Iridescent shimmer markings
+        for (dx, dy, r): (CGFloat, CGFloat, CGFloat) in [
+            (0, -u*0.10, u*0.12), (-u*0.10, u*0.06, u*0.07), (u*0.10, u*0.06, u*0.07)
+        ] {
+            var spot = Path(ellipseIn: CGRect(x: cx + dx - r*0.7, y: abdY + dy - r*0.7, width: r*1.4, height: r*1.4))
+            ctx.fill(spot, with: .color(cfg.accent.opacity(0.30)))
+        }
+        // Subtle hourglass stripe (center mark)
+        var stripe = Path()
+        stripe.move(to: CGPoint(x: cx - u*0.06, y: abdY - u*0.14))
+        stripe.addCurve(to: CGPoint(x: cx + u*0.06, y: abdY - u*0.14),
+                        control1: CGPoint(x: cx - u*0.02, y: abdY - u*0.18),
+                        control2: CGPoint(x: cx + u*0.02, y: abdY - u*0.18))
+        stripe.addLine(to: CGPoint(x: cx + u*0.03, y: abdY))
+        stripe.addLine(to: CGPoint(x: cx + u*0.06, y: abdY + u*0.12))
+        stripe.addCurve(to: CGPoint(x: cx - u*0.06, y: abdY + u*0.12),
+                        control1: CGPoint(x: cx + u*0.02, y: abdY + u*0.16),
+                        control2: CGPoint(x: cx - u*0.02, y: abdY + u*0.16))
+        stripe.addLine(to: CGPoint(x: cx - u*0.03, y: abdY))
+        stripe.closeSubpath()
+        ctx.fill(stripe, with: .color(cfg.accent.opacity(0.38)))
+
+        // Pedicel (narrow waist connecting abdomen to cephalothorax)
+        var pedicel = Path(ellipseIn: CGRect(x: cx - u*0.065, y: cephY + u*0.15, width: u*0.13, height: u*0.18))
+        ctx.fill(pedicel, with: .color(cfg.body))
+
+        // Cephalothorax (head+thorax, smaller than abdomen)
+        var ceph = Path(ellipseIn: CGRect(x: cx - u*0.23, y: cephY - u*0.22, width: u*0.46, height: u*0.40))
+        ctx.fill(ceph, with: .color(cfg.body))
+        ctx.stroke(ceph, with: .color(cfg.body.opacity(0.55)), lineWidth: u*0.018)
+        // Carapace sheen highlight
+        var sheen = Path(ellipseIn: CGRect(x: cx - u*0.10, y: cephY - u*0.16, width: u*0.16, height: u*0.10))
+        ctx.fill(sheen, with: .color(.white.opacity(0.14)))
+
+        // Chelicerae (fangs) pointing downward from front of cephalothorax
+        for fside: CGFloat in [-1, 1] {
+            var chelicera = Path()
+            chelicera.move(to: CGPoint(x: cx + fside*u*0.06, y: cephY + u*0.14))
+            chelicera.addCurve(to: CGPoint(x: cx + fside*u*0.11, y: cephY + u*0.30),
+                               control1: CGPoint(x: cx + fside*u*0.10, y: cephY + u*0.18),
+                               control2: CGPoint(x: cx + fside*u*0.13, y: cephY + u*0.25))
+            ctx.stroke(chelicera, with: .color(cfg.body.opacity(0.85)), lineWidth: u*0.030)
+            var venom = Path(ellipseIn: CGRect(x: cx + fside*u*0.09 - u*0.020, y: cephY + u*0.28, width: u*0.040, height: u*0.040))
+            ctx.fill(venom, with: .color(cfg.accent.opacity(0.85)))
+        }
+
+        // 8 Eyes — jumping spider arrangement (forward-facing, eyes on top)
+        // 2 large principal eyes (AME — anterior median, center front)
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u * 0.088
+            let ey = cephY - u * 0.10
+            var sclera = Path(ellipseIn: CGRect(x: ex - u*0.070, y: ey - u*0.070, width: u*0.140, height: u*0.140))
+            ctx.fill(sclera, with: .color(.white))
+            ctx.stroke(sclera, with: .color(cfg.body.opacity(0.40)), lineWidth: u*0.016)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.050, y: ey - u*0.050 + (blink ? u*0.030 : 0),
+                                              width: u*0.100, height: blink ? u*0.008 : u*0.100))
+            ctx.fill(iris, with: .color(cfg.iris))
+            if !blink {
+                var pupil = Path(ellipseIn: CGRect(x: ex - u*0.028, y: ey - u*0.028, width: u*0.056, height: u*0.056))
+                ctx.fill(pupil, with: .color(.black))
+                var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.024, width: u*0.022, height: u*0.022))
+                ctx.fill(hl, with: .color(.white))
+            }
+        }
+        // 2 secondary eyes (ALE — anterior lateral, wider apart)
+        for eside: CGFloat in [-1, 1] {
+            let ex = cx + eside * u * 0.180
+            let ey = cephY - u * 0.05
+            var sclera = Path(ellipseIn: CGRect(x: ex - u*0.040, y: ey - u*0.040, width: u*0.080, height: u*0.080))
+            ctx.fill(sclera, with: .color(.white.opacity(0.85)))
+            ctx.stroke(sclera, with: .color(cfg.body.opacity(0.35)), lineWidth: u*0.012)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.026, y: ey - u*0.026 + (blink ? u*0.018 : 0),
+                                              width: u*0.052, height: blink ? u*0.006 : u*0.052))
+            ctx.fill(iris, with: .color(cfg.iris.opacity(0.85)))
+        }
+        // 4 tiny posterior eyes (PLE/PME — small, at sides)
+        let tinyEyes: [(CGFloat, CGFloat)] = [
+            (-u*0.196, cephY + u*0.01), (u*0.196, cephY + u*0.01),
+            (-u*0.188, cephY + u*0.07), (u*0.188, cephY + u*0.07),
+        ]
+        for (ex, ey) in tinyEyes {
+            var tiny = Path(ellipseIn: CGRect(x: cx + ex - u*0.022, y: ey - u*0.022, width: u*0.044, height: u*0.044))
+            ctx.fill(tiny, with: .color(.white.opacity(0.70)))
+            var tinyIris = Path(ellipseIn: CGRect(x: cx + ex - u*0.014, y: ey - u*0.014, width: u*0.028, height: u*0.028))
+            ctx.fill(tinyIris, with: .color(cfg.iris.opacity(0.80)))
+        }
     }
 }
 

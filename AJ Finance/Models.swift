@@ -109,12 +109,17 @@ enum AJMood: String, CaseIterable, Identifiable {
                 "I'm trying to help you and you out here spending like this?? 😤",
                 "This is NOT the behavior we discussed 🚨",
                 "BESTIE. BESTIE. BESTIE. We need to talk. NOW. 😤",
-                "I didn't leave my comfortable tiger nap for this 😤",
                 "You're better than this and I NEED you to believe that too 💔",
                 "The audacity... the sheer audacity... 😤",
                 "My disappointment is immeasurable and my day is ruined 😭",
                 "I love you but I am NOT here for this behavior 💔",
-                "On a scale of 1 to bad decisions, this is like a 10 😤"
+                "On a scale of 1 to bad decisions, this is like a 10 😤",
+                "We watching. 👀", "No comment. 😶",
+                "I'm just gonna sit here. And watch. 😐",
+                "The silence is because I have no words. None. 💀",
+                "Oh. Okay. 😑", "That's crazy fr 😤",
+                "We don't even know you right now bestie 🤦",
+                "Every day we rebuild. Every day you test me. 😤"
             ]
         case .sleep:
             return [
@@ -224,7 +229,16 @@ enum AccountabilityMode: String, CaseIterable, Codable, Identifiable {
         case .keepItReal:
             return "Yo, that was $\(amt)... just making sure that was intentional 👀"
         case .noCapSavage:
-            return "Bro you literally told me yesterday we was saving. YESTERDAY. And now $\(amt)?? 😤"
+            return [
+                "Bro you literally told me yesterday we was saving. YESTERDAY. And now $\(amt)?? 😤",
+                "$\(amt). Gone. Just like that. We don't even know you anymore 💀",
+                "I'm not mad. I'm just... $\(amt) worth of disappointed 😮‍💨",
+                "Bestie the account said what?? $\(amt)?? We staying quiet today 😶",
+                "No words. $\(amt). We'll talk later. 👀",
+                "Okay so $\(amt) just left the building. We watching. 😐",
+                "Interesting choice. Very interesting. $\(amt) interesting. 🙃",
+                "$\(amt) gone and for what bestie. FOR WHAT. 😤",
+            ].randomElement()!
         }
     }
 
@@ -706,6 +720,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case weedPlant      = "Weed Plant"
     case grasshopper    = "Grasshopper"
     case bee            = "Bee"
+    case spider         = "Spider"
     var id: String { rawValue }
 
     var emoji: String {
@@ -758,6 +773,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "🌿"
         case .grasshopper:    return "🦗"
         case .bee:            return "🐝"
+        case .spider:         return "🕷️"
         }
     }
 
@@ -811,6 +827,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return Color(red: 0.18, green: 0.56, blue: 0.14)
         case .grasshopper:    return Color(red: 0.36, green: 0.60, blue: 0.18)
         case .bee:            return Color(red: 0.94, green: 0.76, blue: 0.10)
+        case .spider:         return Color(red: 0.12, green: 0.10, blue: 0.16)
         }
     }
 
@@ -864,6 +881,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return .forest
         case .grasshopper:    return .meadow
         case .bee:            return .flowerGarden
+        case .spider:         return .woodland
         }
     }
 
@@ -917,6 +935,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Grow in silence 🌿"
         case .grasshopper:    return "Jump on every opportunity 🦗"
         case .bee:            return "Hustle and stack that honey 🐝"
+        case .spider:         return "Spinning my financial web 🕷️"
         }
     }
 
@@ -970,6 +989,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Patient Growth Cultivator"
         case .grasshopper:    return "Opportunity Leaper"
         case .bee:            return "Compounding Colony Builder"
+        case .spider:         return "Patient Web Weaver"
         }
     }
 
@@ -1056,6 +1076,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "The best returns take time. Plant the seed, go live your life 🌿"
         case .grasshopper:    return "Most people walk past opportunity. You jump straight into it 🦗"
         case .bee:            return "Every deposit is a drop of honey. Keep adding — the colony compounds 🐝"
+        case .spider:         return "Another strand in the web. Patience and consistency — that's how you trap wealth 🕷️"
         }
     }
 
@@ -1109,6 +1130,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Good things grow when you give them time and care! 🌿"
         case .grasshopper:    return "Big jumps start with little hops — keep going! 🦗"
         case .bee:            return "Every little bit of honey adds up to something sweet! 🐝"
+        case .spider:         return "Every thread counts. Your web is getting stronger! 🕸️"
         }
     }
 
@@ -1154,6 +1176,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:                                   return "💧"
         case .grasshopper:                                 return "🌱"
         case .bee:                                         return "🌸"
+        case .spider:                                      return "🕸️"
         }
     }
 
@@ -1207,6 +1230,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Rain Water"
         case .grasshopper:    return "Meadow Sprouts"
         case .bee:            return "Wildflower Pollen"
+        case .spider:         return "Silk Fly"
         }
     }
 
@@ -1274,6 +1298,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Silent grower. Thrives anywhere, grows in all conditions, always returns."
         case .grasshopper:    return "Agile opportunist. Sees gaps others miss, leaps before hesitation kills the move."
         case .bee:            return "Compound hustler. Builds the colony drop by drop until it overflows."
+        case .spider:         return "Silent strategist. Waits patiently, then strikes big. Every web is a trap for wealth."
         }
     }
 
@@ -1327,6 +1352,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "🪴 Growth pot"
         case .grasshopper:    return "🎵 Leg fiddle"
         case .bee:            return "🍯 Honey jar"
+        case .spider:         return "🕸️ Silk web"
         }
     }
 
@@ -1380,6 +1406,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .weedPlant:      return "Leaves unfurl and glow pulse"
         case .grasshopper:    return "Spring coil and power jump"
         case .bee:            return "Wing flutter waggle dance"
+        case .spider:         return "8-legged crawl and web spin"
         }
     }
 }
