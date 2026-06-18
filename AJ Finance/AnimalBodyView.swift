@@ -26,7 +26,7 @@ struct CharConfig {
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, alligator, kangaroo, plant, grasshopper, bee, spider }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, shark, swordfish, alligator, kangaroo, plant, grasshopper, bee, spider }
 
     // MARK: - Per-animal configs
 
@@ -320,14 +320,14 @@ struct CharConfig {
                          accent: Color(red:0.12,green:0.28,blue:0.58),
                          iris: Color(red:0.08,green:0.08,blue:0.20),
                          nose: Color(red:0.16,green:0.36,blue:0.70),
-                         ear: .none, tail: .flat, bodyKind: .fish)
+                         ear: .none, tail: .flat, bodyKind: .swordfish)
         case .shark:
             return .init(body: Color(red:0.46,green:0.52,blue:0.62),
                          belly: .white,
                          accent: Color(red:0.32,green:0.38,blue:0.48),
                          iris: Color(red:0.06,green:0.06,blue:0.10),
                          nose: Color(red:0.40,green:0.46,blue:0.56),
-                         ear: .none, tail: .flat, bodyKind: .fish)
+                         ear: .none, tail: .flat, bodyKind: .shark)
         case .snappingTurtle:
             return .init(body: Color(red:0.22,green:0.38,blue:0.16),
                          belly: Color(red:0.44,green:0.62,blue:0.30),
@@ -542,6 +542,21 @@ struct AnimalBodyView: View {
     func drawBaby(ctx: GraphicsContext, sz: CGSize, u: CGFloat,
                   cfg: CharConfig, bob: CGFloat, blink: Bool) {
         let cx  = sz.width / 2
+
+        // ── Animal-specific baby/intermediate forms ────────────
+        if type == .shark || type == .swordfish {
+            drawBabyFish(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
+        if type == .bee {
+            drawBabyWorm(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
+        if type == .spider {
+            drawBabySpiderBall(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
+
         let headY = sz.height * 0.38 + bob
         let bodyY = sz.height * 0.70 + bob
 
@@ -694,6 +709,8 @@ struct AnimalBodyView: View {
         case .pig:       drawPigBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .insect:    drawInsectBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .fish:      drawFishBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .shark:     drawSharkBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .swordfish: drawSwordfishBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .alligator:    drawAlligatorBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .kangaroo:     drawKangarooBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .plant:        drawPlantBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
@@ -2863,6 +2880,421 @@ struct AnimalBodyView: View {
             var tinyIris = Path(ellipseIn: CGRect(x: cx + ex - u*0.014, y: ey - u*0.014, width: u*0.028, height: u*0.028))
             ctx.fill(tinyIris, with: .color(cfg.iris.opacity(0.80)))
         }
+    }
+
+    // MARK: - Baby: simple fish (shark & swordfish stage 1)
+
+    func drawBabyFish(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                      cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.50 + bob
+
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.22, y: sz.height*0.82, width: u*0.44, height: u*0.08))
+        ctx.fill(shadow, with: .color(.black.opacity(0.12)))
+
+        var tail = Path()
+        tail.move(to:    CGPoint(x: cx + u*0.18, y: cy))
+        tail.addLine(to: CGPoint(x: cx + u*0.36, y: cy - u*0.16))
+        tail.addLine(to: CGPoint(x: cx + u*0.36, y: cy + u*0.16))
+        tail.closeSubpath()
+        ctx.fill(tail, with: .color(cfg.body))
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u*0.020)
+
+        var dorsal = Path()
+        dorsal.move(to:    CGPoint(x: cx - u*0.04, y: cy - u*0.14))
+        dorsal.addCurve(to: CGPoint(x: cx + u*0.10, y: cy - u*0.14),
+                        control1: CGPoint(x: cx - u*0.01, y: cy - u*0.24),
+                        control2: CGPoint(x: cx + u*0.07, y: cy - u*0.22))
+        dorsal.addLine(to: CGPoint(x: cx + u*0.10, y: cy - u*0.08))
+        dorsal.addLine(to: CGPoint(x: cx - u*0.04, y: cy - u*0.08))
+        dorsal.closeSubpath()
+        ctx.fill(dorsal, with: .color(cfg.accent))
+        ctx.stroke(dorsal, with: .color(cfg.outline), lineWidth: u*0.016)
+
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.28, y: cy - u*0.18, width: u*0.50, height: u*0.36))
+        ctx.fill(body, with: .color(cfg.body))
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.18, y: cy + u*0.02, width: u*0.32, height: u*0.14))
+        ctx.fill(belly, with: .color(cfg.belly))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        var pec = Path()
+        pec.move(to:    CGPoint(x: cx + u*0.02, y: cy + u*0.06))
+        pec.addLine(to: CGPoint(x: cx - u*0.02, y: cy + u*0.18))
+        pec.addLine(to: CGPoint(x: cx + u*0.12, y: cy + u*0.14))
+        pec.closeSubpath()
+        ctx.fill(pec, with: .color(cfg.accent.opacity(0.75)))
+
+        let ex = cx - u*0.12
+        let ey = cy - u*0.04
+        var eye = Path(ellipseIn: CGRect(x: ex - u*0.060, y: ey - u*0.060, width: u*0.120, height: u*0.120))
+        ctx.fill(eye, with: .color(.white))
+        ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)
+        var iris = Path(ellipseIn: CGRect(x: ex - u*0.038, y: ey - u*0.038 + (blink ? u*0.022 : 0),
+                                          width: u*0.076, height: blink ? u*0.008 : u*0.076))
+        ctx.fill(iris, with: .color(cfg.iris))
+        var hl = Path(ellipseIn: CGRect(x: ex + u*0.008, y: ey - u*0.020, width: u*0.018, height: u*0.018))
+        ctx.fill(hl, with: .color(.white))
+
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.22, y: cy + u*0.04))
+        smile.addCurve(to: CGPoint(x: cx - u*0.10, y: cy + u*0.06),
+                       control1: CGPoint(x: cx - u*0.20, y: cy + u*0.10),
+                       control2: CGPoint(x: cx - u*0.12, y: cy + u*0.10))
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.018)
+    }
+
+    // MARK: - Baby: worm/larva (bee stage 1)
+
+    func drawBabyWorm(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                      cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let headY = sz.height * 0.22 + bob
+        let seg1Y = sz.height * 0.42 + bob
+        let seg2Y = sz.height * 0.58 + bob
+        let seg3Y = sz.height * 0.73 + bob
+
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.14, y: sz.height*0.87, width: u*0.28, height: u*0.06))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        let segData: [(CGFloat, Bool)] = [(seg3Y, false), (seg2Y, true), (seg1Y, false)]
+        for (sy, isStripe) in segData {
+            var seg = Path(ellipseIn: CGRect(x: cx - u*0.18, y: sy - u*0.11, width: u*0.36, height: u*0.22))
+            ctx.fill(seg, with: .color(isStripe ? cfg.belly : cfg.body))
+            ctx.stroke(seg, with: .color(cfg.outline.opacity(0.6)), lineWidth: u*0.022)
+        }
+
+        for (sy, side) in [(seg1Y, CGFloat(-1)), (seg1Y, 1), (seg2Y, -1), (seg2Y, 1), (seg3Y, -1), (seg3Y, 1)] {
+            var leg = Path(ellipseIn: CGRect(x: cx + side*u*0.16 - u*0.036, y: sy - u*0.036, width: u*0.072, height: u*0.072))
+            ctx.fill(leg, with: .color(cfg.body))
+            ctx.stroke(leg, with: .color(cfg.outline.opacity(0.5)), lineWidth: u*0.014)
+        }
+
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.22, y: headY - u*0.22, width: u*0.44, height: u*0.38))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
+        var faceTint = Path(ellipseIn: CGRect(x: cx - u*0.14, y: headY - u*0.14, width: u*0.26, height: u*0.22))
+        ctx.fill(faceTint, with: .color(cfg.belly.opacity(0.40)))
+
+        for eside: CGFloat in [-1, 1] {
+            let exx = cx + eside * u * 0.082
+            let eyy = headY - u * 0.06
+            var eyePath = Path(ellipseIn: CGRect(x: exx - u*0.056, y: eyy - u*0.056, width: u*0.112, height: u*0.112))
+            ctx.fill(eyePath, with: .color(.white))
+            ctx.stroke(eyePath, with: .color(cfg.outline), lineWidth: u*0.018)
+            var irisPath = Path(ellipseIn: CGRect(x: exx - u*0.034, y: eyy - u*0.034 + (blink ? u*0.022 : 0),
+                                              width: u*0.068, height: blink ? u*0.008 : u*0.068))
+            ctx.fill(irisPath, with: .color(cfg.iris))
+            var hlPath = Path(ellipseIn: CGRect(x: exx + u*0.006, y: eyy - u*0.018, width: u*0.016, height: u*0.016))
+            ctx.fill(hlPath, with: .color(.white))
+        }
+
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.06, y: headY + u*0.06))
+        smile.addCurve(to: CGPoint(x: cx + u*0.06, y: headY + u*0.06),
+                       control1: CGPoint(x: cx - u*0.02, y: headY + u*0.12),
+                       control2: CGPoint(x: cx + u*0.02, y: headY + u*0.12))
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.018)
+    }
+
+    // MARK: - Baby: ball with arms (spider stage 1)
+
+    func drawBabySpiderBall(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                             cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.50 + bob
+
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.20, y: sz.height*0.83, width: u*0.40, height: u*0.08))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        let armAngles: [CGFloat] = [-0.72, -0.38, 0.38, 0.72,
+                                     CGFloat.pi + 0.72, CGFloat.pi + 0.38,
+                                     CGFloat.pi - 0.38, CGFloat.pi - 0.72]
+        for angle in armAngles {
+            let startR: CGFloat = u * 0.24
+            let endR:   CGFloat = u * 0.48
+            var arm = Path()
+            arm.move(to:    CGPoint(x: cx + cos(angle)*startR, y: cy + sin(angle)*startR))
+            arm.addLine(to: CGPoint(x: cx + cos(angle)*endR,   y: cy + sin(angle)*endR))
+            ctx.stroke(arm, with: .color(cfg.body), lineWidth: u*0.080)
+            ctx.stroke(arm, with: .color(cfg.accent.opacity(0.25)), lineWidth: u*0.034)
+            var claw = Path(ellipseIn: CGRect(x: cx + cos(angle)*endR - u*0.026,
+                                              y: cy + sin(angle)*endR - u*0.026,
+                                              width: u*0.052, height: u*0.052))
+            ctx.fill(claw, with: .color(cfg.accent.opacity(0.60)))
+        }
+
+        var ball = Path(ellipseIn: CGRect(x: cx - u*0.28, y: cy - u*0.28, width: u*0.56, height: u*0.56))
+        ctx.fill(ball, with: .color(cfg.body))
+        ctx.stroke(ball, with: .color(cfg.body.opacity(0.50)), lineWidth: u*0.018)
+        var sheen = Path(ellipseIn: CGRect(x: cx - u*0.14, y: cy - u*0.20, width: u*0.18, height: u*0.12))
+        ctx.fill(sheen, with: .color(.white.opacity(0.12)))
+
+        for eside: CGFloat in [-1, 1] {
+            let exx = cx + eside * u * 0.090
+            let eyy = cy - u * 0.06
+            var eyePath = Path(ellipseIn: CGRect(x: exx - u*0.068, y: eyy - u*0.068, width: u*0.136, height: u*0.136))
+            ctx.fill(eyePath, with: .color(.white))
+            ctx.stroke(eyePath, with: .color(cfg.body.opacity(0.40)), lineWidth: u*0.016)
+            var irisPath = Path(ellipseIn: CGRect(x: exx - u*0.050, y: eyy - u*0.050 + (blink ? u*0.028 : 0),
+                                              width: u*0.100, height: blink ? u*0.008 : u*0.100))
+            ctx.fill(irisPath, with: .color(cfg.iris))
+            if !blink {
+                var pupil = Path(ellipseIn: CGRect(x: exx - u*0.028, y: eyy - u*0.028, width: u*0.056, height: u*0.056))
+                ctx.fill(pupil, with: .color(.black))
+                var hlPath = Path(ellipseIn: CGRect(x: exx + u*0.006, y: eyy - u*0.022, width: u*0.020, height: u*0.020))
+                ctx.fill(hlPath, with: .color(.white))
+            }
+        }
+
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.06, y: cy + u*0.10))
+        smile.addCurve(to: CGPoint(x: cx + u*0.06, y: cy + u*0.10),
+                       control1: CGPoint(x: cx - u*0.02, y: cy + u*0.16),
+                       control2: CGPoint(x: cx + u*0.02, y: cy + u*0.16))
+        ctx.stroke(smile, with: .color(cfg.accent.opacity(0.70)), lineWidth: u*0.016)
+    }
+
+    // MARK: - Adult Shark (torpedo body, proper predator)
+
+    func drawSharkBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                       cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.50 + bob
+
+        // Crescent tail — upper lobe
+        var tailTop = Path()
+        tailTop.move(to:    CGPoint(x: cx + u*0.28, y: cy - u*0.02))
+        tailTop.addCurve(to: CGPoint(x: cx + u*0.54, y: cy - u*0.24),
+                         control1: CGPoint(x: cx + u*0.36, y: cy - u*0.10),
+                         control2: CGPoint(x: cx + u*0.50, y: cy - u*0.20))
+        tailTop.addLine(to: CGPoint(x: cx + u*0.44, y: cy - u*0.02))
+        tailTop.closeSubpath()
+        ctx.fill(tailTop, with: .color(cfg.accent))
+        ctx.stroke(tailTop, with: .color(cfg.outline), lineWidth: u*0.020)
+
+        // Crescent tail — lower lobe
+        var tailBot = Path()
+        tailBot.move(to:    CGPoint(x: cx + u*0.28, y: cy + u*0.02))
+        tailBot.addCurve(to: CGPoint(x: cx + u*0.50, y: cy + u*0.18),
+                         control1: CGPoint(x: cx + u*0.34, y: cy + u*0.08),
+                         control2: CGPoint(x: cx + u*0.48, y: cy + u*0.14))
+        tailBot.addLine(to: CGPoint(x: cx + u*0.42, y: cy + u*0.02))
+        tailBot.closeSubpath()
+        ctx.fill(tailBot, with: .color(cfg.accent))
+        ctx.stroke(tailBot, with: .color(cfg.outline), lineWidth: u*0.020)
+
+        // Pectoral fin
+        var pec = Path()
+        pec.move(to:    CGPoint(x: cx - u*0.02, y: cy + u*0.10))
+        pec.addCurve(to: CGPoint(x: cx - u*0.08, y: cy + u*0.32),
+                     control1: CGPoint(x: cx - u*0.06, y: cy + u*0.18),
+                     control2: CGPoint(x: cx - u*0.10, y: cy + u*0.28))
+        pec.addLine(to: CGPoint(x: cx + u*0.16, y: cy + u*0.22))
+        pec.closeSubpath()
+        ctx.fill(pec, with: .color(cfg.accent))
+        ctx.stroke(pec, with: .color(cfg.outline), lineWidth: u*0.016)
+
+        // Small second lower fin
+        var pec2 = Path()
+        pec2.move(to:    CGPoint(x: cx + u*0.16, y: cy + u*0.08))
+        pec2.addLine(to: CGPoint(x: cx + u*0.12, y: cy + u*0.22))
+        pec2.addLine(to: CGPoint(x: cx + u*0.26, y: cy + u*0.14))
+        pec2.closeSubpath()
+        ctx.fill(pec2, with: .color(cfg.accent.opacity(0.80)))
+
+        // Torpedo body
+        var body = Path()
+        body.move(to: CGPoint(x: cx - u*0.36, y: cy))
+        body.addCurve(to: CGPoint(x: cx + u*0.28, y: cy - u*0.13),
+                      control1: CGPoint(x: cx - u*0.22, y: cy - u*0.20),
+                      control2: CGPoint(x: cx + u*0.10, y: cy - u*0.20))
+        body.addLine(to: CGPoint(x: cx + u*0.28, y: cy + u*0.13))
+        body.addCurve(to: CGPoint(x: cx - u*0.36, y: cy),
+                      control1: CGPoint(x: cx + u*0.10, y: cy + u*0.20),
+                      control2: CGPoint(x: cx - u*0.22, y: cy + u*0.20))
+        body.closeSubpath()
+        ctx.fill(body, with: .color(cfg.body))
+
+        // Counter-shading white belly
+        var belly = Path()
+        belly.move(to: CGPoint(x: cx - u*0.30, y: cy))
+        belly.addCurve(to: CGPoint(x: cx + u*0.22, y: cy),
+                       control1: CGPoint(x: cx - u*0.16, y: cy + u*0.16),
+                       control2: CGPoint(x: cx + u*0.08, y: cy + u*0.16))
+        belly.closeSubpath()
+        ctx.fill(belly, with: .color(cfg.belly.opacity(0.90)))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Gill slits
+        for i: CGFloat in [0, 1, 2] {
+            let gx = cx - u*0.10 + i * u*0.068
+            var gill = Path()
+            gill.move(to: CGPoint(x: gx, y: cy - u*0.11))
+            gill.addCurve(to: CGPoint(x: gx - u*0.02, y: cy + u*0.06),
+                          control1: CGPoint(x: gx - u*0.02, y: cy - u*0.04),
+                          control2: CGPoint(x: gx - u*0.03, y: cy + u*0.02))
+            ctx.stroke(gill, with: .color(cfg.accent.opacity(0.65)), lineWidth: u*0.018)
+        }
+
+        // Prominent dorsal fin
+        var dorsal = Path()
+        dorsal.move(to: CGPoint(x: cx - u*0.12, y: cy - u*0.12))
+        dorsal.addCurve(to: CGPoint(x: cx + u*0.04, y: cy - u*0.48),
+                        control1: CGPoint(x: cx - u*0.12, y: cy - u*0.36),
+                        control2: CGPoint(x: cx + u*0.00, y: cy - u*0.48))
+        dorsal.addCurve(to: CGPoint(x: cx + u*0.18, y: cy - u*0.12),
+                        control1: CGPoint(x: cx + u*0.10, y: cy - u*0.36),
+                        control2: CGPoint(x: cx + u*0.18, y: cy - u*0.22))
+        dorsal.closeSubpath()
+        ctx.fill(dorsal, with: .color(cfg.accent))
+        ctx.stroke(dorsal, with: .color(cfg.outline), lineWidth: u*0.024)
+
+        // Second small dorsal (near tail)
+        var dorsal2 = Path()
+        dorsal2.move(to:    CGPoint(x: cx + u*0.18, y: cy - u*0.10))
+        dorsal2.addLine(to: CGPoint(x: cx + u*0.22, y: cy - u*0.24))
+        dorsal2.addLine(to: CGPoint(x: cx + u*0.28, y: cy - u*0.10))
+        dorsal2.closeSubpath()
+        ctx.fill(dorsal2, with: .color(cfg.accent))
+        ctx.stroke(dorsal2, with: .color(cfg.outline), lineWidth: u*0.016)
+
+        // Black predator eye
+        let shex = cx - u*0.20
+        let shey = cy - u*0.04
+        var eyeWhite = Path(ellipseIn: CGRect(x: shex - u*0.042, y: shey - u*0.042, width: u*0.084, height: u*0.084))
+        ctx.fill(eyeWhite, with: .color(.white))
+        ctx.stroke(eyeWhite, with: .color(cfg.outline), lineWidth: u*0.016)
+        var shPupil = Path(ellipseIn: CGRect(x: shex - u*0.030, y: shey - u*0.034, width: u*0.060, height: u*0.066))
+        ctx.fill(shPupil, with: .color(.black))
+        var shHL = Path(ellipseIn: CGRect(x: shex + u*0.006, y: shey - u*0.018, width: u*0.012, height: u*0.012))
+        ctx.fill(shHL, with: .color(.white.opacity(0.70)))
+
+        // Jaw + triangular teeth
+        var jaw = Path()
+        jaw.move(to: CGPoint(x: cx - u*0.36, y: cy + u*0.02))
+        jaw.addCurve(to: CGPoint(x: cx - u*0.10, y: cy + u*0.13),
+                     control1: CGPoint(x: cx - u*0.28, y: cy + u*0.06),
+                     control2: CGPoint(x: cx - u*0.16, y: cy + u*0.13))
+        ctx.stroke(jaw, with: .color(cfg.outline), lineWidth: u*0.020)
+        for i: CGFloat in [0, 1, 2, 3] {
+            let tx = cx - u*0.348 + i * u*0.052
+            var tooth = Path()
+            tooth.move(to:    CGPoint(x: tx,           y: cy + u*0.025))
+            tooth.addLine(to: CGPoint(x: tx + u*0.018, y: cy + u*0.074))
+            tooth.addLine(to: CGPoint(x: tx + u*0.036, y: cy + u*0.025))
+            tooth.closeSubpath()
+            ctx.fill(tooth, with: .color(.white))
+            ctx.stroke(tooth, with: .color(cfg.outline.opacity(0.40)), lineWidth: u*0.008)
+        }
+    }
+
+    // MARK: - Adult Swordfish (streamlined + tall sail + long sword)
+
+    func drawSwordfishBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                            cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.50 + bob
+
+        // Forked lunate tail — two lobes
+        for yDir: CGFloat in [-1, 1] {
+            var lobe = Path()
+            lobe.move(to:    CGPoint(x: cx + u*0.26, y: cy))
+            lobe.addCurve(to: CGPoint(x: cx + u*0.54, y: cy + yDir*u*0.22),
+                          control1: CGPoint(x: cx + u*0.34, y: cy + yDir*u*0.06),
+                          control2: CGPoint(x: cx + u*0.52, y: cy + yDir*u*0.16))
+            lobe.addLine(to: CGPoint(x: cx + u*0.44, y: cy + yDir*u*0.06))
+            lobe.closeSubpath()
+            ctx.fill(lobe, with: .color(cfg.accent))
+            ctx.stroke(lobe, with: .color(cfg.outline), lineWidth: u*0.018)
+        }
+
+        // Pelvic fin
+        var pelv = Path()
+        pelv.move(to:    CGPoint(x: cx + u*0.06, y: cy + u*0.08))
+        pelv.addLine(to: CGPoint(x: cx + u*0.00, y: cy + u*0.26))
+        pelv.addLine(to: CGPoint(x: cx + u*0.16, y: cy + u*0.18))
+        pelv.closeSubpath()
+        ctx.fill(pelv, with: .color(cfg.accent.opacity(0.85)))
+        ctx.stroke(pelv, with: .color(cfg.outline), lineWidth: u*0.014)
+
+        // Streamlined elongated body
+        var body = Path()
+        body.move(to: CGPoint(x: cx - u*0.22, y: cy))
+        body.addCurve(to: CGPoint(x: cx + u*0.26, y: cy - u*0.11),
+                      control1: CGPoint(x: cx - u*0.08, y: cy - u*0.17),
+                      control2: CGPoint(x: cx + u*0.12, y: cy - u*0.17))
+        body.addLine(to: CGPoint(x: cx + u*0.26, y: cy + u*0.11))
+        body.addCurve(to: CGPoint(x: cx - u*0.22, y: cy),
+                      control1: CGPoint(x: cx + u*0.12, y: cy + u*0.17),
+                      control2: CGPoint(x: cx - u*0.08, y: cy + u*0.17))
+        body.closeSubpath()
+        ctx.fill(body, with: .color(cfg.body))
+
+        // Metallic belly
+        var shine = Path()
+        shine.move(to: CGPoint(x: cx - u*0.18, y: cy))
+        shine.addCurve(to: CGPoint(x: cx + u*0.22, y: cy),
+                       control1: CGPoint(x: cx - u*0.06, y: cy + u*0.10),
+                       control2: CGPoint(x: cx + u*0.10, y: cy + u*0.10))
+        shine.closeSubpath()
+        ctx.fill(shine, with: .color(cfg.belly.opacity(0.60)))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.026)
+
+        // Lateral line detail
+        var lateral = Path()
+        lateral.move(to: CGPoint(x: cx - u*0.18, y: cy - u*0.02))
+        lateral.addCurve(to: CGPoint(x: cx + u*0.24, y: cy - u*0.02),
+                         control1: CGPoint(x: cx + u*0.00, y: cy - u*0.06),
+                         control2: CGPoint(x: cx + u*0.16, y: cy - u*0.04))
+        ctx.stroke(lateral, with: .color(cfg.accent.opacity(0.40)), lineWidth: u*0.012)
+
+        // Long sword/bill
+        var sword = Path()
+        sword.move(to:    CGPoint(x: cx - u*0.22, y: cy - u*0.022))
+        sword.addLine(to: CGPoint(x: cx - u*0.76, y: cy - u*0.006))
+        sword.addLine(to: CGPoint(x: cx - u*0.22, y: cy + u*0.022))
+        sword.closeSubpath()
+        ctx.fill(sword, with: .color(cfg.accent))
+        ctx.stroke(sword, with: .color(cfg.outline), lineWidth: u*0.014)
+        var swordHL = Path()
+        swordHL.move(to: CGPoint(x: cx - u*0.26, y: cy - u*0.008))
+        swordHL.addLine(to: CGPoint(x: cx - u*0.68, y: cy - u*0.002))
+        ctx.stroke(swordHL, with: .color(.white.opacity(0.45)), lineWidth: u*0.008)
+
+        // Tall sail-like dorsal fin
+        var dorsal = Path()
+        dorsal.move(to:    CGPoint(x: cx - u*0.12, y: cy - u*0.10))
+        dorsal.addCurve(to: CGPoint(x: cx - u*0.04, y: cy - u*0.54),
+                        control1: CGPoint(x: cx - u*0.16, y: cy - u*0.38),
+                        control2: CGPoint(x: cx - u*0.08, y: cy - u*0.54))
+        dorsal.addCurve(to: CGPoint(x: cx + u*0.22, y: cy - u*0.10),
+                        control1: CGPoint(x: cx + u*0.08, y: cy - u*0.46),
+                        control2: CGPoint(x: cx + u*0.20, y: cy - u*0.28))
+        dorsal.closeSubpath()
+        ctx.fill(dorsal, with: .color(cfg.body.opacity(0.92)))
+        ctx.stroke(dorsal, with: .color(cfg.outline), lineWidth: u*0.022)
+        // Fin ray lines
+        for i: CGFloat in [0, 1, 2, 3, 4] {
+            let fx = cx - u*0.10 + i * u*0.054
+            var ray = Path()
+            ray.move(to: CGPoint(x: fx, y: cy - u*0.10))
+            ray.addLine(to: CGPoint(x: cx - u*0.04 + i * u*0.042, y: cy - u*0.50 + i * u*0.10))
+            ctx.stroke(ray, with: .color(cfg.outline.opacity(0.28)), lineWidth: u*0.010)
+        }
+
+        // Eye
+        let sfex = cx - u*0.06
+        let sfey = cy - u*0.04
+        var eyeW = Path(ellipseIn: CGRect(x: sfex - u*0.054, y: sfey - u*0.054, width: u*0.108, height: u*0.108))
+        ctx.fill(eyeW, with: .color(.white))
+        ctx.stroke(eyeW, with: .color(cfg.outline), lineWidth: u*0.018)
+        var sfIris = Path(ellipseIn: CGRect(x: sfex - u*0.034, y: sfey - u*0.036, width: u*0.068, height: u*0.072))
+        ctx.fill(sfIris, with: .color(cfg.iris))
+        var sfPupil = Path(ellipseIn: CGRect(x: sfex - u*0.016, y: sfey - u*0.020, width: u*0.034, height: u*0.036))
+        ctx.fill(sfPupil, with: .color(.black))
+        var sfHL = Path(ellipseIn: CGRect(x: sfex + u*0.006, y: sfey - u*0.016, width: u*0.016, height: u*0.016))
+        ctx.fill(sfHL, with: .color(.white))
+
+        // Jaw line
+        var mouth = Path()
+        mouth.move(to: CGPoint(x: cx - u*0.22, y: cy + u*0.014))
+        mouth.addLine(to: CGPoint(x: cx - u*0.10, y: cy + u*0.026))
+        ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.018)
     }
 }
 
