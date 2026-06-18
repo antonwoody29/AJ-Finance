@@ -6,18 +6,15 @@ import AuthenticationServices
 struct FloatingAnimalHead: View {
     var type: AnimalType
     var mood: AJMood
-    var cropSize: CGFloat = 160   // displayed diameter
-    var canvasSize: CGFloat = 320 // full-body render size
+    var evolutionStage: Int = 2
+    var cropSize: CGFloat = 160
+    var canvasSize: CGFloat = 320
 
-    // headY as a fraction of canvasSize (u = canvasSize for square canvas).
-    // kangaroo: bodyY=0.62, headY=bodyY - u*0.46  → 0.62-0.46=0.16
-    // bee:      bodyY=0.62, headY=bodyY - u*0.38  → 0.62-0.38=0.24
-    // standard: headY = canvasSize*0.30            → 0.30
     private var headYFraction: CGFloat {
         switch type {
         case .kangaroo:    return 0.16
         case .bee:         return 0.24
-        case .spider:      return 0.25  // cephY = h*0.36, eyes at top of ceph
+        case .spider:      return 0.25
         case .grasshopper: return 0.34
         case .weedPlant:   return 0.38
         default:           return 0.30
@@ -25,11 +22,7 @@ struct FloatingAnimalHead: View {
     }
 
     var body: some View {
-        // shift = canvasSize/2 - headY  →  centers headY at the circle's midpoint
-        let shift = canvasSize * (0.5 - headYFraction)
-
         ZStack {
-            // Soft glow ring matching the animal colour
             Circle()
                 .fill(
                     RadialGradient(
@@ -39,15 +32,23 @@ struct FloatingAnimalHead: View {
                 )
                 .frame(width: cropSize * 1.10, height: cropSize * 1.10)
 
-            // Full-body canvas, shifted down so the head region is visible
-            AnimalCanvas(type: type, mood: mood, size: canvasSize,
-                         isWalking: false, evolutionStage: 0)
-                .frame(width: canvasSize, height: canvasSize)
-                .offset(y: shift)           // move content down → top of canvas visible
-                .frame(width: cropSize, height: cropSize)
-                .clipShape(Circle())
+            if evolutionStage == 0 {
+                // Show the whole egg, scaled down to fit comfortably inside the circle
+                AnimalCanvas(type: type, mood: mood, size: cropSize * 0.72,
+                             isWalking: false, evolutionStage: 0)
+                    .frame(width: cropSize, height: cropSize)
+                    .clipShape(Circle())
+            } else {
+                // Crop to head region for adult/baby forms
+                let shift = canvasSize * (0.5 - headYFraction)
+                AnimalCanvas(type: type, mood: mood, size: canvasSize,
+                             isWalking: false, evolutionStage: evolutionStage)
+                    .frame(width: canvasSize, height: canvasSize)
+                    .offset(y: shift)
+                    .frame(width: cropSize, height: cropSize)
+                    .clipShape(Circle())
+            }
 
-            // Subtle rim
             Circle()
                 .stroke(type.bodyColor.opacity(0.45), lineWidth: 2.5)
                 .frame(width: cropSize, height: cropSize)
@@ -66,25 +67,25 @@ struct SignInView: View {
     @State private var starPhase      = false
     @State private var showEmailAuth  = false
 
-    // Animal + mood pairs — each shows a distinct facial expression
-    private let teaserPairs: [(AnimalType, AJMood)] = [
-        (.grasshopper, .hype),  // ✨ big eyes, excited
-        (.tiger,    .hype),    // ✨ star sparkles, excited wide eyes
-        (.panda,    .sad),     // 💧 teardrop eyes, droopy cute
-        (.bee,      .sleep),   // 💤 Z bubbles, squinty sleepy
-        (.lion,     .angry),   // 💢 anger marks, puffed up
-        (.unicorn,  .hype),    // ✨ sparkle, rainbow energy
-        (.fox,      .hype),    // ✨ sly excited
-        (.kangaroo, .hype),    // ✨ pumped up
-        (.dragon,   .angry),   // 💢 fierce flame energy
-        (.spider,   .hype),    // ✨ 8 big eyes, jumpy energy
+    // (animal, mood, evolutionStage) — alternates between egg (0) and adult (2)
+    private let teaserPairs: [(AnimalType, AJMood, Int)] = [
+        (.grasshopper, .hype,  0),
+        (.tiger,       .hype,  2),
+        (.panda,       .sad,   0),
+        (.bee,         .sleep, 2),
+        (.lion,        .angry, 0),
+        (.unicorn,     .hype,  2),
+        (.fox,         .hype,  0),
+        (.kangaroo,    .hype,  2),
+        (.dragon,      .angry, 0),
+        (.spider,      .hype,  2),
     ]
 
     @State private var pairIndex:    Int    = 0
     @State private var headOpacity:  Double = 1.0
     @State private var headScale:    Double = 1.0
 
-    private var currentPair: (AnimalType, AJMood) { teaserPairs[pairIndex] }
+    private var currentPair: (AnimalType, AJMood, Int) { teaserPairs[pairIndex] }
 
     var body: some View {
         ZStack {
@@ -120,10 +121,11 @@ struct SignInView: View {
 
                 // ── Floating head ──────────────────────────────────
                 FloatingAnimalHead(
-                    type:       currentPair.0,
-                    mood:       currentPair.1,
-                    cropSize:   185,
-                    canvasSize: 360
+                    type:          currentPair.0,
+                    mood:          currentPair.1,
+                    evolutionStage: currentPair.2,
+                    cropSize:      185,
+                    canvasSize:    360
                 )
                 .offset(y: headFloat ? -14 : 14)
                 .animation(

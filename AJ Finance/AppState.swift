@@ -225,9 +225,8 @@ final class AppState {
 
     // 0 = egg, 1 = baby, 2 = adult
     var animalGrowthStage: Int {
-        if evolutionLevel == 0 { return 0 }
-        if evolutionLevel == 1 { return 1 }
-        return 2
+        if evolutionLevel >= 1 { return 2 }
+        return 1  // everyone starts at baby (stage 1); egg is sign-in only
     }
 
     var equippedOutfit: OutfitItem? {
