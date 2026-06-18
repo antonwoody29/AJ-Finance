@@ -556,6 +556,14 @@ struct AnimalBodyView: View {
             drawBabySpiderBall(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
+        if type == .ant || type == .beetle || type == .grasshopper {
+            drawBabyWorm(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
+        if type == .turtle || type == .snappingTurtle {
+            drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: 0, bob: bob, blink: blink)
+            return
+        }
 
         let headY = sz.height * 0.38 + bob
         let bodyY = sz.height * 0.70 + bob
@@ -703,7 +711,7 @@ struct AnimalBodyView: View {
         case .frog:      drawFrogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .flamingo:  drawFlamingoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .crab:      drawCrabBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
-        case .turtle:    drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .turtle:    drawAdultTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .hippo:     drawHippoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .giraffe:   drawGiraffeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .pig:       drawPigBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
@@ -1742,6 +1750,126 @@ struct AnimalBodyView: View {
         var head = Path(ellipseIn: CGRect(x: cx - hr, y: headY - hr*0.96, width: hr*2, height: hr*1.92))
         ctx.fill(head, with: .color(cfg.body))
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Adult Turtle (larger, detailed hexagonal shell)
+
+    func drawAdultTurtleBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                              cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let bodyY = sz.height * 0.64 + bob
+        let headY = sz.height * 0.30 + bob
+
+        // Four large flippers (more prominent than baby)
+        for side: CGFloat in [-1, 1] {
+            // Front flipper
+            var ff = Path()
+            ff.move(to:    CGPoint(x: cx + side*u*0.22, y: bodyY - u*0.16))
+            ff.addCurve(to: CGPoint(x: cx + side*u*0.44, y: bodyY - u*0.06),
+                        control1: CGPoint(x: cx + side*u*0.30, y: bodyY - u*0.24),
+                        control2: CGPoint(x: cx + side*u*0.44, y: bodyY - u*0.18))
+            ff.addCurve(to: CGPoint(x: cx + side*u*0.22, y: bodyY + u*0.02),
+                        control1: CGPoint(x: cx + side*u*0.44, y: bodyY + u*0.04),
+                        control2: CGPoint(x: cx + side*u*0.28, y: bodyY + u*0.04))
+            ff.closeSubpath()
+            ctx.fill(ff, with: .color(cfg.body))
+            ctx.stroke(ff, with: .color(cfg.outline), lineWidth: u*0.022)
+            // Flipper finger lines
+            for fi: CGFloat in [0.3, 0.6, 0.85] {
+                var fline = Path()
+                fline.move(to:    CGPoint(x: cx + side*u*(0.26 + fi*0.12), y: bodyY - u*(0.10 - fi*0.04)))
+                fline.addLine(to: CGPoint(x: cx + side*u*(0.30 + fi*0.12), y: bodyY - u*(0.04 - fi*0.04)))
+                ctx.stroke(fline, with: .color(cfg.outline.opacity(0.40)), lineWidth: u*0.010)
+            }
+            // Back flipper
+            var bf = Path()
+            bf.move(to:    CGPoint(x: cx + side*u*0.20, y: bodyY + u*0.06))
+            bf.addCurve(to: CGPoint(x: cx + side*u*0.38, y: bodyY + u*0.22),
+                        control1: CGPoint(x: cx + side*u*0.28, y: bodyY + u*0.08),
+                        control2: CGPoint(x: cx + side*u*0.40, y: bodyY + u*0.16))
+            bf.addCurve(to: CGPoint(x: cx + side*u*0.18, y: bodyY + u*0.16),
+                        control1: CGPoint(x: cx + side*u*0.34, y: bodyY + u*0.26),
+                        control2: CGPoint(x: cx + side*u*0.22, y: bodyY + u*0.22))
+            bf.closeSubpath()
+            ctx.fill(bf, with: .color(cfg.body))
+            ctx.stroke(bf, with: .color(cfg.outline), lineWidth: u*0.020)
+        }
+
+        // Shell rim (wide base, slightly darker)
+        var rim = Path(ellipseIn: CGRect(x: cx - u*0.310, y: bodyY - u*0.180, width: u*0.620, height: u*0.320))
+        ctx.fill(rim, with: .color(cfg.accent))
+        ctx.stroke(rim, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Shell carapace dome (tall and rounded)
+        var shell = Path(ellipseIn: CGRect(x: cx - u*0.270, y: bodyY - u*0.420, width: u*0.540, height: u*0.360))
+        ctx.fill(shell, with: .color(cfg.body))
+        ctx.stroke(shell, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Shell highlight (sheen on dome top)
+        var sheen = Path(ellipseIn: CGRect(x: cx - u*0.090, y: bodyY - u*0.390, width: u*0.160, height: u*0.090))
+        ctx.fill(sheen, with: .color(.white.opacity(0.14)))
+
+        // Hexagonal scute pattern — center vertebral column
+        let scuteColor = cfg.accent.opacity(0.75)
+        let thinLine   = cfg.outline.opacity(0.55)
+        // Center large hex
+        var c0 = Path(ellipseIn: CGRect(x: cx - u*0.095, y: bodyY - u*0.390, width: u*0.190, height: u*0.165))
+        ctx.stroke(c0, with: .color(scuteColor), lineWidth: u*0.020)
+        // Second vertebral
+        var c1 = Path(ellipseIn: CGRect(x: cx - u*0.082, y: bodyY - u*0.240, width: u*0.164, height: u*0.142))
+        ctx.stroke(c1, with: .color(scuteColor), lineWidth: u*0.018)
+        // Third vertebral (bottom)
+        var c2 = Path(ellipseIn: CGRect(x: cx - u*0.068, y: bodyY - u*0.115, width: u*0.136, height: u*0.110))
+        ctx.stroke(c2, with: .color(scuteColor), lineWidth: u*0.016)
+        // Costal scutes (left & right of each vertebral)
+        for side: CGFloat in [-1, 1] {
+            var l0 = Path(ellipseIn: CGRect(x: cx + side*u*0.060, y: bodyY - u*0.370, width: u*0.130, height: u*0.110))
+            ctx.stroke(l0, with: .color(thinLine), lineWidth: u*0.014)
+            var l1 = Path(ellipseIn: CGRect(x: cx + side*u*0.110, y: bodyY - u*0.265, width: u*0.118, height: u*0.100))
+            ctx.stroke(l1, with: .color(thinLine), lineWidth: u*0.013)
+            var l2 = Path(ellipseIn: CGRect(x: cx + side*u*0.130, y: bodyY - u*0.168, width: u*0.105, height: u*0.085))
+            ctx.stroke(l2, with: .color(thinLine), lineWidth: u*0.012)
+            var l3 = Path(ellipseIn: CGRect(x: cx + side*u*0.140, y: bodyY - u*0.090, width: u*0.090, height: u*0.068))
+            ctx.stroke(l3, with: .color(thinLine), lineWidth: u*0.010)
+        }
+        // Marginal scute line (outer border)
+        var marginal = Path(ellipseIn: CGRect(x: cx - u*0.258, y: bodyY - u*0.408, width: u*0.516, height: u*0.346))
+        ctx.stroke(marginal, with: .color(cfg.accent.opacity(0.38)), lineWidth: u*0.012)
+
+        // Plastron (belly plate visible at rim)
+        var plastron = Path(ellipseIn: CGRect(x: cx - u*0.210, y: bodyY - u*0.050, width: u*0.420, height: u*0.120))
+        ctx.fill(plastron, with: .color(cfg.belly.opacity(0.85)))
+        ctx.stroke(plastron, with: .color(cfg.outline.opacity(0.50)), lineWidth: u*0.016)
+
+        // Neck
+        var neck = Path()
+        neck.move(to:    CGPoint(x: cx - u*0.054, y: bodyY - u*0.32))
+        neck.addLine(to: CGPoint(x: cx + u*0.054, y: bodyY - u*0.32))
+        neck.addLine(to: CGPoint(x: cx + u*0.046, y: headY + u*0.18))
+        neck.addLine(to: CGPoint(x: cx - u*0.046, y: headY + u*0.18))
+        neck.closeSubpath()
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u*0.024)
+        // Neck wrinkle lines
+        for ny: CGFloat in [0.25, 0.50, 0.75] {
+            let ny2 = headY + u*0.18 + (bodyY - u*0.32 - headY - u*0.18) * ny
+            var wrinkle = Path()
+            wrinkle.move(to: CGPoint(x: cx - u*0.050, y: ny2))
+            wrinkle.addLine(to: CGPoint(x: cx + u*0.050, y: ny2))
+            ctx.stroke(wrinkle, with: .color(cfg.outline.opacity(0.28)), lineWidth: u*0.010)
+        }
+
+        // Larger round head
+        let hr = u * 0.245
+        var head = Path(ellipseIn: CGRect(x: cx - hr, y: headY - hr*0.92, width: hr*2, height: hr*1.84))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.030)
+        // Head scale pattern
+        var headScale = Path(ellipseIn: CGRect(x: cx - u*0.100, y: headY - u*0.160, width: u*0.200, height: u*0.120))
+        ctx.stroke(headScale, with: .color(cfg.accent.opacity(0.35)), lineWidth: u*0.012)
 
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
 
