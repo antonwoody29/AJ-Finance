@@ -689,10 +689,101 @@ enum AccountabilityMode: String, CaseIterable, Codable, Identifiable {
     }
 
     func goalCompleteReaction() -> String {
+        let rareEpic: [String] = [
+            "One day you'll realize this wasn't just a goal. This was proof that you're capable of more than you thought.",
+            "You kept a promise to yourself today. Never underestimate how powerful that is.",
+            "Most people stop before they get here. You didn't.",
+            "The person you want to become is getting closer.",
+            "Every completed goal changes your story a little bit.",
+            "You didn't just reach a goal. You became someone who finishes.",
+            "This is the kind of win people remember years later.",
+            "The future version of you is incredibly grateful right now.",
+            "I'm proud of the goal you completed. But I'm even prouder of the person you became while completing it.",
+            "Remember this feeling. You're going to want it again. 🏆💙"
+        ]
+        if Double.random(in: 0...1) < 0.01 { return rareEpic.randomElement()! }
+
+        let funny: [String] = [
+            "LOOK MOM THEY DID IT.",
+            "GET THE CAMERA 📸",
+            "SOMEBODY CALL THE NEWS.",
+            "WE GOT A LEGEND OVER HERE.",
+            "Main character behavior detected.",
+            "The rich auntie arc has begun.",
+            "The millionaire starter pack is loading.",
+            "You got motion now 😤",
+            "Your haters are devastated.",
+            "The doubters are quiet. The supporters are screaming.",
+            "I'm screaming. Everyone's screaming. It's loud in here.",
+            "The goal filed a restraining order.",
+            "You beat it up too badly 😭",
+            "That goal got folded. Packed up. Shipped out.",
+            "Respectfully dominated.",
+            "Do it again. Actually please do.",
+            "The IRS wishes you were this consistent."
+        ]
+
+        let financial: [String] = [
+            "Money in the account > money in the cart.",
+            "Financial freedom got a little closer today.",
+            "The savings account is THRIVING.",
+            "Your future self just stood up and applauded.",
+            "Every dollar had a purpose. Every dollar showed up.",
+            "This is how wealth gets built. One goal at a time.",
+            "Money loves consistency. You're proving it.",
+            "This wasn't luck. This was effort. This was discipline. This was YOU.",
+            "The bag is getting secured. And it's beautiful."
+        ]
+
+        let main: [String] = [
+            "YOU DID ITTTTTTTTT 🔥🔥🔥",
+            "BESTIE LOOK AT YOU GO 😭",
+            "GOAL COMPLETE BABYYYY 🏆",
+            "I KNEW YOU COULD DO IT.",
+            "Actually I never had a doubt.",
+            "Okay maybe one tiny doubt.",
+            "BUT LOOK AT YOU NOW 🔥",
+            "Mission accomplished. 🫡",
+            "Goal status: COMPLETE.",
+            "Legend status: ACTIVATED.",
+            "You really did that. Like actually.",
+            "Not talking about it. Not planning it. You DID IT.",
+            "I am so freaking proud of you.",
+            "The future you is CRYING right now.",
+            "Happy tears obviously 😭",
+            "This is what consistency looks like.",
+            "This is what showing up looks like.",
+            "This is what winning looks like.",
+            "The goal never stood a chance.",
+            "You were built for this.",
+            "I hope you're proud. Because I sure as hell am.",
+            "BIG W ENERGY 🔥",
+            "YOU ATE THAT. LEFT NO CRUMBS. ABSOLUTELY NONE.",
+            "Future unlocked. Achievement unlocked. Confidence unlocked.",
+            "GO TOUCH SOME GRASS CHAMPION 🌱",
+            "This deserves a victory dance. Please tell me you're dancing.",
+            "I'm dancing. It's embarrassing. But worth it.",
+            "WE WON TODAY.",
+            "The grind paid off. The work paid off. The patience paid off.",
+            "I watched every step. Every save. Every check-in. Every little choice.",
+            "And look where it got you. RIGHT HERE. AT THE FINISH LINE 🏁",
+            "GOAL CRUSHED. Absolutely demolished. Sent to another dimension.",
+            "It never saw you coming.",
+            "I need a moment. I'm emotional 😭",
+            "This is proof. Proof that you can do hard things.",
+            "Proof that you keep promises to yourself. That's powerful. That's YOU."
+        ]
+
         switch self {
-        case .chillVibes:  return "You did it!! I'm SO proud of you! 🎉"
-        case .keepItReal:  return "AYO YOU ACTUALLY DID IT!! I knew you had it in you fr!"
-        case .noCapSavage: return "OKAYYYY I SEE YOU!! Told you could do it when you stop playing!! 🏆"
+        case .chillVibes:
+            if Double.random(in: 0...1) < 0.3 { return financial.randomElement()! }
+            return (main + ["You did it!! I'm SO proud of you! 🎉", "You really showed up and showed OUT 🎉"]).randomElement()!
+        case .keepItReal:
+            if Double.random(in: 0...1) < 0.2 { return funny.randomElement()! }
+            return (main + ["AYO YOU ACTUALLY DID IT!! I knew you had it in you fr!"]).randomElement()!
+        case .noCapSavage:
+            if Double.random(in: 0...1) < 0.25 { return funny.randomElement()! }
+            return (main + ["OKAYYYY I SEE YOU!! Told you could do it when you stop playing!! 🏆"]).randomElement()!
         }
     }
 

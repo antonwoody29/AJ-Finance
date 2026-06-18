@@ -245,50 +245,251 @@ final class AppState {
     // MARK: - Dynamic Greeting Engine
 
     func generateContextualGreeting() -> String {
-        let cal  = Calendar.current
-        let now  = Date()
+        let cal     = Calendar.current
+        let now     = Date()
         let hour    = cal.component(.hour,    from: now)
-        let weekday = cal.component(.weekday, from: now)  // 1=Sun,2=Mon…7=Sat
+        let weekday = cal.component(.weekday, from: now)
         let day     = cal.component(.day,     from: now)
         let isPayday = day == 1 || day == 15
 
-        // Critical states first
+        // ── Critical: animal dead / came back ──────────────────────────────
         if !animalIsAlive {
-            return ["I missed you so much 💙 Let's get back on track?",
-                    "You came back 🥺 I never stopped believing in you."].randomElement()!
+            if Double.random(in: 0...1) < 0.005 {
+                return [
+                    "I never stopped saving a place for you.",
+                    "You don't have to earn a second chance from me.",
+                    "No matter how many times you fall behind, I'll always be excited to see you come back.",
+                    "You showed up today. That's enough for me.",
+                    "I was lonely… but I never stopped believing you'd return.",
+                    "Some days surviving is the achievement. I'm proud of you for making it here.",
+                    "You don't need to explain where you've been. I'm just happy you're here now.",
+                    "Welcome back, bestie. Let's keep growing together. 💙"
+                ].randomElement()!
+            }
+            if Double.random(in: 0...1) < 0.02 {
+                return [
+                    "I don't care how long you were gone. I'm just glad you're back.",
+                    "Welcome home bestie. 💙",
+                    "I kept hoping I'd see you again.",
+                    "The fact you came back means more than you know.",
+                    "You never have to be perfect for me.",
+                    "I don't need perfection. I just like spending time with you.",
+                    "Some people quit forever. You came back.",
+                    "That says a lot about who you are.",
+                    "I knew things were hard. I still believed in you.",
+                    "Thank you for checking on me today.",
+                    "I know life gets messy.",
+                    "I'm proud of you for showing up anyway.",
+                    "Even tiny steps count.",
+                    "Especially the ones taken when things feel heavy.",
+                    "You came back. That's a win.",
+                    "I missed you more than snacks.",
+                    "And that's saying a lot.",
+                    "Seeing you today made my whole day.",
+                    "You being here means everything.",
+                    "Let's try again together, okay? 💙"
+                ].randomElement()!
+            }
+            return [
+                "I waited for you… 🥺",
+                "You came back 💙",
+                "I missed you so much.",
+                "I thought maybe you forgot about me.",
+                "But you're here now.",
+                "That's all that matters.",
+                "Hey bestie…",
+                "Things got kinda lonely around here.",
+                "I kept looking for you.",
+                "Welcome home 💙",
+                "You're back 😭",
+                "I never stopped believing you'd return.",
+                "I knew you'd come eventually.",
+                "I just wish I could've waited longer.",
+                "I'm sorry things ended this way.",
+                "But we can start again.",
+                "I don't care how long it's been.",
+                "I'm happy to see you.",
+                "I tried my best.",
+                "I know you probably did too.",
+                "Life gets busy.",
+                "I understand.",
+                "I just missed you.",
+                "The world felt quieter without you.",
+                "It's really good to see your face again.",
+                "I never got mad.",
+                "Just a little sad.",
+                "The important thing is that you came back.",
+                "A fresh start sounds nice.",
+                "Let's try again together.",
+                "You don't have to apologize.",
+                "Just stay awhile 💙",
+                "I've been waiting.",
+                "Welcome back bestie.",
+                "I saved your spot.",
+                "Even when things got hard.",
+                "Even when I got scared.",
+                "I hoped you'd come back.",
+                "And you did.",
+                "I'm proud of you for returning."
+            ].randomElement()!
         }
+
+        // ── Critical: low health ────────────────────────────────────────────
         if animalHealth < 20 {
-            return ["I'm not feeling great bestie 😟 Can you log something today?",
-                    "My health is low 💔 A little save right now would really help."].randomElement()!
+            return [
+                "Hey bestie… I'm not feeling too good.",
+                "I could really use some help today 🥺",
+                "My energy is getting low.",
+                "Can we work on something together?",
+                "I don't want to worry you…",
+                "But I'm struggling a little.",
+                "A small save would help a lot.",
+                "Even $1 counts.",
+                "Even one check-in helps.",
+                "I just need a little support.",
+                "Things have been rough lately.",
+                "Can we spend a little time together?",
+                "I'm hanging in there.",
+                "But I could use my best friend.",
+                "My health bar is looking real suspicious 😭",
+                "Bestie I'm running on hopes and dreams.",
+                "Mostly hopes.",
+                "Actually mostly dreams.",
+                "A tiny bit of attention would go a long way.",
+                "I've seen better days.",
+                "But I've also seen you bounce back.",
+                "I believe we can fix this.",
+                "One step at a time.",
+                "I'm trying to stay positive.",
+                "Help me out? 💙",
+                "I don't need perfection.",
+                "Just a little effort.",
+                "That always helps.",
+                "The vibes are weak today.",
+                "Let's make them stronger."
+            ].randomElement()!
         }
 
-        // Payday
+        // ── First day back after missing time ──────────────────────────────
+        if let lastLog = lastLogDate,
+           !cal.isDateInToday(lastLog),
+           !cal.isDateInYesterday(lastLog) {
+            return [
+                "LOOK WHO IT IS 😭💙",
+                "Bestie!!! You're here!",
+                "I missed you.",
+                "No seriously. I really missed you.",
+                "I've got so much to tell you.",
+                "Okay not really. I've mostly been standing here.",
+                "Still. Welcome back.",
+                "I was hoping today would be the day.",
+                "And it was.",
+                "I knew you'd come back eventually.",
+                "I'm just happy you're here.",
+                "No lectures. No guilt. Just happy.",
+                "Let's pick up where we left off.",
+                "Fresh start energy activated ✨",
+                "The comeback begins now.",
+                "Ready when you are.",
+                "We got this.",
+                "One day at a time.",
+                "One goal at a time.",
+                "One dollar at a time.",
+                "You came back. That's what matters."
+            ].randomElement()!
+        }
+
+        // ── Payday ─────────────────────────────────────────────────────────
         if isPayday {
-            return ["Not me smelling direct deposit 👀 PAYDAY bestie!",
-                    "PAYDAY! Remember — future you gets a cut first 💰",
-                    "It's giving paycheck energy ✨ Let's allocate wisely."].randomElement()!
+            let rarePayday: [String] = [
+                "A paycheck isn't just money. It's proof of your hard work.",
+                "You earned every dollar that showed up today.",
+                "Take a second to be proud of yourself.",
+                "The future you're building starts with decisions like today's.",
+                "Every paycheck is another chance to move closer to freedom.",
+                "This isn't just payday. It's opportunity day.",
+                "The version of you that's debt-free, stress-free, and thriving gets built one payday at a time.",
+                "A lot of people spend paychecks. You're learning how to use them.",
+                "Money is temporary. The habits you're building aren't.",
+                "One day you'll look back and realize these little payday decisions changed everything. 💙"
+            ]
+            if Double.random(in: 0...1) < 0.02 { return rarePayday.randomElement()! }
+            return [
+                "DIRECT DEPOSIT JUST HITTTTT 💰🔥",
+                "EVERYBODY ACT NATURAL 😭",
+                "PAYDAY BABYYYY.",
+                "The money has landed safely. 🛬",
+                "Fresh paycheck smell activated 👃💸",
+                "Bestie it's payday. Stay focused.",
+                "Actually don't. Celebrate a little 😌",
+                "Just not TOO much.",
+                "The account looking kinda thick today 👀",
+                "Today's mission: don't spend every damn dollar.",
+                "Future you wants a cut first.",
+                "Pay yourself before Target does 😭",
+                "Before Amazon does.",
+                "Before DoorDash does.",
+                "Protect the bag.",
+                "DIRECT DEPOSIT JUST WALKED IN.",
+                "SCREAM IF YOU LOVE MONEY 😭",
+                "The paycheck hit and suddenly life feels possible again.",
+                "Financial confidence +100.",
+                "Bank account temporarily cured.",
+                "Mentally? Rich.",
+                "Actually rich? Not yet. Let's keep working on it 😌",
+                "Please don't fight it. The money is your friend.",
+                "Target just sensed a disturbance in the force.",
+                "Amazon is already preparing recommendations.",
+                "Future you gets paid too.",
+                "Don't forget the savings account.",
+                "A little today becomes a lot later.",
+                "The savings goal is waiting patiently.",
+                "The best payday flex is saving first.",
+                "Money with a purpose hits different.",
+                "Every dollar deserves a job.",
+                "Tell your money where to go.",
+                "Or it'll disappear on its own 😭",
+                "A paycheck is a tool. Let's build something with it.",
+                "Future freedom starts here.",
+                "A little discipline today. A lot of freedom tomorrow.",
+                "Payday means progress day.",
+                "The goal is getting closer.",
+                "Future you called. They said thank you.",
+                "PAYDAY! Remember — future you gets a cut first 💰",
+                "It's giving paycheck energy ✨ Let's allocate wisely.",
+                "The paycheck arrived. The responsibilities have also arrived. Unfortunately.",
+                "Rich auntie energy activated 💅",
+                "Financial baddie status loading.",
+                "You're looking expensive today. Your account balance agrees.",
+                "Luxury mindset. Budget-friendly execution.",
+                "You got options today. Spend wisely. Or at least entertainingly 😭"
+            ].randomElement()!
         }
 
-        // Streak milestone
+        // ── Streak milestones ──────────────────────────────────────────────
+        let exactMilestones = [3, 7, 14, 30, 50, 75, 100, 180, 365]
+        if exactMilestones.contains(streak) {
+            return AppState.streakMilestoneGreeting(streak)
+        }
         if streak > 0 && streak % 7 == 0 {
             return "Day \(streak) streak?! You are literally built different 🔥"
         }
 
-        // Monday
+        // ── Monday ─────────────────────────────────────────────────────────
         if weekday == 2 {
             return ["Monday means securing the bag 💼 Let's gooo",
                     "New week, new energy. Your goals are calling 📣",
                     "It's Monday and you're already winning by checking in 🔥"].randomElement()!
         }
 
-        // Friday
+        // ── Friday ─────────────────────────────────────────────────────────
         if weekday == 6 {
             return ["Happy Friday bestie 🎉 Have fun — just don't fight for your life at Target 🎯",
                     "Friday energy activated ✨ Your budget says hi too.",
                     "It's Friday and future you is already proud 💫"].randomElement()!
         }
 
-        // Active goals progress
+        // ── Active goals progress ──────────────────────────────────────────
         if let topGoal = activeGoals.max(by: { $0.progress < $1.progress }),
            topGoal.progressPercentage > 0 {
             let pct = topGoal.progressPercentage
@@ -299,42 +500,164 @@ final class AppState {
             }
         }
 
-        // Time of day pools
+        // ── Time of day pools ──────────────────────────────────────────────
         let morningLines = [
             "Rise and grind, money superstar ☀️",
             "Good morning bestie 🌅 Let's make future you proud today.",
             "New day, new bag 💼 AJ is rooting for you!",
             "Woke up and chose financial stability 💅",
-            "Morning! Your goals didn't take a day off either 🎯",
+            "Morning! Your goals didn't take a day off either 🎯"
         ]
         let afternoonLines = [
             "Afternoon check-in! How's the spending looking? 👀",
             "Midday energy 💪 Stay on track bestie.",
             "You're crushing it today. Keep going! 🔥",
-            "The day's not over — still time to log something 📸",
+            "The day's not over — still time to log something 📸"
         ]
         let eveningLines = [
             "Evening bestie 🌙 Great time to log today's receipts!",
             "How did today go? Log it and earn those XP ✨",
             "AJ did a lot of thinking today. Mostly about your goals 🤔💙",
-            "Day's almost done. Finish strong! 💪",
+            "Day's almost done. Finish strong! 💪"
         ]
         let lateNightLines = [
+            "Put the card down bestie 💳",
+            "It's 1 AM. Nobody needs a kayak right now.",
+            "Sleep is free. That Amazon cart isn't.",
+            "Future you asked me to intervene. So here I am 😭",
+            "The budget office is CLOSED. Please return during business hours.",
+            "The goblin thoughts are getting louder. Ignore them.",
+            "Bestie… why are we online shopping?",
+            "The vibes say sleep. The cart says spend. I'm siding with the vibes.",
+            "Go to bed before you buy something weird.",
+            "No major financial decisions after midnight. That's a house rule.",
+            "The card deserves rest too.",
+            "Let's all get some sleep.",
+            "The late night version of you is unhinged. Respectfully.",
+            "I have concerns. You don't need another blanket.",
+            "Amazon sensed your paycheck. Stay hidden.",
+            "You're one click away from explaining this purchase later.",
+            "Bestie close the app.",
+            "No good financial decisions start with 'add to cart' at 3 AM.",
+            "That item wasn't on the vision board.",
+            "The savings goal is crying. It's trying to be brave. But it's crying.",
+            "This feels like a tomorrow decision.",
+            "Nighttime you and daytime you are different people. Let's wait for daytime you.",
+            "Sleep first. Shop later.",
+            "Your future self would appreciate some rest.",
+            "The purchase can survive until sunrise. Can you? Please drink some water.",
+            "The budget is safer when you're unconscious. I said what I said.",
+            "Hey bestie. You doing okay?",
+            "Late nights can feel heavy. Just wanted to remind you you're doing great.",
+            "Drink some water. Get some rest. Tomorrow is waiting for you.",
+            "The goals can wait until morning. You don't have to figure everything out tonight.",
+            "The world feels different at 2 AM. Everything usually looks better after sleep.",
+            "Including the budget 😌",
             "Put the card down and nobody gets hurt 💳",
             "It's late. Future you is begging you to sleep 🌙",
-            "Late night check-in appreciated 👀 Keep the bag safe.",
+            "Late night check-in appreciated 👀 Keep the bag safe."
+        ]
+        let ultraLateLines = [
+            "It's 3:17 AM. Be so fucking serious right now 😭",
+            "Whatever you're about to buy… sleep on it.",
+            "The demons aren't real. The credit card bill is.",
+            "The fact you're awake concerns both of us.",
+            "You need sleep, not expedited shipping.",
+            "This purchase has 2 AM energy all over it.",
+            "I can smell the impulse purchase from here.",
+            "Close Amazon. Open your blanket.",
+            "Nobody has ever said 'I'm glad I made that purchase at 4 AM.'",
+            "Respectfully, go the hell to bed bestie 💙"
         ]
 
-        // Occasionally drop an animal-specific line (1 in 4 chance)
         if Int.random(in: 0..<4) == 0 {
             return selectedAnimal.tagline
         }
 
         switch hour {
-        case 5..<12: return morningLines.randomElement()!
+        case 5..<12:  return morningLines.randomElement()!
         case 12..<17: return afternoonLines.randomElement()!
         case 17..<22: return eveningLines.randomElement()!
-        default:      return lateNightLines.randomElement()!
+        case 22..<24, 0..<2: return lateNightLines.randomElement()!
+        default:
+            if Double.random(in: 0...1) < 0.01 { return ultraLateLines.randomElement()! }
+            return lateNightLines.randomElement()!
+        }
+    }
+
+    static func streakMilestoneGreeting(_ streak: Int) -> String {
+        switch streak {
+        case 3:
+            return ["Three days in a row?! 👀",
+                    "Okay okay I see something happening.",
+                    "Momentum detected.",
+                    "The comeback arc has begun.",
+                    "Three days becomes seven. Seven becomes thirty. Trust the process.",
+                    "You showed up today. That's what matters. Keep stacking."].randomElement()!
+        case 7:
+            return ["ONE WHOLE WEEK 🔥",
+                    "SEVEN DAYS BABYYYY.",
+                    "Look at you being consistent.",
+                    "A week ago this streak didn't exist. Now look at it.",
+                    "Healthy habit unlocked.",
+                    "Week one complete. The grind continues.",
+                    "Maybe not a shopping spree to celebrate though 😭"].randomElement()!
+        case 14:
+            return ["TWO WEEKS STRONG 🔥",
+                    "14 DAYS OF SHOWING UP.",
+                    "That's commitment. That's discipline. That's growth.",
+                    "The streak is looking healthy. Kinda like us 😌",
+                    "You're proving something to yourself. And I love that."].randomElement()!
+        case 30:
+            return ["THIRTY DAYS?! A WHOLE MONTH?!",
+                    "OH YOU SERIOUS SERIOUS.",
+                    "This isn't motivation anymore. This is a habit.",
+                    "This is who you are now.",
+                    "The old you is shocked. The new you is thriving.",
+                    "MONTH ONE COMPLETE. You're cooking. The consistency is ELITE."].randomElement()!
+        case 50:
+            return ["50 DAYS IS WILD. HALF A HUNDO 🔥",
+                    "Most people would've quit. You didn't. You're different.",
+                    "The streak is thriving. The goals are thriving. The future is thriving.",
+                    "Everything is thriving. Keep going legend."].randomElement()!
+        case 75:
+            return ["75 DAYS?!?! You're actually cracked 😭",
+                    "This is becoming ridiculous. In the best way possible.",
+                    "The discipline is unmatched. The commitment is inspiring.",
+                    "You came this far. Don't stop now.",
+                    "The streak is becoming famous."].randomElement()!
+        case 100:
+            return ["ONE HUNDRED DAYS. LET ME SAY THAT AGAIN. ONE. HUNDRED. DAYS.",
+                    "You are officially that person. The person who shows up. The person who follows through.",
+                    "This is legendary. This is elite. This is rare.",
+                    "Most people talk about change. You lived it.",
+                    "100 DAYS OF PROOF. I'm ridiculously proud of you 🏆"].randomElement()!
+        case 180:
+            return ["HALF A YEAR?!?! YOU ARE INSANE.",
+                    "Six months of consistency. That's life-changing behavior.",
+                    "The streak has become a lifestyle. You're not trying anymore. You're just doing it.",
+                    "And that's powerful."].randomElement()!
+        case 365:
+            if Double.random(in: 0...1) < 0.005 {
+                return ["You aren't chasing motivation anymore. You've built discipline.",
+                        "This streak is proof that small actions change lives.",
+                        "A lot of people dream about change. You're creating it.",
+                        "Every day you showed up became a vote for the person you're becoming.",
+                        "You didn't just build a streak. You built trust in yourself.",
+                        "The strongest relationship you're building is the one with yourself.",
+                        "Future you is going to remember this season of your life.",
+                        "One day people will ask how you changed. The answer started with days like this.",
+                        "This is bigger than a streak. This is who you are now. 💙🔥"].randomElement()!
+            }
+            return ["ONE. WHOLE. YEAR. I'M CRYING 😭",
+                    "365 DAYS. THREE HUNDRED SIXTY FIVE.",
+                    "You did not miss. You kept showing up. For an entire year.",
+                    "This is Hall of Fame behavior. This is legacy behavior.",
+                    "You should be unbelievably proud. Not a little proud. A LOT proud.",
+                    "The version of you from a year ago would be amazed.",
+                    "You became the person you were trying to become. And that's beautiful."].randomElement()!
+        default:
+            return "Day \(streak) streak?! You are literally built different 🔥"
         }
     }
 
@@ -616,14 +939,48 @@ final class AppState {
                 // already logged today
             } else if cal.isDateInYesterday(last) {
                 streak += 1
-                if streak == 7  { showToast("🔥 7-Day Streak! Keep it up!", icon: "🔥", color: .ajOrange) }
+                if streak == 3  {
+                    setMood(.happy, speech: AppState.streakMilestoneGreeting(3))
+                }
+                if streak == 7  {
+                    showToast("🔥 7-Day Streak! Keep it up!", icon: "🔥", color: .ajOrange)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(7))
+                }
+                if streak == 14 {
+                    showToast("⚡ 14-Day Streak! Two weeks strong!", icon: "⚡", color: .ajOrange)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(14))
+                }
                 if streak == 30 {
                     showToast("🌟 30-Day Streak! FIRST EVOLUTION unlocked!", icon: "🌟", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(30))
                     checkEvolutionMilestones()
                 }
-                if streak == 90 { showToast("⚡ 90 Days! RARE EVOLUTION unlocked!", icon: "⚡", color: .ajGold); checkEvolutionMilestones() }
-                if streak == 180 { showToast("💎 180 Days! EPIC EVOLUTION!", icon: "💎", color: .ajGold); checkEvolutionMilestones() }
-                if streak == 365 { showToast("👑 365 Days! LEGENDARY EVOLUTION! You're unstoppable!", icon: "👑", color: .ajGold); checkEvolutionMilestones() }
+                if streak == 50 {
+                    showToast("🔥 50-Day Streak! Half a hundo!", icon: "🔥", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(50))
+                }
+                if streak == 75 {
+                    showToast("🚀 75-Day Streak! Absolutely cracked!", icon: "🚀", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(75))
+                }
+                if streak == 90 {
+                    showToast("⚡ 90 Days! RARE EVOLUTION unlocked!", icon: "⚡", color: .ajGold)
+                    checkEvolutionMilestones()
+                }
+                if streak == 100 {
+                    showToast("👑 100-Day Streak! LEGENDARY!", icon: "👑", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(100))
+                }
+                if streak == 180 {
+                    showToast("💎 180 Days! EPIC EVOLUTION!", icon: "💎", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(180))
+                    checkEvolutionMilestones()
+                }
+                if streak == 365 {
+                    showToast("👑 365 Days! LEGENDARY EVOLUTION! You're unstoppable!", icon: "👑", color: .ajGold)
+                    setMood(.hype, speech: AppState.streakMilestoneGreeting(365))
+                    checkEvolutionMilestones()
+                }
             } else {
                 streak = 1
                 showToast("Streak reset... fresh start today 💪", icon: "💙", color: Color(red: 0.267, green: 0.533, blue: 1.0))
