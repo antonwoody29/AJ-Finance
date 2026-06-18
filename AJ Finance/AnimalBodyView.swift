@@ -308,11 +308,11 @@ struct CharConfig {
                          nose: Color(red:0.18,green:0.10,blue:0.08),
                          ear: .none, tail: .none, bodyKind: .insect)
         case .beetle:
-            return .init(body: Color(red:0.10,green:0.36,blue:0.14),
-                         belly: Color(red:0.22,green:0.58,blue:0.26),
-                         accent: Color(red:0.06,green:0.24,blue:0.08),
-                         iris: Color(red:0.08,green:0.08,blue:0.08),
-                         nose: Color(red:0.08,green:0.28,blue:0.10),
+            return .init(body: Color(red:0.08,green:0.10,blue:0.28),
+                         belly: Color(red:0.18,green:0.22,blue:0.50),
+                         accent: Color(red:0.04,green:0.06,blue:0.18),
+                         iris: Color(red:0.12,green:0.52,blue:0.90),
+                         nose: Color(red:0.06,green:0.08,blue:0.22),
                          ear: .none, tail: .none, bodyKind: .insect)
         case .swordfish:
             return .init(body: Color(red:0.20,green:0.44,blue:0.78),
@@ -329,11 +329,11 @@ struct CharConfig {
                          nose: Color(red:0.40,green:0.46,blue:0.56),
                          ear: .none, tail: .flat, bodyKind: .shark)
         case .snappingTurtle:
-            return .init(body: Color(red:0.22,green:0.38,blue:0.16),
-                         belly: Color(red:0.44,green:0.62,blue:0.30),
-                         accent: Color(red:0.14,green:0.26,blue:0.10),
-                         iris: Color(red:0.56,green:0.44,blue:0.06),
-                         nose: Color(red:0.20,green:0.34,blue:0.14),
+            return .init(body: Color(red:0.38,green:0.40,blue:0.40),
+                         belly: Color(red:0.56,green:0.58,blue:0.58),
+                         accent: Color(red:0.24,green:0.26,blue:0.26),
+                         iris: Color(red:0.92,green:0.08,blue:0.06),
+                         nose: Color(red:0.30,green:0.32,blue:0.32),
                          ear: .none, tail: .flat, bodyKind: .turtle)
         case .kangaroo:
             return .init(body: Color(red:0.78,green:0.56,blue:0.34),
@@ -350,11 +350,11 @@ struct CharConfig {
                          nose: Color(red:0.14,green:0.46,blue:0.10),
                          ear: .none, tail: .none, bodyKind: .plant)
         case .grasshopper:
-            return .init(body: Color(red:0.34,green:0.60,blue:0.16),
-                         belly: Color(red:0.50,green:0.76,blue:0.28),
-                         accent: Color(red:0.22,green:0.42,blue:0.10),
-                         iris: Color(red:0.06,green:0.18,blue:0.04),
-                         nose: Color(red:0.28,green:0.50,blue:0.14),
+            return .init(body: Color(red:0.52,green:0.36,blue:0.14),
+                         belly: Color(red:0.70,green:0.52,blue:0.24),
+                         accent: Color(red:0.36,green:0.22,blue:0.08),
+                         iris: Color(red:0.22,green:0.14,blue:0.04),
+                         nose: Color(red:0.44,green:0.28,blue:0.10),
                          ear: .tiny, tail: .none, bodyKind: .grasshopper)
         case .bee:
             return .init(body: Color(red:0.96,green:0.78,blue:0.08),
@@ -556,8 +556,12 @@ struct AnimalBodyView: View {
             drawBabySpiderBall(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
-        if type == .ant || type == .beetle || type == .grasshopper {
+        if type == .ant || type == .beetle {
             drawBabyWorm(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
+        if type == .grasshopper {
+            drawBabyGrasshopperHead(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
         if type == .turtle || type == .snappingTurtle {
@@ -3119,6 +3123,66 @@ struct AnimalBodyView: View {
         smile.addCurve(to: CGPoint(x: cx + u*0.06, y: headY + u*0.06),
                        control1: CGPoint(x: cx - u*0.02, y: headY + u*0.12),
                        control2: CGPoint(x: cx + u*0.02, y: headY + u*0.12))
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.018)
+    }
+
+    // MARK: - Baby: head with antennae (grasshopper stage 1)
+
+    func drawBabyGrasshopperHead(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                                  cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let cy = sz.height * 0.52 + bob
+
+        // Shadow
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.18, y: sz.height*0.84, width: u*0.36, height: u*0.07))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        // Two long antennae curving outward and up
+        for side: CGFloat in [-1, 1] {
+            var ant = Path()
+            ant.move(to:    CGPoint(x: cx + side * u*0.10, y: cy - u*0.28))
+            ant.addCurve(to: CGPoint(x: cx + side * u*0.34, y: cy - u*0.64),
+                         control1: CGPoint(x: cx + side * u*0.14, y: cy - u*0.42),
+                         control2: CGPoint(x: cx + side * u*0.30, y: cy - u*0.56))
+            ctx.stroke(ant, with: .color(cfg.body), lineWidth: u*0.022)
+            // Antenna tip knob
+            var knob = Path(ellipseIn: CGRect(x: cx + side*u*0.34 - u*0.030, y: cy - u*0.64 - u*0.030,
+                                              width: u*0.060, height: u*0.060))
+            ctx.fill(knob, with: .color(cfg.accent))
+            ctx.stroke(knob, with: .color(cfg.outline.opacity(0.5)), lineWidth: u*0.012)
+        }
+
+        // Round head
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.28, y: cy - u*0.28, width: u*0.56, height: u*0.52))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
+        // Chin / jaw area slightly lighter
+        var chin = Path(ellipseIn: CGRect(x: cx - u*0.18, y: cy + u*0.04, width: u*0.36, height: u*0.20))
+        ctx.fill(chin, with: .color(cfg.belly.opacity(0.55)))
+
+        // Eyes (big compound eyes, slightly to the side)
+        for eside: CGFloat in [-1, 1] {
+            let exx = cx + eside * u * 0.110
+            let eyy = cy - u * 0.06
+            var eyeShape = Path(ellipseIn: CGRect(x: exx - u*0.072, y: eyy - u*0.080, width: u*0.144, height: u*0.160))
+            ctx.fill(eyeShape, with: .color(.white))
+            ctx.stroke(eyeShape, with: .color(cfg.outline), lineWidth: u*0.020)
+            var irisP = Path(ellipseIn: CGRect(x: exx - u*0.050, y: eyy - u*0.056 + (blink ? u*0.030 : 0),
+                                               width: u*0.100, height: blink ? u*0.010 : u*0.112))
+            ctx.fill(irisP, with: .color(cfg.iris))
+            if !blink {
+                var pupilP = Path(ellipseIn: CGRect(x: exx - u*0.028, y: eyy - u*0.032, width: u*0.056, height: u*0.060))
+                ctx.fill(pupilP, with: .color(.black))
+                var hlP = Path(ellipseIn: CGRect(x: exx + u*0.006, y: eyy - u*0.024, width: u*0.020, height: u*0.020))
+                ctx.fill(hlP, with: .color(.white))
+            }
+        }
+
+        // Tiny mandible smile
+        var smile = Path()
+        smile.move(to: CGPoint(x: cx - u*0.08, y: cy + u*0.12))
+        smile.addCurve(to: CGPoint(x: cx + u*0.08, y: cy + u*0.12),
+                       control1: CGPoint(x: cx - u*0.03, y: cy + u*0.18),
+                       control2: CGPoint(x: cx + u*0.03, y: cy + u*0.18))
         ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u*0.018)
     }
 
