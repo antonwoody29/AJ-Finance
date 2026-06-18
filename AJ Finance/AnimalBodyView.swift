@@ -569,7 +569,7 @@ struct AnimalBodyView: View {
             return
         }
         if type == .snappingTurtle {
-            drawSnappingTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: 0, bob: bob, blink: blink)
+            drawBabySnapper(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
 
@@ -2042,6 +2042,137 @@ struct AnimalBodyView: View {
         }
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Baby Snapper hatchling (round keeled shell, long thin tail, tiny claws)
+
+    func drawBabySnapper(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                          cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let bodyY = sz.height * 0.58 + bob
+        let headY = sz.height * 0.30 + bob
+
+        // Shadow
+        var shadow = Path(ellipseIn: CGRect(x: cx - u*0.22, y: sz.height*0.86, width: u*0.44, height: u*0.08))
+        ctx.fill(shadow, with: .color(.black.opacity(0.14)))
+
+        // Long thin spiky tail curving right
+        var tail = Path()
+        tail.move(to:    CGPoint(x: cx + u*0.14, y: bodyY + u*0.02))
+        tail.addCurve(to: CGPoint(x: cx + u*0.50, y: bodyY + u*0.18),
+                      control1: CGPoint(x: cx + u*0.24, y: bodyY + u*0.00),
+                      control2: CGPoint(x: cx + u*0.44, y: bodyY + u*0.08))
+        tail.addLine(to: CGPoint(x: cx + u*0.14, y: bodyY + u*0.08))
+        tail.closeSubpath()
+        ctx.fill(tail, with: .color(cfg.body))
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u*0.016)
+        // Two small tail spike ridges
+        for ti: CGFloat in [0.38, 0.68] {
+            let tx = cx + u*0.18 + ti * u*0.26
+            var spike = Path()
+            spike.move(to:    CGPoint(x: tx,           y: bodyY + u*0.04))
+            spike.addLine(to: CGPoint(x: tx + u*0.018, y: bodyY - u*0.010))
+            spike.addLine(to: CGPoint(x: tx + u*0.036, y: bodyY + u*0.04))
+            ctx.fill(spike, with: .color(cfg.accent))
+            ctx.stroke(spike, with: .color(cfg.outline.opacity(0.40)), lineWidth: u*0.008)
+        }
+
+        // Four tiny stub legs with small claws
+        let babyLegs: [(CGFloat, Bool)] = [(-1, true), (1, true), (-1, false), (1, false)]
+        for (side, isFront) in babyLegs {
+            let legX = cx + side * u * (isFront ? 0.20 : 0.17)
+            let legY: CGFloat = isFront ? bodyY - u*0.06 : bodyY + u*0.08
+            var leg = Path()
+            leg.move(to:    CGPoint(x: legX, y: legY))
+            leg.addLine(to: CGPoint(x: legX + side*u*0.13, y: legY + u*0.15))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.066)
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.016)
+            // Two small claws
+            let footX = legX + side*u*0.13
+            let footY = legY + u*0.15
+            for ci: CGFloat in [-0.5, 0.5] {
+                var claw = Path()
+                claw.move(to:    CGPoint(x: footX, y: footY))
+                claw.addLine(to: CGPoint(x: footX + side*u*0.028 + ci*u*0.022, y: footY + u*0.036))
+                ctx.stroke(claw, with: .color(cfg.accent), lineWidth: u*0.014)
+            }
+        }
+
+        // Keeled carapace — rounder and higher than adult (hatchling shells are more domed)
+        var rim = Path(ellipseIn: CGRect(x: cx - u*0.230, y: bodyY - u*0.110, width: u*0.460, height: u*0.200))
+        ctx.fill(rim, with: .color(cfg.accent))
+        ctx.stroke(rim, with: .color(cfg.outline), lineWidth: u*0.024)
+
+        var shell = Path(ellipseIn: CGRect(x: cx - u*0.205, y: bodyY - u*0.290, width: u*0.410, height: u*0.250))
+        ctx.fill(shell, with: .color(cfg.body))
+        ctx.stroke(shell, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Three dorsal keels (the distinctive hatchling feature)
+        for keel: CGFloat in [-1, 0, 1] {
+            let kx = cx + keel * u*0.082
+            var k = Path()
+            k.move(to:    CGPoint(x: kx - u*0.010, y: bodyY - u*0.275))
+            k.addLine(to: CGPoint(x: kx,            y: bodyY - u*0.310))
+            k.addLine(to: CGPoint(x: kx + u*0.010, y: bodyY - u*0.275))
+            k.addLine(to: CGPoint(x: kx - u*0.010, y: bodyY - u*0.135))
+            k.addLine(to: CGPoint(x: kx,            y: bodyY - u*0.100))
+            k.addLine(to: CGPoint(x: kx + u*0.010, y: bodyY - u*0.135))
+            k.closeSubpath()
+            ctx.fill(k, with: .color(cfg.accent))
+        }
+
+        // Simple scute lines
+        var cScute = Path(ellipseIn: CGRect(x: cx - u*0.075, y: bodyY - u*0.260, width: u*0.150, height: u*0.115))
+        ctx.stroke(cScute, with: .color(cfg.accent.opacity(0.70)), lineWidth: u*0.014)
+        for side: CGFloat in [-1, 1] {
+            var s1 = Path(ellipseIn: CGRect(x: cx + side*u*0.048, y: bodyY - u*0.248, width: u*0.105, height: u*0.085))
+            ctx.stroke(s1, with: .color(cfg.accent.opacity(0.45)), lineWidth: u*0.010)
+        }
+
+        // Short neck
+        var neck = Path()
+        neck.move(to:    CGPoint(x: cx - u*0.046, y: bodyY - u*0.180))
+        neck.addLine(to: CGPoint(x: cx + u*0.046, y: bodyY - u*0.180))
+        neck.addLine(to: CGPoint(x: cx + u*0.038, y: headY + u*0.16))
+        neck.addLine(to: CGPoint(x: cx - u*0.038, y: headY + u*0.16))
+        neck.closeSubpath()
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u*0.018)
+
+        // Rounder head (still angular but softer than adult)
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.200, y: headY - u*0.180, width: u*0.400, height: u*0.330))
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.024)
+
+        // Small hooked beak
+        var beak = Path()
+        beak.move(to:    CGPoint(x: cx - u*0.200, y: headY + u*0.02))
+        beak.addCurve(to: CGPoint(x: cx - u*0.252, y: headY + u*0.07),
+                      control1: CGPoint(x: cx - u*0.216, y: headY + u*0.00),
+                      control2: CGPoint(x: cx - u*0.256, y: headY + u*0.02))
+        beak.addCurve(to: CGPoint(x: cx - u*0.200, y: headY + u*0.11),
+                      control1: CGPoint(x: cx - u*0.252, y: headY + u*0.11),
+                      control2: CGPoint(x: cx - u*0.218, y: headY + u*0.11))
+        beak.closeSubpath()
+        ctx.fill(beak, with: .color(cfg.accent))
+        ctx.stroke(beak, with: .color(cfg.outline), lineWidth: u*0.014)
+
+        // Red eyes
+        for eside: CGFloat in [-1, 1] {
+            let exx = cx + eside * u * 0.100
+            let eyy = headY - u * 0.04
+            var eyeW = Path(ellipseIn: CGRect(x: exx - u*0.050, y: eyy - u*0.050, width: u*0.100, height: u*0.100))
+            ctx.fill(eyeW, with: .color(.white))
+            ctx.stroke(eyeW, with: .color(cfg.outline), lineWidth: u*0.016)
+            var irisP = Path(ellipseIn: CGRect(x: exx - u*0.034, y: eyy - u*0.036 + (blink ? u*0.022 : 0),
+                                               width: u*0.068, height: blink ? u*0.008 : u*0.072))
+            ctx.fill(irisP, with: .color(cfg.iris))
+            if !blink {
+                var pupilP = Path(ellipseIn: CGRect(x: exx - u*0.016, y: eyy - u*0.018, width: u*0.032, height: u*0.034))
+                ctx.fill(pupilP, with: .color(.black))
+                var glow = Path(ellipseIn: CGRect(x: exx - u*0.044, y: eyy - u*0.046, width: u*0.088, height: u*0.092))
+                ctx.stroke(glow, with: .color(cfg.iris.opacity(0.35)), lineWidth: u*0.008)
+            }
+        }
     }
 
     // MARK: - Hippo body (wide body, raised-eye head, massive muzzle)
