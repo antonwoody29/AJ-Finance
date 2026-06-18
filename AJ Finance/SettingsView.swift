@@ -820,8 +820,8 @@ struct SettingsView: View {
                     } else {
                         ShareLink(
                             item: csvExportFile(),
-                            subject: Text("AJ Finance – My Transactions"),
-                            message: Text("Here's my spending history from AJ Finance!")
+                            subject: Text("AJ – My Transactions"),
+                            message: Text("Here's my spending history from AJ!")
                         ) {
                             HStack(spacing: 6) {
                                 Image(systemName: "square.and.arrow.up")

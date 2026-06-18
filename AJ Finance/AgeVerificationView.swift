@@ -30,7 +30,7 @@ struct AgeVerificationView: View {
                 .opacity(appeared ? 1.0 : 0)
                 .padding(.bottom, 20)
 
-                Text("AJ Finance")
+                Text("AJ")
                     .font(.system(size: 38, weight: .black))
                     .foregroundColor(.white)
                     .opacity(appeared ? 1.0 : 0)
@@ -46,7 +46,7 @@ struct AgeVerificationView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     AgeRow(icon: "⚠️", text: "You must be **18 years or older** to use this app.")
                     AgeRow(icon: "💬", text: "This app contains **strong language** and adult content.")
-                    AgeRow(icon: "📊", text: "AJ Finance is **NOT a financial advisor.** This is for motivation and tracking only — not professional financial advice.")
+                    AgeRow(icon: "📊", text: "AJ is **NOT a financial advisor.** This is for motivation and tracking only — not professional financial advice.")
                     AgeRow(icon: "🏳️‍🌈", text: "This is an **inclusive space.** Hate speech, discrimination, or content targeting any group is strictly prohibited.")
                 }
                 .padding(20)

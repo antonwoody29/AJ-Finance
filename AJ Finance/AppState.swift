@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import CryptoKit
 
 @Observable
 final class AppState {
@@ -806,17 +807,26 @@ final class AppState {
     }
 
     func login(userID: String, name: String) {
-        appleUserID   = userID
-        appleUserName = name.isEmpty ? "Money Bestie" : name
-        isLoggedIn    = true
-        if userName.isEmpty { userName = appleUserName }
-        save()
-        NotificationManager.scheduleAll(
-            animalName: selectedAnimal.rawValue,
-            reminderHour: reminderHour,
-            reminderMinute: reminderMinute,
-            reminderEnabled: true
-        )
+        let displayName = name.isEmpty ? "Money Bestie" : name
+        // All @Observable mutations must happen on main thread for SwiftUI to observe them
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.appleUserID   = userID
+            self.appleUserName = displayName
+            self.isLoggedIn    = true
+            if self.userName.isEmpty { self.userName = displayName }
+            self.save()
+        }
+        // Schedule notifications off the critical path
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self else { return }
+            NotificationManager.scheduleAll(
+                animalName: self.selectedAnimal.rawValue,
+                reminderHour: self.reminderHour,
+                reminderMinute: self.reminderMinute,
+                reminderEnabled: true
+            )
+        }
     }
 
     func signOut() {
@@ -824,6 +834,46 @@ final class AppState {
         appleUserID = ""
         UserDefaults.standard.set(false, forKey: "aj_isLoggedIn")
         UserDefaults.standard.set("",    forKey: "aj_appleUserID")
+    }
+
+    // MARK: - Email auth
+
+    /// Creates an email account. Returns a user-facing error string, or nil on success.
+    @discardableResult
+    func emailSignUp(name: String, email: String, password: String, confirm: String) -> String? {
+        let trimName  = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard trimName.count >= 2           else { return "Name must be at least 2 characters." }
+        guard trimEmail.contains("@"), trimEmail.contains(".") else { return "Enter a valid email address." }
+        guard password.count >= 6           else { return "Password must be at least 6 characters." }
+        guard password == confirm           else { return "Passwords don't match." }
+        UserDefaults.standard.set(trimEmail,           forKey: "aj_emailAddr")
+        UserDefaults.standard.set(sha256(password),    forKey: "aj_emailHash")
+        login(userID: "email_\(trimEmail)", name: trimName)
+        return nil
+    }
+
+    /// Logs in with an email account. Returns a user-facing error string, or nil on success.
+    @discardableResult
+    func emailLogin(email: String, password: String) -> String? {
+        let trimEmail   = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let storedEmail = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+        let storedHash  = UserDefaults.standard.string(forKey: "aj_emailHash") ?? ""
+        guard !storedEmail.isEmpty          else { return "No account found. Please sign up first." }
+        guard trimEmail == storedEmail      else { return "No account found with that email." }
+        guard sha256(password) == storedHash else { return "Incorrect password." }
+        let storedName = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
+        login(userID: "email_\(trimEmail)", name: storedName)
+        return nil
+    }
+
+    var hasEmailAccount: Bool {
+        !(UserDefaults.standard.string(forKey: "aj_emailAddr") ?? "").isEmpty
+    }
+
+    private func sha256(_ input: String) -> String {
+        let digest = SHA256.hash(data: Data(input.utf8))
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 
     func load() {

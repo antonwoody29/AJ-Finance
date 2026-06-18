@@ -754,11 +754,18 @@ struct AnimalBodyView: View {
         // ── Trunk ───────────────────────────────────────────────
         if cfg.special == .trunk { drawTrunk(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
+        // ── Eye patches must go BEFORE face so eyes sit on top ──
+        if cfg.marking == .eyePatch {
+            drawMarkings(ctx, hx: cx, hy: headY, bx: cx, by: bodyY, u: u, cfg: cfg)
+        }
+
         // ── Face ────────────────────────────────────────────────
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
 
-        // ── Markings ────────────────────────────────────────────
-        drawMarkings(ctx, hx: cx, hy: headY, bx: cx, by: bodyY, u: u, cfg: cfg)
+        // ── All other markings (stripes, spots, tear) ───────────
+        if cfg.marking != .eyePatch {
+            drawMarkings(ctx, hx: cx, hy: headY, bx: cx, by: bodyY, u: u, cfg: cfg)
+        }
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
@@ -1631,12 +1638,13 @@ struct AnimalBodyView: View {
             }
 
         case .eyePatch:
-            // Panda-style: large oval patches covering the eye area
+            // Panda-style: oval patches drawn BEFORE face so eyes appear on top
             for side: CGFloat in [-1, 1] {
                 let px = hx + side * u * 0.098
-                let py = hy - u * 0.038
-                var patch = Path(ellipseIn: CGRect(x: px - u*0.096, y: py - u*0.088, width: u*0.192, height: u*0.172))
-                ctx.fill(patch, with: .color(cfg.accent.opacity(0.92)))
+                let py = hy - u * 0.042
+                // Half-width capped at u*0.092 so patches don't merge at the nose bridge
+                var patch = Path(ellipseIn: CGRect(x: px - u*0.092, y: py - u*0.118, width: u*0.184, height: u*0.228))
+                ctx.fill(patch, with: .color(cfg.accent.opacity(0.95)))
             }
 
         case .tear:
@@ -2450,113 +2458,128 @@ struct AnimalBodyView: View {
     // MARK: - Grasshopper
     func drawGrasshopperBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
                               cfg: CharConfig, bob: CGFloat, blink: Bool) {
-        let bodyY  = sz.height * 0.62 + bob
-        let headY  = bodyY - u * 0.28
-        let feetY  = sz.height * 0.82
+        let bodyY = sz.height * 0.62 + bob
+        let headY = bodyY - u * 0.28
+        let feetY = sz.height * 0.80
 
-        // Long back jumping legs — most distinctive feature
+        // ── Hind jumping legs — drawn behind body ─────────────
         for side: CGFloat in [-1, 1] {
-            let hipX = cx + side * u * 0.14
-            let kneeX = cx + side * u * 0.42
-            let kneeY = bodyY - u * 0.10
-            let footX = cx + side * u * 0.20
-            // Upper thigh — thick, angled up and out
+            let hipX  = cx + side * u * 0.11
+            let hipY  = bodyY + u * 0.02
+            let kneeX = cx + side * u * 0.26
+            let kneeY = bodyY - u * 0.16
+            let footX = cx + side * u * 0.19
+            let footY = feetY - u * 0.04
+
             var thigh = Path()
-            thigh.move(to: CGPoint(x: hipX, y: bodyY - u*0.06))
+            thigh.move(to: CGPoint(x: hipX, y: hipY))
             thigh.addLine(to: CGPoint(x: kneeX, y: kneeY))
-            ctx.stroke(thigh, with: .color(cfg.body), lineWidth: u*0.10)
-            ctx.stroke(thigh, with: .color(cfg.outline), lineWidth: u*0.018)
-            // Lower leg — angled down to foot
+            ctx.stroke(thigh, with: .color(cfg.body), lineWidth: u * 0.095)
+            ctx.stroke(thigh, with: .color(cfg.outline), lineWidth: u * 0.018)
+
             var lower = Path()
             lower.move(to: CGPoint(x: kneeX, y: kneeY))
-            lower.addLine(to: CGPoint(x: footX, y: feetY - u*0.06))
-            ctx.stroke(lower, with: .color(cfg.body), lineWidth: u*0.056)
-            ctx.stroke(lower, with: .color(cfg.outline), lineWidth: u*0.016)
-            // Foot
-            var foot = Path(ellipseIn: CGRect(x: footX - u*0.04, y: feetY - u*0.08, width: u*0.08, height: u*0.04))
+            lower.addLine(to: CGPoint(x: footX, y: footY))
+            ctx.stroke(lower, with: .color(cfg.body), lineWidth: u * 0.052)
+            ctx.stroke(lower, with: .color(cfg.outline), lineWidth: u * 0.016)
+
+            var foot = Path(ellipseIn: CGRect(x: footX - u*0.042, y: footY - u*0.018,
+                                              width: u*0.084, height: u*0.032))
             ctx.fill(foot, with: .color(cfg.body))
-        }
-        // Small front walking legs
-        for (side, yOff): (CGFloat, CGFloat) in [(-1, 0), (1, 0), (-1, u*0.10), (1, u*0.10)] {
-            var leg = Path()
-            leg.move(to: CGPoint(x: cx + side*u*0.10, y: bodyY - u*0.08 + yOff))
-            leg.addLine(to: CGPoint(x: cx + side*u*0.24, y: bodyY + u*0.04 + yOff))
-            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.032)
+            ctx.stroke(foot, with: .color(cfg.outline), lineWidth: u * 0.012)
         }
 
-        // Segmented body — elongated, tapers to rear point
-        var body = Path()
-        body.move(to: CGPoint(x: cx - u*0.18, y: bodyY - u*0.10))
-        body.addCurve(to: CGPoint(x: cx + u*0.32, y: bodyY - u*0.06),
-                      control1: CGPoint(x: cx + u*0.06, y: bodyY - u*0.22),
-                      control2: CGPoint(x: cx + u*0.24, y: bodyY - u*0.18))
-        body.addCurve(to: CGPoint(x: cx + u*0.44, y: bodyY),
-                      control1: CGPoint(x: cx + u*0.38, y: bodyY - u*0.02),
-                      control2: CGPoint(x: cx + u*0.44, y: bodyY - u*0.02))
-        body.addCurve(to: CGPoint(x: cx - u*0.18, y: bodyY + u*0.10),
-                      control1: CGPoint(x: cx + u*0.24, y: bodyY + u*0.14),
-                      control2: CGPoint(x: cx + u*0.02, y: bodyY + u*0.16))
-        body.closeSubpath()
-        ctx.fill(body, with: .color(cfg.body))
-        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u*0.024)
-        // Body segments
-        for seg: CGFloat in [0.35, 0.55, 0.72] {
-            let sx = cx - u*0.18 + u*0.62 * seg
-            var segLine = Path()
-            segLine.move(to: CGPoint(x: sx, y: bodyY - u*0.10 + u*0.04*seg))
-            segLine.addLine(to: CGPoint(x: sx + u*0.02, y: bodyY + u*0.08))
-            ctx.stroke(segLine, with: .color(cfg.accent), lineWidth: u*0.014)
-        }
-        // Wing covers — two triangular folded wings on back
+        // ── Small front walking legs ───────────────────────────
         for side: CGFloat in [-1, 1] {
-            var wing = Path()
-            wing.move(to: CGPoint(x: cx + side*u*0.04, y: bodyY - u*0.12))
-            wing.addLine(to: CGPoint(x: cx + side*u*0.18, y: bodyY - u*0.08))
-            wing.addLine(to: CGPoint(x: cx + side*u*0.14, y: bodyY + u*0.06))
-            wing.addLine(to: CGPoint(x: cx + side*u*0.02, y: bodyY + u*0.04))
-            wing.closeSubpath()
-            ctx.fill(wing, with: .color(cfg.belly.opacity(0.55)))
-            ctx.stroke(wing, with: .color(cfg.accent), lineWidth: u*0.016)
+            var leg = Path()
+            leg.move(to: CGPoint(x: cx + side * u * 0.10, y: bodyY - u * 0.06))
+            leg.addLine(to: CGPoint(x: cx + side * u * 0.20, y: bodyY + u * 0.12))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u * 0.030)
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u * 0.010)
         }
 
-        // Head — rounded, slightly forward
-        var head = Path(ellipseIn: CGRect(x: cx - u*0.22, y: headY - u*0.18, width: u*0.36, height: u*0.28))
+        // ── Oval abdomen ───────────────────────────────────────
+        var body = Path(ellipseIn: CGRect(x: cx - u*0.13, y: bodyY - u*0.11,
+                                          width: u*0.26, height: u*0.22))
+        ctx.fill(body, with: .color(cfg.body))
+        ctx.stroke(body, with: .color(cfg.outline), lineWidth: u * 0.024)
+
+        var belly = Path(ellipseIn: CGRect(x: cx - u*0.08, y: bodyY - u*0.07,
+                                           width: u*0.16, height: u*0.14))
+        ctx.fill(belly, with: .color(cfg.belly.opacity(0.40)))
+
+        for t: CGFloat in [0.35, 0.65] {
+            let sy = bodyY - u*0.11 + u*0.22 * t
+            var seg = Path()
+            seg.move(to: CGPoint(x: cx - u*0.10, y: sy))
+            seg.addLine(to: CGPoint(x: cx + u*0.10, y: sy))
+            ctx.stroke(seg, with: .color(cfg.accent.opacity(0.45)), lineWidth: u * 0.011)
+        }
+
+        // ── Wing covers (elytra) ───────────────────────────────
+        for side: CGFloat in [-1, 1] {
+            let ox = cx + side * u * 0.03
+            var wing = Path()
+            wing.move(to: CGPoint(x: ox, y: bodyY - u * 0.11))
+            wing.addCurve(
+                to: CGPoint(x: ox + side * u * 0.13, y: bodyY + u * 0.10),
+                control1: CGPoint(x: ox + side * u * 0.17, y: bodyY - u * 0.13),
+                control2: CGPoint(x: ox + side * u * 0.18, y: bodyY + u * 0.02))
+            wing.addCurve(
+                to: CGPoint(x: ox, y: bodyY + u * 0.11),
+                control1: CGPoint(x: ox + side * u * 0.07, y: bodyY + u * 0.16),
+                control2: CGPoint(x: ox + side * u * 0.01, y: bodyY + u * 0.13))
+            wing.closeSubpath()
+            ctx.fill(wing, with: .color(cfg.accent.opacity(0.75)))
+            ctx.stroke(wing, with: .color(cfg.outline), lineWidth: u * 0.018)
+        }
+
+        // ── Head ──────────────────────────────────────────────
+        var head = Path(ellipseIn: CGRect(x: cx - u*0.15, y: headY - u*0.16,
+                                          width: u*0.30, height: u*0.26))
         ctx.fill(head, with: .color(cfg.body))
-        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
-        // Cheek plates
-        var cheek = Path(ellipseIn: CGRect(x: cx - u*0.20, y: headY - u*0.04, width: u*0.16, height: u*0.12))
-        ctx.fill(cheek, with: .color(cfg.belly.opacity(0.50)))
-        // Mandibles
-        for mside: CGFloat in [-1, 1] {
-            var mand = Path()
-            mand.move(to: CGPoint(x: cx - u*0.10, y: headY + u*0.06))
-            mand.addLine(to: CGPoint(x: cx - u*0.10 + mside*u*0.08, y: headY + u*0.12))
-            ctx.stroke(mand, with: .color(cfg.accent), lineWidth: u*0.020)
-        }
-        // Long antennae
-        for aside: CGFloat in [-1, 1] {
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u * 0.026)
+
+        // ── Antennae ──────────────────────────────────────────
+        for side: CGFloat in [-1, 1] {
             var ant = Path()
-            ant.move(to: CGPoint(x: cx + aside*u*0.08, y: headY - u*0.14))
-            ant.addCurve(to: CGPoint(x: cx + aside*u*0.32, y: headY - u*0.48),
-                         control1: CGPoint(x: cx + aside*u*0.14, y: headY - u*0.28),
-                         control2: CGPoint(x: cx + aside*u*0.28, y: headY - u*0.42))
-            ctx.stroke(ant, with: .color(cfg.accent), lineWidth: u*0.018)
-            var antBall = Path(ellipseIn: CGRect(x: cx + aside*u*0.30 - u*0.022, y: headY - u*0.50, width: u*0.044, height: u*0.044))
-            ctx.fill(antBall, with: .color(cfg.body))
-            ctx.stroke(antBall, with: .color(cfg.accent), lineWidth: u*0.012)
+            ant.move(to: CGPoint(x: cx + side * u * 0.06, y: headY - u * 0.14))
+            ant.addCurve(
+                to: CGPoint(x: cx + side * u * 0.26, y: headY - u * 0.46),
+                control1: CGPoint(x: cx + side * u * 0.10, y: headY - u * 0.28),
+                control2: CGPoint(x: cx + side * u * 0.24, y: headY - u * 0.40))
+            ctx.stroke(ant, with: .color(cfg.accent), lineWidth: u * 0.018)
+            var tip = Path(ellipseIn: CGRect(x: cx + side * u * 0.24 - u * 0.022,
+                                             y: headY - u * 0.48,
+                                             width: u * 0.044, height: u * 0.044))
+            ctx.fill(tip, with: .color(cfg.body))
+            ctx.stroke(tip, with: .color(cfg.accent), lineWidth: u * 0.012)
         }
-        // Big compound eyes
-        for eside: CGFloat in [-1, 1] {
-            let ex = cx + eside * u * 0.10
-            let ey = headY - u * 0.06
-            var eye = Path(ellipseIn: CGRect(x: ex - u*0.058, y: ey - u*0.058, width: u*0.116, height: u*0.116))
+
+        // ── Big compound eyes ──────────────────────────────────
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * u * 0.084
+            let ey = headY - u * 0.030
+            let er = u * 0.064
+            var eye = Path(ellipseIn: CGRect(x: ex - er, y: ey - er, width: er * 2, height: er * 2))
             ctx.fill(eye, with: .color(.white))
-            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)
-            var iris = Path(ellipseIn: CGRect(x: ex - u*0.036, y: ey - u*0.036 + (blink ? u*0.024 : 0), width: u*0.072, height: blink ? u*0.008 : u*0.072))
+            ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u * 0.020)
+            let ir: CGFloat = blink ? u * 0.004 : u * 0.040
+            let iy: CGFloat = blink ? ey - ir + u * 0.024 : ey - u * 0.040
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.040, y: iy,
+                                              width: u * 0.080, height: ir * 2))
             ctx.fill(iris, with: .color(cfg.iris))
-            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.022, width: u*0.016, height: u*0.016))
+            var hl = Path(ellipseIn: CGRect(x: ex + u*0.006, y: ey - u*0.024,
+                                            width: u * 0.016, height: u * 0.016))
             ctx.fill(hl, with: .color(.white))
         }
+
+        // ── Smile ─────────────────────────────────────────────
+        var smile = Path()
+        smile.addArc(center: CGPoint(x: cx, y: headY + u * 0.06),
+                     radius: u * 0.055,
+                     startAngle: .degrees(25), endAngle: .degrees(155), clockwise: false)
+        ctx.stroke(smile, with: .color(cfg.outline), lineWidth: u * 0.018)
     }
 
     // MARK: - Bee

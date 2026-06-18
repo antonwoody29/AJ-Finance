@@ -7,14 +7,25 @@ struct FloatingAnimalHead: View {
     var type: AnimalType
     var mood: AJMood
     var cropSize: CGFloat = 160   // displayed diameter
-    var canvasSize: CGFloat = 320 // full-body render size (we crop the head from the top)
+    var canvasSize: CGFloat = 320 // full-body render size
+
+    // headY as a fraction of canvasSize (u = canvasSize for square canvas).
+    // kangaroo: bodyY=0.62, headY=bodyY - u*0.46  → 0.62-0.46=0.16
+    // bee:      bodyY=0.62, headY=bodyY - u*0.38  → 0.62-0.38=0.24
+    // standard: headY = canvasSize*0.30            → 0.30
+    private var headYFraction: CGFloat {
+        switch type {
+        case .kangaroo:    return 0.16
+        case .bee:         return 0.24
+        case .grasshopper: return 0.34  // bodyY-u*0.28
+        case .weedPlant:   return 0.38  // stemTop = h*0.38
+        default:           return 0.30
+        }
+    }
 
     var body: some View {
-        // The head center lives at ~38% of canvas height.
-        // We show the top `cropSize` pixels by centering the large canvas in a
-        // cropSize frame, then shifting it DOWN so the top edge is flush with
-        // the frame's top, then clipping.
-        let shift = (canvasSize - cropSize) / 2
+        // shift = canvasSize/2 - headY  →  centers headY at the circle's midpoint
+        let shift = canvasSize * (0.5 - headYFraction)
 
         ZStack {
             // Soft glow ring matching the animal colour
@@ -48,13 +59,15 @@ struct FloatingAnimalHead: View {
 
 struct SignInView: View {
     @Environment(AppState.self) private var appState
-    @State private var errorMessage: String? = nil
-    @State private var headFloat    = false
-    @State private var glowPulse    = false
-    @State private var starPhase    = false
+    @State private var errorMessage:   String? = nil
+    @State private var headFloat      = false
+    @State private var glowPulse      = false
+    @State private var starPhase      = false
+    @State private var showEmailAuth  = false
 
     // Animal + mood pairs — each shows a distinct facial expression
     private let teaserPairs: [(AnimalType, AJMood)] = [
+        (.grasshopper, .hype),  // ✨ big eyes, excited
         (.tiger,    .hype),    // ✨ star sparkles, excited wide eyes
         (.panda,    .sad),     // 💧 teardrop eyes, droopy cute
         (.bee,      .sleep),   // 💤 Z bubbles, squinty sleepy
@@ -139,7 +152,7 @@ struct SignInView: View {
 
                 // ── App name ───────────────────────────────────────
                 VStack(spacing: 6) {
-                    Text("AJ Finance")
+                    Text("AJ")
                         .font(.system(size: 40, weight: .black))
                         .foregroundStyle(
                             LinearGradient(
@@ -164,8 +177,9 @@ struct SignInView: View {
 
                 Spacer().frame(height: 44)
 
-                // ── Sign in with Apple ─────────────────────────────
-                VStack(spacing: 14) {
+                // ── Auth buttons ───────────────────────────────────
+                VStack(spacing: 12) {
+                    // Sign in with Apple
                     SignInWithAppleButton(.signIn) { request in
                         request.requestedScopes = [.fullName, .email]
                     } onCompletion: { result in
@@ -177,6 +191,36 @@ struct SignInView: View {
                     .padding(.horizontal, 32)
                     .shadow(color: .white.opacity(0.10), radius: 14, y: 4)
 
+                    // Divider
+                    HStack(spacing: 10) {
+                        Rectangle().fill(Color.white.opacity(0.14)).frame(height: 1)
+                        Text("or").font(.system(size: 12)).foregroundColor(.white.opacity(0.35))
+                        Rectangle().fill(Color.white.opacity(0.14)).frame(height: 1)
+                    }
+                    .padding(.horizontal, 40)
+
+                    // Email auth button
+                    Button {
+                        showEmailAuth = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "envelope.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text(appState.hasEmailAccount ? "Log In with Email" : "Sign Up with Email")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.10))
+                                .overlay(RoundedRectangle(cornerRadius: 16)
+                                    .stroke(Color.white.opacity(0.22), lineWidth: 1))
+                        )
+                    }
+                    .padding(.horizontal, 32)
+
                     if let error = errorMessage {
                         Text(error)
                             .font(.system(size: 13))
@@ -185,11 +229,10 @@ struct SignInView: View {
                             .padding(.horizontal, 32)
                     }
 
-                    Text("Your data stays on your device.\nSign in to keep your account safe.")
+                    Text("Your data stays on your device.")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.32))
+                        .foregroundColor(.white.opacity(0.30))
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
                 }
 
                 Spacer().frame(height: 56)
@@ -200,6 +243,10 @@ struct SignInView: View {
             glowPulse = true
             starPhase = true
             startCycle()
+        }
+        .sheet(isPresented: $showEmailAuth) {
+            EmailAuthSheet()
+                .environment(appState)
         }
     }
 
@@ -228,17 +275,32 @@ struct SignInView: View {
     private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
-            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential else { return }
+            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential else {
+                showError("Authentication failed. Please use email instead.")
+                return
+            }
             let name = [cred.fullName?.givenName, cred.fullName?.familyName]
                 .compactMap { $0 }.joined(separator: " ")
             let stored = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
-            appState.login(userID: cred.user, name: name.isEmpty ? stored : name)
+            // Dispatch to main thread — @Observable mutations must happen on main actor
+            DispatchQueue.main.async {
+                appState.login(userID: cred.user, name: name.isEmpty ? stored : name)
+            }
 
         case .failure(let error):
             let code = (error as NSError).code
-            if code != 1000 {   // 1000 = user cancelled
-                errorMessage = "Sign in failed. Please try again."
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) { errorMessage = nil }
+            // 1001 = invalidResponse, 1002 = notHandled, 1003 = failed, 1004 = notInteractive
+            // 1000 = canceled (user tapped Cancel) — don't show error for that
+            if code == 1000 { return }
+            showError("Apple Sign In isn't available right now. Please use email instead.")
+        }
+    }
+
+    private func showError(_ msg: String) {
+        DispatchQueue.main.async {
+            withAnimation { errorMessage = msg }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                withAnimation { errorMessage = nil }
             }
         }
     }
@@ -311,5 +373,210 @@ private struct SignInStarField: View {
     private func baseAlpha(_ i: Int, bright: Bool) -> Double {
         let b = i % 3 == 0 ? 0.75 : i % 3 == 1 ? 0.45 : 0.22
         return bright ? b : b * 0.25
+    }
+}
+
+// MARK: - Email Auth Sheet
+
+struct EmailAuthSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var isSignUp:     Bool   = false   // false = Log In, true = Sign Up
+    @State private var name          = ""
+    @State private var email         = ""
+    @State private var password      = ""
+    @State private var confirmPw     = ""
+    @State private var errorMsg:     String? = nil
+    @State private var showPassword  = false
+    @State private var showConfirm   = false
+    @State private var isLoading     = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(red: 0.06, green: 0.08, blue: 0.16).ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // ── Mode toggle ───────────────────────────────
+                        HStack(spacing: 0) {
+                            ForEach(["Log In", "Sign Up"], id: \.self) { label in
+                                let active = (label == "Sign Up") == isSignUp
+                                Button {
+                                    withAnimation(.spring(response: 0.32, dampingFraction: 0.72)) {
+                                        isSignUp = (label == "Sign Up")
+                                        errorMsg = nil
+                                    }
+                                } label: {
+                                    Text(label)
+                                        .font(.system(size: 15, weight: active ? .black : .regular))
+                                        .foregroundColor(active ? .black : .white.opacity(0.50))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 11)
+                                        .background(active ? Color.ajOrange : Color.clear)
+                                }
+                            }
+                        }
+                        .background(Color.white.opacity(0.08))
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                        .padding(.horizontal, 28)
+                        .padding(.top, 28)
+
+                        VStack(spacing: 14) {
+                            // Name — sign up only
+                            if isSignUp {
+                                AuthField(label: "Your Name", text: $name,
+                                          icon: "person.fill", secure: false)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+
+                            AuthField(label: "Email", text: $email,
+                                      icon: "envelope.fill", secure: false,
+                                      keyboard: .emailAddress)
+
+                            AuthField(label: "Password", text: $password,
+                                      icon: "lock.fill", secure: !showPassword,
+                                      toggle: { showPassword.toggle() })
+
+                            if isSignUp {
+                                AuthField(label: "Confirm Password", text: $confirmPw,
+                                          icon: "lock.fill", secure: !showConfirm,
+                                          toggle: { showConfirm.toggle() })
+                                    .transition(.move(edge: .top).combined(with: .opacity))
+                            }
+                        }
+                        .animation(.spring(response: 0.36, dampingFraction: 0.76), value: isSignUp)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 22)
+
+                        // Error
+                        if let msg = errorMsg {
+                            Text(msg)
+                                .font(.system(size: 13))
+                                .foregroundColor(Color(red: 1.0, green: 0.38, blue: 0.38))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 28)
+                                .padding(.top, 10)
+                                .transition(.opacity)
+                        }
+
+                        // Submit button
+                        Button {
+                            submit()
+                        } label: {
+                            ZStack {
+                                if isLoading {
+                                    ProgressView().tint(.black)
+                                } else {
+                                    Text(isSignUp ? "Create Account" : "Log In")
+                                        .font(.system(size: 17, weight: .black))
+                                        .foregroundColor(.black)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 54)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(LinearGradient(
+                                        colors: [.ajOrange, .ajGold],
+                                        startPoint: .leading, endPoint: .trailing
+                                    ))
+                            )
+                        }
+                        .disabled(isLoading)
+                        .padding(.horizontal, 28)
+                        .padding(.top, 24)
+
+                        Text("Your data stays on your device and is never shared.")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.28))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 36)
+                            .padding(.top, 14)
+
+                        Spacer().frame(height: 40)
+                    }
+                }
+            }
+            .navigationTitle(isSignUp ? "Create Account" : "Log In")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.ajOrange)
+                }
+            }
+        }
+    }
+
+    private func submit() {
+        withAnimation { errorMsg = nil; isLoading = true }
+        // Small delay so the UI updates visibly
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            let error: String?
+            if isSignUp {
+                error = appState.emailSignUp(name: name, email: email,
+                                             password: password, confirm: confirmPw)
+            } else {
+                error = appState.emailLogin(email: email, password: password)
+            }
+            withAnimation { isLoading = false }
+            if let err = error {
+                withAnimation { errorMsg = err }
+            } else {
+                dismiss()
+            }
+        }
+    }
+}
+
+// MARK: - Auth text field
+
+private struct AuthField: View {
+    var label:    String
+    var text:     Binding<String>
+    var icon:     String
+    var secure:   Bool
+    var toggle:   (() -> Void)? = nil
+    var keyboard: UIKeyboardType = .default
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 15))
+                .foregroundColor(.white.opacity(0.45))
+                .frame(width: 20)
+
+            Group {
+                if secure {
+                    SecureField(label, text: text)
+                } else {
+                    TextField(label, text: text)
+                        .keyboardType(keyboard)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(keyboard == .emailAddress ? .never : .words)
+                }
+            }
+            .font(.system(size: 16))
+            .foregroundColor(.white)
+
+            if toggle != nil {
+                Button(action: toggle!) {
+                    Image(systemName: secure ? "eye" : "eye.slash")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.40))
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 15)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.white.opacity(0.07))
+                .overlay(RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color.white.opacity(0.13), lineWidth: 1))
+        )
     }
 }

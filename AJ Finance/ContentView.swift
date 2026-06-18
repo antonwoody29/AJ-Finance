@@ -23,17 +23,12 @@ struct ContentView: View {
     var body: some View {
         Group {
             if !appState.isLoggedIn {
-                SignInView()
-                    .environment(appState)
+                SignInView().environment(appState)
             } else if !appState.hasSeenAgeWarning {
-                AgeVerificationView()
-                    .environment(appState)
+                AgeVerificationView().environment(appState)
             } else if !appState.hasCompletedOnboarding {
-                OnboardingView()
-                    .environment(appState)
-            } else {
-                mainView
-            }
+                OnboardingView().environment(appState)
+            } else { mainView }
         }
         .onAppear { appState.load() }
     }
