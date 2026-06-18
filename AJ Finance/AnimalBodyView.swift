@@ -26,7 +26,7 @@ struct CharConfig {
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, hippo, giraffe, pig, insect, fish, shark, swordfish, alligator, kangaroo, plant, grasshopper, bee, spider }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, snapper, hippo, giraffe, pig, insect, fish, shark, swordfish, alligator, kangaroo, plant, grasshopper, bee, spider }
 
     // MARK: - Per-animal configs
 
@@ -334,7 +334,7 @@ struct CharConfig {
                          accent: Color(red:0.24,green:0.26,blue:0.26),
                          iris: Color(red:0.92,green:0.08,blue:0.06),
                          nose: Color(red:0.30,green:0.32,blue:0.32),
-                         ear: .none, tail: .flat, bodyKind: .turtle)
+                         ear: .none, tail: .flat, bodyKind: .snapper)
         case .kangaroo:
             return .init(body: Color(red:0.78,green:0.56,blue:0.34),
                          belly: Color(red:0.92,green:0.80,blue:0.64),
@@ -564,8 +564,12 @@ struct AnimalBodyView: View {
             drawBabyGrasshopperHead(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
-        if type == .turtle || type == .snappingTurtle {
+        if type == .turtle {
             drawTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: 0, bob: bob, blink: blink)
+            return
+        }
+        if type == .snappingTurtle {
+            drawSnappingTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: 0, bob: bob, blink: blink)
             return
         }
 
@@ -716,6 +720,7 @@ struct AnimalBodyView: View {
         case .flamingo:  drawFlamingoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .crab:      drawCrabBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .turtle:    drawAdultTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .snapper:   drawSnappingTurtleBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .hippo:     drawHippoBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .giraffe:   drawGiraffeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .pig:       drawPigBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
@@ -1876,6 +1881,165 @@ struct AnimalBodyView: View {
         ctx.stroke(headScale, with: .color(cfg.accent.opacity(0.35)), lineWidth: u*0.012)
 
         drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Snapping Turtle body (flat shell, jagged tail, hooked beak, clawed feet)
+
+    func drawSnappingTurtleBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                                 cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let bodyY = sz.height * 0.62 + bob
+        let headY = sz.height * 0.28 + bob
+
+        // Spiky tail sticking out to the right (snapping turtles have long jagged tails)
+        var tail = Path()
+        tail.move(to:    CGPoint(x: cx + u*0.18, y: bodyY + u*0.04))
+        tail.addCurve(to: CGPoint(x: cx + u*0.56, y: bodyY + u*0.14),
+                      control1: CGPoint(x: cx + u*0.30, y: bodyY + u*0.02),
+                      control2: CGPoint(x: cx + u*0.46, y: bodyY + u*0.06))
+        tail.addLine(to: CGPoint(x: cx + u*0.18, y: bodyY + u*0.12))
+        tail.closeSubpath()
+        ctx.fill(tail, with: .color(cfg.body))
+        ctx.stroke(tail, with: .color(cfg.outline), lineWidth: u*0.020)
+        // Tail spike ridges
+        for i: CGFloat in [0.3, 0.55, 0.76] {
+            let tx = cx + u*0.22 + i * u*0.30
+            var spike = Path()
+            spike.move(to:    CGPoint(x: tx,           y: bodyY + u*0.06))
+            spike.addLine(to: CGPoint(x: tx + u*0.026, y: bodyY - u*0.012))
+            spike.addLine(to: CGPoint(x: tx + u*0.052, y: bodyY + u*0.06))
+            ctx.fill(spike, with: .color(cfg.accent))
+            ctx.stroke(spike, with: .color(cfg.outline.opacity(0.50)), lineWidth: u*0.010)
+        }
+
+        // Four stocky clawed legs
+        let snapLegs: [(CGFloat, Bool)] = [(-1, true), (1, true), (-1, false), (1, false)]
+        for (side, isFront) in snapLegs {
+            let legX = cx + side * u * (isFront ? 0.24 : 0.20)
+            let legY: CGFloat = isFront ? bodyY - u*0.08 : bodyY + u*0.10
+            let swing = isFront ? legSwing * 0.5 : -legSwing * 0.5
+            var leg = Path()
+            leg.move(to:    CGPoint(x: legX, y: legY))
+            leg.addLine(to: CGPoint(x: legX + side*u*0.20 + swing*u*0.04, y: legY + u*0.20))
+            ctx.stroke(leg, with: .color(cfg.body), lineWidth: u*0.090)
+            ctx.stroke(leg, with: .color(cfg.outline), lineWidth: u*0.020)
+            // Three claws at foot
+            let footX = legX + side*u*0.20 + swing*u*0.04
+            let footY = legY + u*0.20
+            for ci: CGFloat in [-1, 0, 1] {
+                var claw = Path()
+                claw.move(to:    CGPoint(x: footX, y: footY))
+                claw.addLine(to: CGPoint(x: footX + side*u*0.044 + ci*u*0.026, y: footY + u*0.052))
+                ctx.stroke(claw, with: .color(cfg.accent), lineWidth: u*0.018)
+            }
+        }
+
+        // Flat wide shell rim (much less dome than regular turtle)
+        var rim = Path(ellipseIn: CGRect(x: cx - u*0.300, y: bodyY - u*0.130, width: u*0.600, height: u*0.240))
+        ctx.fill(rim, with: .color(cfg.accent))
+        ctx.stroke(rim, with: .color(cfg.outline), lineWidth: u*0.030)
+
+        // Low flat carapace (much flatter dome than regular turtle)
+        var shell = Path(ellipseIn: CGRect(x: cx - u*0.268, y: bodyY - u*0.280, width: u*0.536, height: u*0.220))
+        ctx.fill(shell, with: .color(cfg.body))
+        ctx.stroke(shell, with: .color(cfg.outline), lineWidth: u*0.028)
+
+        // Jagged/serrated rear edge of shell (3 points)
+        for i: CGFloat in [-1, 0, 1] {
+            let sx = cx + i * u*0.100
+            var serr = Path()
+            serr.move(to:    CGPoint(x: sx - u*0.040, y: bodyY - u*0.060))
+            serr.addLine(to: CGPoint(x: sx,            y: bodyY + u*0.030))
+            serr.addLine(to: CGPoint(x: sx + u*0.040, y: bodyY - u*0.060))
+            ctx.fill(serr, with: .color(cfg.body))
+            ctx.stroke(serr, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
+
+        // Shell scute lines — rougher cross-hatch pattern
+        var cScute = Path(ellipseIn: CGRect(x: cx - u*0.090, y: bodyY - u*0.250, width: u*0.180, height: u*0.130))
+        ctx.stroke(cScute, with: .color(cfg.accent.opacity(0.80)), lineWidth: u*0.018)
+        for side: CGFloat in [-1, 1] {
+            var s1 = Path(ellipseIn: CGRect(x: cx + side*u*0.058, y: bodyY - u*0.238, width: u*0.120, height: u*0.096))
+            ctx.stroke(s1, with: .color(cfg.accent.opacity(0.60)), lineWidth: u*0.014)
+            var s2 = Path(ellipseIn: CGRect(x: cx + side*u*0.120, y: bodyY - u*0.200, width: u*0.100, height: u*0.074))
+            ctx.stroke(s2, with: .color(cfg.accent.opacity(0.40)), lineWidth: u*0.012)
+            // Diagonal ridge lines
+            var ridge = Path()
+            ridge.move(to: CGPoint(x: cx + side*u*0.06, y: bodyY - u*0.26))
+            ridge.addLine(to: CGPoint(x: cx + side*u*0.22, y: bodyY - u*0.14))
+            ctx.stroke(ridge, with: .color(cfg.accent.opacity(0.30)), lineWidth: u*0.010)
+        }
+
+        // Long thick neck (snapping turtles have much longer necks)
+        var neck = Path()
+        neck.move(to:    CGPoint(x: cx - u*0.060, y: bodyY - u*0.210))
+        neck.addLine(to: CGPoint(x: cx + u*0.060, y: bodyY - u*0.210))
+        neck.addLine(to: CGPoint(x: cx + u*0.052, y: headY + u*0.22))
+        neck.addLine(to: CGPoint(x: cx - u*0.052, y: headY + u*0.22))
+        neck.closeSubpath()
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u*0.024)
+        // Neck scale lines
+        for t: CGFloat in [0.30, 0.55, 0.78] {
+            let ny = headY + u*0.22 + (bodyY - u*0.210 - headY - u*0.22) * t
+            var sc = Path()
+            sc.move(to: CGPoint(x: cx - u*0.055, y: ny))
+            sc.addLine(to: CGPoint(x: cx + u*0.055, y: ny))
+            ctx.stroke(sc, with: .color(cfg.outline.opacity(0.32)), lineWidth: u*0.010)
+        }
+
+        // Large angular head (snapper heads are big and triangular)
+        var head = Path()
+        head.move(to:    CGPoint(x: cx - u*0.270, y: headY + u*0.18))
+        head.addCurve(to: CGPoint(x: cx - u*0.240, y: headY - u*0.20),
+                      control1: CGPoint(x: cx - u*0.290, y: headY + u*0.06),
+                      control2: CGPoint(x: cx - u*0.268, y: headY - u*0.12))
+        head.addCurve(to: CGPoint(x: cx + u*0.240, y: headY - u*0.20),
+                      control1: CGPoint(x: cx - u*0.140, y: headY - u*0.30),
+                      control2: CGPoint(x: cx + u*0.140, y: headY - u*0.30))
+        head.addCurve(to: CGPoint(x: cx + u*0.270, y: headY + u*0.18),
+                      control1: CGPoint(x: cx + u*0.268, y: headY - u*0.12),
+                      control2: CGPoint(x: cx + u*0.290, y: headY + u*0.06))
+        head.addLine(to: CGPoint(x: cx - u*0.270, y: headY + u*0.18))
+        head.closeSubpath()
+        ctx.fill(head, with: .color(cfg.body))
+        ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.030)
+        // Head scales / texture
+        var hScale1 = Path(ellipseIn: CGRect(x: cx - u*0.160, y: headY - u*0.180, width: u*0.320, height: u*0.130))
+        ctx.stroke(hScale1, with: .color(cfg.accent.opacity(0.40)), lineWidth: u*0.012)
+
+        // Hooked upper beak (the defining snapper feature)
+        var beak = Path()
+        beak.move(to:    CGPoint(x: cx - u*0.270, y: headY + u*0.00))
+        beak.addCurve(to: CGPoint(x: cx - u*0.340, y: headY + u*0.08),
+                      control1: CGPoint(x: cx - u*0.290, y: headY - u*0.02),
+                      control2: CGPoint(x: cx - u*0.340, y: headY + u*0.02))
+        beak.addCurve(to: CGPoint(x: cx - u*0.270, y: headY + u*0.14),
+                      control1: CGPoint(x: cx - u*0.340, y: headY + u*0.14),
+                      control2: CGPoint(x: cx - u*0.290, y: headY + u*0.14))
+        beak.closeSubpath()
+        ctx.fill(beak, with: .color(cfg.accent))
+        ctx.stroke(beak, with: .color(cfg.outline), lineWidth: u*0.018)
+
+        // Eyes — red and prominent
+        for eside: CGFloat in [-1, 1] {
+            let exx = cx + eside * u * 0.140
+            let eyy = headY - u * 0.08
+            var eyeWhite = Path(ellipseIn: CGRect(x: exx - u*0.054, y: eyy - u*0.054, width: u*0.108, height: u*0.108))
+            ctx.fill(eyeWhite, with: .color(.white))
+            ctx.stroke(eyeWhite, with: .color(cfg.outline), lineWidth: u*0.018)
+            var irisP = Path(ellipseIn: CGRect(x: exx - u*0.038, y: eyy - u*0.040 + (blink ? u*0.024 : 0),
+                                               width: u*0.076, height: blink ? u*0.008 : u*0.080))
+            ctx.fill(irisP, with: .color(cfg.iris))
+            if !blink {
+                var pupilP = Path(ellipseIn: CGRect(x: exx - u*0.018, y: eyy - u*0.020, width: u*0.036, height: u*0.038))
+                ctx.fill(pupilP, with: .color(.black))
+                // Red glow ring
+                var glow = Path(ellipseIn: CGRect(x: exx - u*0.050, y: eyy - u*0.052, width: u*0.100, height: u*0.104))
+                ctx.stroke(glow, with: .color(cfg.iris.opacity(0.40)), lineWidth: u*0.010)
+            }
+        }
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }
