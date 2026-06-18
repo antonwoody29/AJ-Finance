@@ -35,7 +35,8 @@ struct PIPView: View {
 
                     // AJ intervention
                     VStack(spacing: 12) {
-                        AJTiger(mood: .angry, size: 130)
+                        AnimalCanvas(type: appState.selectedAnimal, mood: .angry,
+                                     size: 130, isWalking: false, evolutionStage: appState.animalGrowthStage)
                         AJSpeechBubble(text: interventionMessage)
                             .padding(.horizontal, 20)
                     }

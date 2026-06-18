@@ -55,7 +55,8 @@ struct ReceiptScannerView: View {
             Spacer()
             // AJ prompt
             VStack(spacing: 8) {
-                AJTiger(mood: .happy, size: 120)
+                AnimalCanvas(type: appState.selectedAnimal, mood: .happy,
+                             size: 120, isWalking: false, evolutionStage: appState.animalGrowthStage)
                 AJSpeechBubble(text: "Got a receipt? Let's log it! 📸")
             }
 
@@ -103,7 +104,8 @@ struct ReceiptScannerView: View {
         VStack(spacing: 32) {
             Spacer()
             ZStack {
-                AJTiger(mood: .hype, size: 140)
+                AnimalCanvas(type: appState.selectedAnimal, mood: .hype,
+                             size: 140, isWalking: false, evolutionStage: appState.animalGrowthStage)
                 // Scanning lines overlay
                 VStack(spacing: 0) {
                     Spacer()
@@ -155,7 +157,8 @@ struct ReceiptScannerView: View {
                 // AJ reacts to amount
                 let mood: AJMood = amountValue > 60 ? (appState.accountabilityMode == .noCapSavage ? .angry : .sad) : .happy
                 VStack(spacing: 8) {
-                    AJTiger(mood: amountValue > 0 ? mood : .neutral, size: 110)
+                    AnimalCanvas(type: appState.selectedAnimal, mood: amountValue > 0 ? mood : .neutral,
+                                 size: 110, isWalking: false, evolutionStage: appState.animalGrowthStage)
                     if amountValue > 60 {
                         AJSpeechBubble(text: appState.accountabilityMode.bigSpendReaction(amount: amountValue))
                     } else if amountValue > 0 {

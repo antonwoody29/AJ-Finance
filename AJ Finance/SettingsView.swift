@@ -195,7 +195,8 @@ struct SettingsView: View {
 
                 HStack {
                     Spacer()
-                    AJTiger(mood: testMood ?? appState.currentMood, size: 120)
+                    AnimalCanvas(type: appState.selectedAnimal, mood: testMood ?? appState.currentMood,
+                                 size: 120, isWalking: false, evolutionStage: appState.animalGrowthStage)
                     Spacer()
                 }
 

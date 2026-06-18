@@ -733,10 +733,7 @@ struct AnimalBodyView: View {
         // ── Mane (behind head, in front of body) ────────────────
         if cfg.special == .mane || cfg.special2 == .mane { drawMane(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
-        // ── Horn (behind head) ──────────────────────────────────
-        if cfg.special == .horn || cfg.special2 == .horn { drawHorn(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
-
-        // ── Cow horns (pair of horns) ────────────────────────────
+        // ── Cow horns (pair, behind head) ────────────────────────
         if cfg.special == .horns { drawCowHorns(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
         // ── Gill fronds (sides of head) ─────────────────────────
@@ -747,6 +744,9 @@ struct AnimalBodyView: View {
 
         // ── Ears ────────────────────────────────────────────────
         drawEars(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+
+        // ── Horn (drawn AFTER head so it's fully visible on top) ─
+        if cfg.special == .horn || cfg.special2 == .horn { drawHorn(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
 
         // ── Crest ───────────────────────────────────────────────
         if cfg.special == .crest { drawCrest(ctx, hx: cx, hy: headY, u: u, cfg: cfg) }
@@ -1479,17 +1479,21 @@ struct AnimalBodyView: View {
     }
 
     func drawHorn(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat, u: CGFloat, cfg: CharConfig) {
+        // Wide base so it's clearly visible on top of the head
         var horn = Path()
-        horn.move(to: CGPoint(x: hx - u*0.042, y: hy - u*0.24))
-        horn.addLine(to: CGPoint(x: hx + u*0.042, y: hy - u*0.24))
-        horn.addLine(to: CGPoint(x: hx, y: hy - u*0.46))
+        horn.move(to: CGPoint(x: hx - u*0.070, y: hy - u*0.20))
+        horn.addLine(to: CGPoint(x: hx + u*0.070, y: hy - u*0.20))
+        horn.addLine(to: CGPoint(x: hx, y: hy - u*0.56))
         horn.closeSubpath()
         ctx.fill(horn, with: .color(cfg.accent))
-        ctx.stroke(horn, with: .color(cfg.outline), lineWidth: u*0.024)
+        ctx.stroke(horn, with: .color(cfg.outline), lineWidth: u*0.026)
+        // Spiral stripe
         var spiral = Path()
-        spiral.move(to: CGPoint(x: hx - u*0.024, y: hy - u*0.27))
-        spiral.addLine(to: CGPoint(x: hx + u*0.012, y: hy - u*0.40))
-        ctx.stroke(spiral, with: .color(.white.opacity(0.65)), lineWidth: u*0.016)
+        spiral.move(to: CGPoint(x: hx - u*0.034, y: hy - u*0.24))
+        spiral.addCurve(to: CGPoint(x: hx + u*0.018, y: hy - u*0.50),
+                        control1: CGPoint(x: hx + u*0.020, y: hy - u*0.34),
+                        control2: CGPoint(x: hx - u*0.010, y: hy - u*0.44))
+        ctx.stroke(spiral, with: .color(.white.opacity(0.70)), lineWidth: u*0.018)
     }
 
     func drawMane(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat, u: CGFloat, cfg: CharConfig) {
@@ -2006,10 +2010,10 @@ struct AnimalBodyView: View {
         ctx.fill(head, with: .color(cfg.body))
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.026)
 
-        // Big compound eyes
+        // Big compound eyes — positioned high on head (crawling position)
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * u * 0.10
-            let ey = headY - u * 0.04
+            let ey = headY - u * 0.10   // higher up on the head
             var eye = Path(ellipseIn: CGRect(x: ex - u*0.064, y: ey - u*0.064, width: u*0.128, height: u*0.128))
             ctx.fill(eye, with: .color(cfg.iris))
             ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.020)
@@ -2021,8 +2025,8 @@ struct AnimalBodyView: View {
 
         // Mandibles / small mouth
         var mouth = Path()
-        mouth.move(to: CGPoint(x: cx - u*0.04, y: headY + u*0.12))
-        mouth.addLine(to: CGPoint(x: cx + u*0.04, y: headY + u*0.12))
+        mouth.move(to: CGPoint(x: cx - u*0.04, y: headY + u*0.10))
+        mouth.addLine(to: CGPoint(x: cx + u*0.04, y: headY + u*0.10))
         ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.016)
     }
 
@@ -2302,30 +2306,42 @@ struct AnimalBodyView: View {
         ctx.fill(head, with: .color(cfg.body))
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u*0.028)
 
-        // Long pointed ears
+        // Large prominent ears — wide at base, rounded at tip
         for eside: CGFloat in [-1, 1] {
+            let eBaseL = cx + eside*u*0.06   // left edge of ear base
+            let eBaseR = cx + eside*u*0.24   // right edge of ear base
+            let eTipX  = cx + eside*u*0.16   // center of ear tip
+            let eTipY  = headY - u*0.56      // tall tip
+            let eBaseY = headY - u*0.14      // base at top of head
+
             var ear = Path()
-            ear.move(to: CGPoint(x: cx + eside*u*0.08, y: headY - u*0.16))
-            ear.addCurve(to: CGPoint(x: cx + eside*u*0.16, y: headY - u*0.44),
-                         control1: CGPoint(x: cx + eside*u*0.06, y: headY - u*0.28),
-                         control2: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.40))
-            ear.addCurve(to: CGPoint(x: cx + eside*u*0.10, y: headY - u*0.16),
-                         control1: CGPoint(x: cx + eside*u*0.18, y: headY - u*0.36),
-                         control2: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.22))
+            ear.move(to: CGPoint(x: eBaseL, y: eBaseY))
+            ear.addCurve(to: CGPoint(x: eTipX - eside*u*0.06, y: eTipY),
+                         control1: CGPoint(x: eBaseL - eside*u*0.02, y: eBaseY - u*0.20),
+                         control2: CGPoint(x: eTipX - eside*u*0.08, y: eTipY + u*0.12))
+            ear.addCurve(to: CGPoint(x: eTipX + eside*u*0.06, y: eTipY),
+                         control1: CGPoint(x: eTipX - eside*u*0.04, y: eTipY - u*0.04),
+                         control2: CGPoint(x: eTipX + eside*u*0.04, y: eTipY - u*0.04))
+            ear.addCurve(to: CGPoint(x: eBaseR, y: eBaseY),
+                         control1: CGPoint(x: eTipX + eside*u*0.08, y: eTipY + u*0.12),
+                         control2: CGPoint(x: eBaseR + eside*u*0.02, y: eBaseY - u*0.20))
             ear.closeSubpath()
             ctx.fill(ear, with: .color(cfg.body))
-            ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.022)
-            // Inner ear
+            ctx.stroke(ear, with: .color(cfg.outline), lineWidth: u*0.024)
+            // Inner ear — rosy pink
             var inner = Path()
-            inner.move(to: CGPoint(x: cx + eside*u*0.09, y: headY - u*0.18))
-            inner.addCurve(to: CGPoint(x: cx + eside*u*0.14, y: headY - u*0.40),
-                           control1: CGPoint(x: cx + eside*u*0.08, y: headY - u*0.28),
-                           control2: CGPoint(x: cx + eside*u*0.12, y: headY - u*0.36))
-            inner.addCurve(to: CGPoint(x: cx + eside*u*0.10, y: headY - u*0.18),
-                           control1: CGPoint(x: cx + eside*u*0.16, y: headY - u*0.32),
-                           control2: CGPoint(x: cx + eside*u*0.13, y: headY - u*0.22))
+            inner.move(to: CGPoint(x: cx + eside*u*0.10, y: eBaseY - u*0.02))
+            inner.addCurve(to: CGPoint(x: eTipX - eside*u*0.04, y: eTipY + u*0.08),
+                           control1: CGPoint(x: cx + eside*u*0.09, y: eBaseY - u*0.14),
+                           control2: CGPoint(x: eTipX - eside*u*0.05, y: eTipY + u*0.16))
+            inner.addCurve(to: CGPoint(x: eTipX + eside*u*0.04, y: eTipY + u*0.08),
+                           control1: CGPoint(x: eTipX - eside*u*0.02, y: eTipY + u*0.02),
+                           control2: CGPoint(x: eTipX + eside*u*0.02, y: eTipY + u*0.02))
+            inner.addCurve(to: CGPoint(x: cx + eside*u*0.20, y: eBaseY - u*0.02),
+                           control1: CGPoint(x: eTipX + eside*u*0.05, y: eTipY + u*0.16),
+                           control2: CGPoint(x: cx + eside*u*0.21, y: eBaseY - u*0.14))
             inner.closeSubpath()
-            ctx.fill(inner, with: .color(Color(red:0.90,green:0.66,blue:0.66)))
+            ctx.fill(inner, with: .color(Color(red:0.92,green:0.64,blue:0.64)))
         }
 
         // Muzzle — elongated snout
@@ -2589,13 +2605,17 @@ struct AnimalBodyView: View {
         let headY  = bodyY - u * 0.38
         let feetY  = sz.height * 0.82
 
-        // Stinger — pointed tail
+        // Stinger — points straight down from bottom of body
         var stinger = Path()
-        stinger.move(to: CGPoint(x: cx + u*0.20, y: bodyY + u*0.04))
-        stinger.addCurve(to: CGPoint(x: cx + u*0.46, y: bodyY + u*0.02),
-                         control1: CGPoint(x: cx + u*0.30, y: bodyY),
-                         control2: CGPoint(x: cx + u*0.44, y: bodyY - u*0.02))
-        ctx.stroke(stinger, with: .color(Color(red:0.70,green:0.48,blue:0.10)), lineWidth: u*0.048)
+        stinger.move(to: CGPoint(x: cx - u*0.048, y: bodyY + u*0.10))
+        stinger.addCurve(to: CGPoint(x: cx, y: bodyY + u*0.38),
+                         control1: CGPoint(x: cx - u*0.036, y: bodyY + u*0.22),
+                         control2: CGPoint(x: cx - u*0.010, y: bodyY + u*0.34))
+        stinger.addCurve(to: CGPoint(x: cx + u*0.048, y: bodyY + u*0.10),
+                         control1: CGPoint(x: cx + u*0.010, y: bodyY + u*0.34),
+                         control2: CGPoint(x: cx + u*0.036, y: bodyY + u*0.22))
+        stinger.closeSubpath()
+        ctx.fill(stinger, with: .color(Color(red:0.70,green:0.48,blue:0.10)))
         ctx.stroke(stinger, with: .color(cfg.outline), lineWidth: u*0.014)
 
         // Six legs
@@ -2685,10 +2705,10 @@ struct AnimalBodyView: View {
             ctx.fill(ball, with: .color(cfg.body))
             ctx.stroke(ball, with: .color(cfg.outline), lineWidth: u*0.014)
         }
-        // Big eyes
+        // Big eyes — high on head (crawling position, eyes on top)
         for eside: CGFloat in [-1, 1] {
             let ex = cx + eside * u * 0.086
-            let ey = headY - u * 0.06
+            let ey = headY - u * 0.10   // moved higher
             var eye = Path(ellipseIn: CGRect(x: ex - u*0.056, y: ey - u*0.056, width: u*0.112, height: u*0.112))
             ctx.fill(eye, with: .color(.white))
             ctx.stroke(eye, with: .color(cfg.outline), lineWidth: u*0.018)

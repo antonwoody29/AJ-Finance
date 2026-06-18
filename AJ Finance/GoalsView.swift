@@ -132,7 +132,8 @@ struct GoalsView: View {
         VStack(spacing: 20) {
             // Hero pet + speech
             VStack(spacing: 10) {
-                AJTiger(mood: .happy, size: 100)
+                AnimalCanvas(type: appState.selectedAnimal, mood: .happy,
+                             size: 100, isWalking: false, evolutionStage: appState.animalGrowthStage)
                 AJSpeechBubble(text: "No goals yet bestie 👀 Future you is waiting!")
             }
 
@@ -319,7 +320,8 @@ struct AddSavingsSheet: View {
                 Color.ajDark.ignoresSafeArea()
                 VStack(spacing: 28) {
                     Spacer()
-                    AJTiger(mood: amount > 0 ? .happy : .neutral, size: 120)
+                    AnimalCanvas(type: appState.selectedAnimal, mood: amount > 0 ? .happy : .neutral,
+                                 size: 120, isWalking: false, evolutionStage: appState.animalGrowthStage)
                     AJSpeechBubble(
                         text: amount > 0
                             ? "Adding $\(String(format: "%.2f", amount)) to \(goal.name) \(goal.emoji) 💰"
