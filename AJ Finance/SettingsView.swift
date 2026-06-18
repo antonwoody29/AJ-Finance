@@ -203,7 +203,7 @@ struct SettingsView: View {
                     Spacer()
                 }
 
-                AJSpeechBubble(text: (testMood ?? appState.currentMood).randomSpeech)
+                AJSpeechBubble(text: (testMood ?? appState.currentMood).randomSpeech(for: appState.selectedAnimal.rawValue))
                     .frame(maxWidth: .infinity)
 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {

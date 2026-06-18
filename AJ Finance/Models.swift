@@ -30,7 +30,7 @@ enum AJMood: String, CaseIterable, Identifiable {
         }
     }
 
-    var speechLines: [String] {
+    func speechLines(for animalName: String = "your pet") -> [String] {
         switch self {
         case .hype:
             return [
@@ -125,19 +125,22 @@ enum AJMood: String, CaseIterable, Identifiable {
             return [
                 "zzz... 💤", "Logging off bestie", "Sweet dreams 💤",
                 "I'll be here when you need me", "Rest up, we back tomorrow",
-                "Recharging... 🔋", "Even tigers need their sleep 😴",
+                "Recharging... 🔋", "Even \(animalName)s need their sleep 😴",
                 "*snoring noises* 💤", "Don't wake me unless it's bag related 😴",
                 "I'm dreaming of your debt-free future bestie 💤",
                 "Resting so I can support you harder tomorrow 😴",
                 "The budget can wait. Sleep is essential. 💤",
                 "If I look unbothered it's because I'm asleep 😴",
-                "ZzZzZz... *tiger purring* 🐯💤",
+                "ZzZzZz... *\(animalName) snoring* 💤",
                 "Conserving energy for the financial wins ahead 💤"
             ]
         }
     }
 
-    var randomSpeech: String { speechLines.randomElement() ?? speechLines[0] }
+    func randomSpeech(for animalName: String = "your pet") -> String {
+        let lines = speechLines(for: animalName)
+        return lines.randomElement() ?? lines[0]
+    }
 
     var kidSpeechLines: [String] {
         switch self {
@@ -193,8 +196,8 @@ enum AJMood: String, CaseIterable, Identifiable {
         }
     }
 
-    func speech(kidMode: Bool) -> String {
-        let lines = kidMode ? kidSpeechLines : speechLines
+    func speech(kidMode: Bool, animalName: String = "your pet") -> String {
+        let lines = kidMode ? kidSpeechLines : speechLines(for: animalName)
         return lines.randomElement() ?? lines[0]
     }
 }

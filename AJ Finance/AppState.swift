@@ -698,7 +698,7 @@ final class AppState {
 
     func setMood(_ mood: AJMood, speech: String? = nil) {
         currentMood = mood
-        currentSpeech = speech ?? mood.randomSpeech
+        currentSpeech = speech ?? mood.randomSpeech(for: selectedAnimal.rawValue)
     }
 
     // MARK: - Toast
