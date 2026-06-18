@@ -572,6 +572,10 @@ struct AnimalBodyView: View {
             drawBabySnapper(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             return
         }
+        if type == .weedPlant {
+            drawBabyBranch(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+            return
+        }
 
         let headY = sz.height * 0.38 + bob
         let bodyY = sz.height * 0.70 + bob
@@ -3536,6 +3540,119 @@ struct AnimalBodyView: View {
                        control1: CGPoint(x: cx - u*0.02, y: cy + u*0.16),
                        control2: CGPoint(x: cx + u*0.02, y: cy + u*0.16))
         ctx.stroke(smile, with: .color(cfg.accent.opacity(0.70)), lineWidth: u*0.016)
+    }
+
+    // MARK: - Baby Branch (weed plant stage 1 — bare twig, no leaves)
+
+    func drawBabyBranch(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                         cfg: CharConfig, bob: CGFloat, blink: Bool) {
+        let groundY = sz.height * 0.82 + bob
+        let baseX   = cx
+
+        // Ground dirt mound
+        var dirt = Path(ellipseIn: CGRect(x: baseX - u*0.18, y: groundY - u*0.04, width: u*0.36, height: u*0.10))
+        ctx.fill(dirt, with: .color(Color(red:0.36,green:0.24,blue:0.12).opacity(0.80)))
+        ctx.stroke(dirt, with: .color(Color(red:0.22,green:0.14,blue:0.06).opacity(0.70)), lineWidth: u*0.016)
+
+        // Main trunk — slightly leaning
+        var trunk = Path()
+        trunk.move(to:    CGPoint(x: baseX - u*0.018, y: groundY))
+        trunk.addCurve(to: CGPoint(x: baseX + u*0.028, y: groundY - u*0.52),
+                       control1: CGPoint(x: baseX - u*0.030, y: groundY - u*0.22),
+                       control2: CGPoint(x: baseX + u*0.014, y: groundY - u*0.40))
+        trunk.addLine(to: CGPoint(x: baseX + u*0.054, y: groundY - u*0.52))
+        trunk.addCurve(to: CGPoint(x: baseX + u*0.010, y: groundY),
+                       control1: CGPoint(x: baseX + u*0.042, y: groundY - u*0.40),
+                       control2: CGPoint(x: baseX + u*0.010, y: groundY - u*0.22))
+        trunk.closeSubpath()
+        ctx.fill(trunk, with: .color(cfg.body))
+        ctx.stroke(trunk, with: .color(cfg.accent), lineWidth: u*0.014)
+
+        // Left branch (shorter, points upper-left)
+        var brL = Path()
+        brL.move(to:    CGPoint(x: baseX + u*0.030, y: groundY - u*0.30))
+        brL.addCurve(to: CGPoint(x: baseX - u*0.22, y: groundY - u*0.48),
+                     control1: CGPoint(x: baseX + u*0.008, y: groundY - u*0.32),
+                     control2: CGPoint(x: baseX - u*0.14, y: groundY - u*0.44))
+        brL.addLine(to: CGPoint(x: baseX - u*0.20, y: groundY - u*0.42))
+        brL.addCurve(to: CGPoint(x: baseX + u*0.044, y: groundY - u*0.26),
+                     control1: CGPoint(x: baseX - u*0.10, y: groundY - u*0.39),
+                     control2: CGPoint(x: baseX + u*0.020, y: groundY - u*0.28))
+        brL.closeSubpath()
+        ctx.fill(brL, with: .color(cfg.body))
+        ctx.stroke(brL, with: .color(cfg.accent.opacity(0.70)), lineWidth: u*0.010)
+
+        // Right branch (points upper-right)
+        var brR = Path()
+        brR.move(to:    CGPoint(x: baseX + u*0.038, y: groundY - u*0.36))
+        brR.addCurve(to: CGPoint(x: baseX + u*0.28, y: groundY - u*0.58),
+                     control1: CGPoint(x: baseX + u*0.060, y: groundY - u*0.38),
+                     control2: CGPoint(x: baseX + u*0.22, y: groundY - u*0.52))
+        brR.addLine(to: CGPoint(x: baseX + u*0.26, y: groundY - u*0.52))
+        brR.addCurve(to: CGPoint(x: baseX + u*0.054, y: groundY - u*0.32),
+                     control1: CGPoint(x: baseX + u*0.18, y: groundY - u*0.46),
+                     control2: CGPoint(x: baseX + u*0.070, y: groundY - u*0.34))
+        brR.closeSubpath()
+        ctx.fill(brR, with: .color(cfg.body))
+        ctx.stroke(brR, with: .color(cfg.accent.opacity(0.70)), lineWidth: u*0.010)
+
+        // Tiny sub-twigs at branch tips (no leaves, just bare sticks)
+        let twigs: [(CGFloat, CGFloat, CGFloat, CGFloat)] = [
+            // left branch tips
+            (baseX - u*0.22, groundY - u*0.48, baseX - u*0.30, groundY - u*0.56),
+            (baseX - u*0.22, groundY - u*0.48, baseX - u*0.18, groundY - u*0.58),
+            // right branch tips
+            (baseX + u*0.28, groundY - u*0.58, baseX + u*0.36, groundY - u*0.66),
+            (baseX + u*0.28, groundY - u*0.58, baseX + u*0.22, groundY - u*0.67),
+            // trunk tip twigs
+            (baseX + u*0.030, groundY - u*0.52, baseX - u*0.04, groundY - u*0.62),
+            (baseX + u*0.030, groundY - u*0.52, baseX + u*0.10, groundY - u*0.61),
+        ]
+        for (x1, y1, x2, y2) in twigs {
+            var twig = Path()
+            twig.move(to:    CGPoint(x: x1, y: y1))
+            twig.addLine(to: CGPoint(x: x2, y: y2))
+            ctx.stroke(twig, with: .color(cfg.body), lineWidth: u*0.026)
+            ctx.stroke(twig, with: .color(cfg.accent.opacity(0.50)), lineWidth: u*0.008)
+        }
+
+        // Tiny bud dots at twig tips (suggest dormant growth, no leaves)
+        let buds: [(CGFloat, CGFloat)] = [
+            (baseX - u*0.30, groundY - u*0.56), (baseX - u*0.18, groundY - u*0.58),
+            (baseX + u*0.36, groundY - u*0.66), (baseX + u*0.22, groundY - u*0.67),
+            (baseX - u*0.04, groundY - u*0.62), (baseX + u*0.10, groundY - u*0.61),
+        ]
+        for (bx, by) in buds {
+            var bud = Path(ellipseIn: CGRect(x: bx - u*0.022, y: by - u*0.022, width: u*0.044, height: u*0.044))
+            ctx.fill(bud, with: .color(cfg.belly.opacity(0.80)))
+            ctx.stroke(bud, with: .color(cfg.accent.opacity(0.60)), lineWidth: u*0.010)
+        }
+
+        // Eyes on trunk face (slightly above mid-trunk)
+        let eyeY = groundY - u*0.20
+        for eside: CGFloat in [-1, 1] {
+            let ex = baseX + u*0.020 + eside * u*0.072
+            var white = Path(ellipseIn: CGRect(x: ex - u*0.046, y: eyeY - u*0.046, width: u*0.092, height: u*0.092))
+            ctx.fill(white, with: .color(.white))
+            ctx.stroke(white, with: .color(cfg.accent), lineWidth: u*0.014)
+            var iris = Path(ellipseIn: CGRect(x: ex - u*0.030, y: eyeY - u*0.032 + (blink ? u*0.022 : 0),
+                                              width: u*0.060, height: blink ? u*0.008 : u*0.064))
+            ctx.fill(iris, with: .color(cfg.iris))
+            if !blink {
+                var pupil = Path(ellipseIn: CGRect(x: ex - u*0.014, y: eyeY - u*0.016, width: u*0.028, height: u*0.030))
+                ctx.fill(pupil, with: .color(.black))
+                var hl = Path(ellipseIn: CGRect(x: ex + u*0.004, y: eyeY - u*0.016, width: u*0.014, height: u*0.014))
+                ctx.fill(hl, with: .color(.white))
+            }
+        }
+
+        // Tiny smile below eyes
+        var smile = Path()
+        smile.move(to: CGPoint(x: baseX - u*0.032, y: eyeY + u*0.066))
+        smile.addCurve(to: CGPoint(x: baseX + u*0.076, y: eyeY + u*0.066),
+                       control1: CGPoint(x: baseX - u*0.010, y: eyeY + u*0.096),
+                       control2: CGPoint(x: baseX + u*0.054, y: eyeY + u*0.096))
+        ctx.stroke(smile, with: .color(cfg.accent), lineWidth: u*0.016)
     }
 
     // MARK: - Adult Shark (torpedo body, proper predator)
