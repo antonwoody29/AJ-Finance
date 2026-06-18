@@ -121,11 +121,11 @@ struct SignInView: View {
 
                 // ── Floating head ──────────────────────────────────
                 FloatingAnimalHead(
-                    type:          currentPair.0,
-                    mood:          currentPair.1,
+                    type:           currentPair.0,
+                    mood:           currentPair.1,
                     evolutionStage: currentPair.2,
-                    cropSize:      185,
-                    canvasSize:    360
+                    cropSize:       185,
+                    canvasSize:     460
                 )
                 .offset(y: headFloat ? -14 : 14)
                 .animation(
@@ -136,21 +136,6 @@ struct SignInView: View {
                 .opacity(headOpacity)
                 .animation(.spring(response: 0.38, dampingFraction: 0.72), value: headScale)
                 .animation(.easeInOut(duration: 0.28), value: headOpacity)
-
-                // Animal name tag
-                Text(currentPair.0.rawValue)
-                    .font(.system(size: 13, weight: .black))
-                    .foregroundColor(currentPair.0.bodyColor)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 5)
-                    .background(
-                        Capsule()
-                            .fill(currentPair.0.bodyColor.opacity(0.16))
-                            .overlay(Capsule().stroke(currentPair.0.bodyColor.opacity(0.35), lineWidth: 1))
-                    )
-                    .opacity(headOpacity)
-                    .animation(.easeInOut(duration: 0.28), value: headOpacity)
-                    .padding(.top, 10)
 
                 Spacer().frame(height: 30)
 

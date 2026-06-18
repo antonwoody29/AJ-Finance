@@ -31,7 +31,9 @@ struct ContentView: View {
                 OnboardingView().environment(appState)
             } else { mainView }
         }
-        .onAppear { appState.load() }
+        .onAppear {
+            appState.load()
+        }
     }
 
     // MARK: - Main Tabbed Layout
