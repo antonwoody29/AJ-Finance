@@ -14,7 +14,7 @@ struct FloatingAnimalHead: View {
         switch type {
         case .kangaroo:    return 0.16
         case .bee:         return 0.24
-        case .spider:      return 0.25
+        case .spider:      return 0.36
         case .grasshopper: return 0.34
         case .weedPlant:   return 0.38
         default:           return 0.30
@@ -125,7 +125,7 @@ struct SignInView: View {
                     mood:           currentPair.1,
                     evolutionStage: currentPair.2,
                     cropSize:       185,
-                    canvasSize:     460
+                    canvasSize:     300
                 )
                 .offset(y: headFloat ? -14 : 14)
                 .animation(
