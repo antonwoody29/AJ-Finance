@@ -618,12 +618,12 @@ struct SettingsView: View {
                         Text("Best streak: \(appState.highestStreak) days")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.ajOrange)
-                        if appState.evolutionLevel < 4 {
-                            Text("Next evolution at \(appState.nextEvolutionStreak) days")
+                        if appState.animalGrowthStage < 2 {
+                            Text(appState.nextEvolutionProgress)
                                 .font(.system(size: 11))
                                 .foregroundColor(.white.opacity(0.45))
                         } else {
-                            Text("Maximum evolution reached! 👑")
+                            Text("Maximum evolution reached!")
                                 .font(.system(size: 11))
                                 .foregroundColor(.ajGold)
                         }

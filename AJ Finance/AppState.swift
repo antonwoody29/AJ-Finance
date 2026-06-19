@@ -46,6 +46,7 @@ final class AppState {
 
     // MARK: - Evolution System (UserDefaults)
     var highestStreak: Int = 0         // best streak ever, never decreases
+    var goalsCompletedCount: Int = 0   // cumulative completed goals, never decreases
 
     // MARK: - Accountability Messages (UserDefaults)
     var accountabilityMessages: [String] = []
@@ -203,30 +204,59 @@ final class AppState {
 
     // MARK: - Evolution
 
-    var evolutionLevel: Int {
-        if highestStreak >= 365 { return 4 }
-        if highestStreak >= 180 { return 3 }
-        if highestStreak >= 90  { return 2 }
-        if highestStreak >= 30  { return 1 }
+    // 0 = egg, 1 = baby, 2 = adult (full form)
+    var animalGrowthStage: Int {
+        // Adult: 10+ completed goals AND $2,000+ total saved
+        if goalsCompletedCount >= 10 && totalSaved >= 2000 { return 2 }
+        // Baby: 14-day streak AND $200+ saved
+        if highestStreak >= 14 && totalSaved >= 200 { return 1 }
+        // Egg: default starting form
         return 0
     }
 
+    var evolutionLevel: Int {
+        // Maps growth stage to a numeric level for badges/titles
+        switch animalGrowthStage {
+        case 2: return 2
+        case 1: return 1
+        default: return 0
+        }
+    }
+
     var evolutionTitle: String {
-        ["Beginner", "Evolved", "Rare", "Epic", "Legendary"][evolutionLevel]
+        ["Egg", "Baby", "Full Form"][evolutionLevel]
     }
 
     var evolutionEmoji: String {
-        ["🥚", "🌟", "⚡", "💎", "👑"][evolutionLevel]
+        ["🥚", "🐣", "⭐"][evolutionLevel]
     }
 
-    var nextEvolutionStreak: Int {
-        [30, 30, 90, 180, 365][evolutionLevel]
-    }
-
-    // 0 = egg, 1 = baby, 2 = adult
-    var animalGrowthStage: Int {
-        if evolutionLevel >= 1 { return 2 }
-        return 1  // everyone starts at baby (stage 1); egg is sign-in only
+    // How far until next evolution (used in UI progress indicators)
+    var nextEvolutionProgress: String {
+        switch animalGrowthStage {
+        case 0:
+            let streakLeft = max(0, 14 - highestStreak)
+            let savingsLeft = max(0, 200 - totalSaved)
+            if streakLeft > 0 && savingsLeft > 0 {
+                return "\(streakLeft)d streak + $\(Int(savingsLeft)) more"
+            } else if streakLeft > 0 {
+                return "\(streakLeft) more days streak"
+            } else {
+                return "$\(Int(savingsLeft)) more to save"
+            }
+        case 1:
+            let goalsLeft = max(0, 10 - goalsCompletedCount)
+            let savingsLeft = max(0, 2000 - totalSaved)
+            if goalsLeft > 0 && savingsLeft > 0 {
+                return "\(goalsLeft) goals + $\(Int(savingsLeft)) more"
+            } else if goalsLeft > 0 {
+                return "\(goalsLeft) more goals"
+            } else {
+                return "$\(Int(savingsLeft)) more to save"
+            }
+        default:
+            return "Max form reached!"
+        }
     }
 
     var equippedOutfit: OutfitItem? {
@@ -804,6 +834,7 @@ final class AppState {
     }
 
     func triggerGoalComplete(_ goal: SavingsGoal) {
+        goalsCompletedCount += 1
         setMood(.hype)
         isHypeDancing = true
         currentSpeech = accountabilityMode.goalCompleteReaction()
@@ -1093,6 +1124,7 @@ final class AppState {
         var equippedOutfitId: String?
         var isPIPMode: Bool
         var trips: [Trip]
+        var goalsCompletedCount: Int
     }
 
     private let saveKey = "AJFinanceData_v3"
@@ -1160,7 +1192,8 @@ final class AppState {
         UserDefaults.standard.set(isKidMode, forKey: "aj_kidMode")
         UserDefaults.standard.set(kidModePin, forKey: "aj_kidPin")
         // Evolution + extras
-        UserDefaults.standard.set(highestStreak, forKey: "aj_highStreak")
+        UserDefaults.standard.set(highestStreak,       forKey: "aj_highStreak")
+        UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
         UserDefaults.standard.set(accountabilityMessages, forKey: "aj_messages")
         UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
         saveFoodState()
@@ -1178,7 +1211,7 @@ final class AppState {
             animalDeathCount: animalDeathCount, lastHealthDecayDate: lastHealthDecayDate,
             animalCoins: animalCoins, ownedOutfitIds: ownedOutfitIds,
             equippedOutfitId: equippedOutfitId, isPIPMode: isPIPMode,
-            trips: trips
+            trips: trips, goalsCompletedCount: goalsCompletedCount
         )
         if let encoded = try? JSONEncoder().encode(data) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
@@ -1268,7 +1301,8 @@ final class AppState {
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
         needsDailyFoodCheck = UserDefaults.standard.bool(forKey: "aj_needsFood")
-        highestStreak = UserDefaults.standard.integer(forKey: "aj_highStreak")
+        highestStreak       = UserDefaults.standard.integer(forKey: "aj_highStreak")
+        goalsCompletedCount = UserDefaults.standard.integer(forKey: "aj_goalsCompleted")
         accountabilityMessages = UserDefaults.standard.stringArray(forKey: "aj_messages") ?? []
         cryptoWatchlistIds = UserDefaults.standard.stringArray(forKey: "aj_cryptoWatch") ?? []
 
@@ -1279,6 +1313,9 @@ final class AppState {
         userName = d.userName
         hasCompletedOnboarding = d.hasCompletedOnboarding
         goals = d.goals; transactions = d.transactions; badges = d.badges
+        // Migration: if goalsCompletedCount wasn't saved yet, count from completed goals
+        let countFromGoals = d.goals.filter { $0.completedDate != nil }.count
+        goalsCompletedCount = max(goalsCompletedCount, d.goalsCompletedCount, countFromGoals)
         xp = d.xp; level = d.level; streak = d.streak; receiptCount = d.receiptCount
         lastLogDate = d.lastLogDate
         accountabilityMode = d.accountabilityMode; ajPersonality = d.ajPersonality
