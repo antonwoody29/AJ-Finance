@@ -34,7 +34,7 @@ struct FloatingAnimalHead: View {
 
             if evolutionStage == 0 {
                 // Show the whole egg, scaled down to fit comfortably inside the circle
-                AnimalCanvas(type: type, mood: mood, size: cropSize * 0.72,
+                AnimalCanvas(type: type, mood: mood, size: cropSize * 0.92,
                              isWalking: false, evolutionStage: 0)
                     .frame(width: cropSize, height: cropSize)
                     .clipShape(Circle())
