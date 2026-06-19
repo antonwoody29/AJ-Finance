@@ -68,15 +68,16 @@ struct SignInView: View {
     @State private var showEmailAuth  = false
 
     // (animal, mood, evolutionStage) — alternates between egg (0) and adult (2)
+    // Note: unicorn (horn) and kangaroo (ears) extend far above canvas so swapped for clean-crop animals
     private let teaserPairs: [(AnimalType, AJMood, Int)] = [
         (.grasshopper, .hype,  0),
         (.tiger,       .hype,  2),
         (.panda,       .sad,   0),
         (.bee,         .sleep, 2),
         (.lion,        .angry, 0),
-        (.unicorn,     .hype,  2),
+        (.wolf,        .hype,  2),
         (.fox,         .hype,  0),
-        (.kangaroo,    .hype,  2),
+        (.snowLeopard, .hype,  2),
         (.dragon,      .angry, 0),
         (.spider,      .hype,  2),
     ]
@@ -124,8 +125,8 @@ struct SignInView: View {
                     type:           currentPair.0,
                     mood:           currentPair.1,
                     evolutionStage: currentPair.2,
-                    cropSize:       185,
-                    canvasSize:     300
+                    cropSize:       220,
+                    canvasSize:     260
                 )
                 .offset(y: headFloat ? -14 : 14)
                 .animation(
