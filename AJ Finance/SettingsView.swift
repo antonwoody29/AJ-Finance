@@ -67,6 +67,9 @@ struct SettingsView: View {
                     // Stats
                     statsCard
 
+                    // Notification test
+                    notificationTestCard
+
                     // Data Export
                     dataExportCard
 
@@ -631,23 +634,35 @@ struct SettingsView: View {
                     Spacer()
                 }
 
-                // Evolution tier timeline
+                // Evolution tier timeline — 3 actual stages
+                let stages: [(emoji: String, label: String, req: String)] = [
+                    ("🥚", "Egg",       "Starting form"),
+                    ("🐣", "Baby",      "14d streak + $200"),
+                    ("⭐", "Full Form", "10 goals + $2,000"),
+                ]
                 HStack(spacing: 0) {
-                    ForEach(Array(zip(["🥚","🌟","⚡","💎","👑"], ["Start","30d","90d","180d","365d"])), id: \.1) { emoji, label in
+                    ForEach(Array(stages.enumerated()), id: \.offset) { idx, stage in
                         VStack(spacing: 4) {
-                            Text(emoji)
-                                .font(.system(size: appState.evolutionLevel >= ["🥚","🌟","⚡","💎","👑"].firstIndex(of: emoji)! ? 18 : 14))
-                                .opacity(appState.evolutionLevel >= ["🥚","🌟","⚡","💎","👑"].firstIndex(of: emoji)! ? 1.0 : 0.35)
-                            Text(label)
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.40))
+                            Text(stage.emoji)
+                                .font(.system(size: appState.animalGrowthStage == idx ? 26 : 18))
+                                .scaleEffect(appState.animalGrowthStage == idx ? 1.15 : 1.0)
+                                .opacity(appState.animalGrowthStage >= idx ? 1.0 : 0.28)
+                                .animation(.spring(response: 0.4), value: appState.animalGrowthStage)
+                            Text(stage.label)
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(appState.animalGrowthStage >= idx ? .white : .white.opacity(0.30))
+                            Text(stage.req)
+                                .font(.system(size: 8))
+                                .foregroundColor(.white.opacity(0.35))
+                                .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
-                        if label != "365d" {
+                        if idx < stages.count - 1 {
                             Rectangle()
-                                .fill(Color.white.opacity(0.15))
-                                .frame(height: 1)
-                                .padding(.bottom, 12)
+                                .fill(appState.animalGrowthStage > idx ? Color.ajOrange.opacity(0.6) : Color.white.opacity(0.12))
+                                .frame(height: 2)
+                                .padding(.bottom, 20)
+                                .animation(.easeInOut(duration: 0.4), value: appState.animalGrowthStage)
                         }
                     }
                 }
@@ -789,6 +804,53 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - Notification Test
+
+    @State private var notifTestFired = false
+
+    private var notificationTestCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("NOTIFICATIONS")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                Text("Fire 5 sample notifications starting in 6 seconds. Close the app immediately after tapping to see them arrive.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.6))
+
+                Button {
+                    NotificationManager.scheduleTestBurst(animalName: appState.selectedAnimal.rawValue)
+                    notifTestFired = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 35) { notifTestFired = false }
+                } label: {
+                    HStack {
+                        Image(systemName: notifTestFired ? "checkmark.circle.fill" : "bell.badge.fill")
+                        Text(notifTestFired ? "Notifications scheduled! Close the app now 👇" : "Test Notifications")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundColor(notifTestFired ? .ajGold : .black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        Group {
+                            if notifTestFired {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.ajGold.opacity(0.2))
+                                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.ajGold.opacity(0.5), lineWidth: 1.5))
+                            } else {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
+                            }
+                        }
+                    )
+                }
+                .disabled(notifTestFired)
+            }
+        }
+    }
+
     // MARK: - Data Export
 
     private var dataExportCard: some View {
@@ -857,6 +919,29 @@ struct SettingsView: View {
                     Spacer()
                     Text("👤").font(.system(size: 22))
                 }
+
+                // Replay onboarding — useful to see the new goal page with presets
+                Button {
+                    appState.hasCompletedOnboarding = false
+                    appState.save()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("Replay Setup / Onboarding")
+                            .font(.system(size: 15, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.08))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.2), lineWidth: 1))
+                    )
+                }
+                .buttonStyle(.plain)
+
                 Button {
                     appState.signOut()
                 } label: {

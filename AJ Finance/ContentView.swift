@@ -61,7 +61,7 @@ struct ContentView: View {
                     NavigationStack { GamesView() }
                         .transition(.opacity)
                 case 5:
-                    NavigationStack { TripModeView() }
+                    NavigationStack { HealthView() }
                         .transition(.opacity)
                 default:
                     NavigationStack { SettingsView() }
@@ -122,7 +122,7 @@ private struct AJTabBar: View {
         .init(label: "Spend",    icon: "creditcard",                activeIcon: "creditcard.fill"),
         .init(label: "Markets",  icon: "chart.line.uptrend.xyaxis", activeIcon: "chart.line.uptrend.xyaxis"),
         .init(label: "Games",    icon: "gamecontroller",            activeIcon: "gamecontroller.fill"),
-        .init(label: "Trips",    icon: "airplane",                  activeIcon: "airplane"),
+        .init(label: "Health",   icon: "heart",                     activeIcon: "heart.fill"),
         .init(label: "Settings", icon: "gearshape",                 activeIcon: "gearshape.fill")
     ]
 

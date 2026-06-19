@@ -54,6 +54,15 @@ final class AppState {
     // MARK: - Markets (UserDefaults)
     var cryptoWatchlistIds: [String] = []
 
+    // MARK: - Health & Gym
+    var gymStreak: Int = 0
+    var lastGymDate: Date? = nil
+    var gymStreakRewardsClaimed: [Int] = []   // milestone days: 3, 7, 30, 60, 90
+    var currentWeight: Double = 0            // lbs, 0 = not set
+    var startingWeight: Double = 0           // lbs at first entry
+    var targetWeight: Double = 0             // user's goal weight
+    var weightLossRewardsClaimed: [Int] = [] // lbs lost milestones: 5, 10, 20, 25
+
     // MARK: - AJ State
     var currentMood: AJMood = .neutral
     var currentSpeech: String = "Hey! Welcome to your world 🌍"
@@ -863,6 +872,9 @@ final class AppState {
             let aggressiveMood: AJMood = accountabilityMode == .noCapSavage ? .angry : .sad
             setMood(aggressiveMood, speech: accountabilityMode.bigSpendReaction(amount: tx.amount))
             showToast("AJ noticed that \(String(format: "$%.0f", tx.amount)) spend 👀", icon: "👀", color: .ajOrangeRed)
+            if tx.amount >= 100 {
+                NotificationManager.triggerLargePurchase(amount: tx.amount, animalName: selectedAnimal.rawValue)
+            }
             Task {
                 try? await Task.sleep(for: .seconds(4))
                 setMood(.neutral)
@@ -960,6 +972,114 @@ final class AppState {
         save()
     }
 
+    // MARK: - Gym & Health
+
+    func logWorkout() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+
+        if let last = lastGymDate, cal.startOfDay(for: last) == today { return } // already logged today
+
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        if let last = lastGymDate, cal.startOfDay(for: last) == yesterday {
+            gymStreak += 1
+        } else if lastGymDate == nil || cal.startOfDay(for: lastGymDate!) < yesterday {
+            gymStreak = 1
+        }
+        lastGymDate = Date()
+
+        // Daily animal rewards
+        boostHealth(by: 2)
+        animalFood = min(100, animalFood + 5)
+        earnXP(8)
+        earnCoins(3)
+        setMood(.hype, speech: gymWorkoutSpeeches.randomElement() ?? "GYM DAY! LET'S GOOO 💪")
+        showToast("Workout logged! 💪 +3🪙 +2❤️", icon: "🏋️", color: Color(red: 0.4, green: 0.76, blue: 1.0))
+
+        // Milestone rewards
+        checkGymMilestones()
+        save()
+    }
+
+    private let gymWorkoutSpeeches = [
+        "GYM DAY! LET'S GET IT 💪🔥",
+        "YOU SHOWED UP. That's already a W 🏆",
+        "Sweat equity bestie! The gains are real 💪",
+        "Look at you being disciplined and everything 🌟",
+        "Body and bank account both getting gains 💪💰",
+        "Gym streak activated! Keep going 🔥",
+        "OKAY fitness bestie I SEE YOU 👀",
+        "You're literally built different. Gym AND savings? 💅",
+        "Physical gains, financial gains, we winning on all fronts 🏆",
+        "The version of you who skips is NOT here today 🔥",
+    ]
+
+    private func checkGymMilestones() {
+        let milestones: [(Int, Int, String)] = [
+            (3,  25,  "3-Day Gym Streak! 🔥 +25🪙"),
+            (7,  75,  "7-Day Gym Streak! WEEK WARRIOR 🏆 +75🪙"),
+            (30, 200, "30-Day Gym Streak! BEAST MODE 💪 +200🪙"),
+            (60, 400, "60-Day Gym Streak! LEGEND STATUS 🌟 +400🪙"),
+            (90, 0,   "90-Day Gym Streak! ANIMAL EVOLVED 🔥"),
+        ]
+        for (days, coins, msg) in milestones {
+            guard gymStreak >= days, !gymStreakRewardsClaimed.contains(days) else { continue }
+            gymStreakRewardsClaimed.append(days)
+            if days == 90 {
+                goalsCompletedCount = max(goalsCompletedCount, 10)
+                UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
+                showToast(msg, icon: "⭐", color: .ajGold)
+            } else {
+                earnCoins(coins)
+                showToast(msg, icon: "🏋️", color: Color(red: 0.4, green: 0.76, blue: 1.0))
+            }
+        }
+    }
+
+    func logWeight(_ lbs: Double) {
+        if startingWeight == 0 { startingWeight = lbs }
+        currentWeight = lbs
+        checkWeightMilestones()
+        save()
+    }
+
+    private func checkWeightMilestones() {
+        guard startingWeight > 0, currentWeight > 0 else { return }
+        let lost = startingWeight - currentWeight
+        guard lost > 0 else { return }
+
+        let milestones: [(Int, String)] = [
+            (5,  "Lost 5 lbs! 🎉 Animal fed!"),
+            (10, "Lost 10 lbs! Animal growing! 🌟"),
+            (20, "Lost 20 lbs! Outfit coins earned! 💪"),
+            (25, "Lost 25 lbs! FINAL FORM UNLOCKED 🏆"),
+        ]
+        for (lbsMilestone, msg) in milestones {
+            guard Int(lost) >= lbsMilestone, !weightLossRewardsClaimed.contains(lbsMilestone) else { continue }
+            weightLossRewardsClaimed.append(lbsMilestone)
+            switch lbsMilestone {
+            case 5:
+                animalFood = min(100, animalFood + 30)
+                earnCoins(50)
+                showToast(msg, icon: "🥗", color: Color(red: 0.4, green: 0.76, blue: 1.0))
+            case 10:
+                highestStreak = max(highestStreak, 14)
+                UserDefaults.standard.set(highestStreak, forKey: "aj_highStreak")
+                earnCoins(100)
+                showToast(msg, icon: "🌟", color: .ajGold)
+            case 20:
+                earnCoins(200)
+                showToast(msg, icon: "💪", color: .ajGold)
+            case 25:
+                goalsCompletedCount = max(goalsCompletedCount, 10)
+                UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
+                earnCoins(300)
+                showToast(msg, icon: "🏆", color: .ajGold)
+            default: break
+            }
+        }
+    }
+
     // MARK: - Streak
 
     func updateStreak() {
@@ -971,10 +1091,12 @@ final class AppState {
                 streak += 1
                 if streak == 3  {
                     setMood(.happy, speech: AppState.streakMilestoneGreeting(3))
+                    NotificationManager.triggerStreak(days: 3, animalName: selectedAnimal.rawValue)
                 }
                 if streak == 7  {
                     showToast("🔥 7-Day Streak! Keep it up!", icon: "🔥", color: .ajOrange)
                     setMood(.hype, speech: AppState.streakMilestoneGreeting(7))
+                    NotificationManager.triggerStreak(days: 7, animalName: selectedAnimal.rawValue)
                 }
                 if streak == 14 {
                     showToast("⚡ 14-Day Streak! Two weeks strong!", icon: "⚡", color: .ajOrange)
@@ -984,6 +1106,7 @@ final class AppState {
                     showToast("🌟 30-Day Streak! FIRST EVOLUTION unlocked!", icon: "🌟", color: .ajGold)
                     setMood(.hype, speech: AppState.streakMilestoneGreeting(30))
                     checkEvolutionMilestones()
+                    NotificationManager.triggerStreak(days: 30, animalName: selectedAnimal.rawValue)
                 }
                 if streak == 50 {
                     showToast("🔥 50-Day Streak! Half a hundo!", icon: "🔥", color: .ajGold)
@@ -1014,6 +1137,7 @@ final class AppState {
             } else {
                 streak = 1
                 showToast("Streak reset... fresh start today 💪", icon: "💙", color: Color(red: 0.267, green: 0.533, blue: 1.0))
+                NotificationManager.triggerStreakBroken(animalName: selectedAnimal.rawValue)
             }
         } else {
             streak = 1
@@ -1125,6 +1249,13 @@ final class AppState {
         var isPIPMode: Bool
         var trips: [Trip]
         var goalsCompletedCount: Int
+        var gymStreak: Int
+        var lastGymDate: Date?
+        var gymStreakRewardsClaimed: [Int]
+        var currentWeight: Double
+        var startingWeight: Double
+        var targetWeight: Double
+        var weightLossRewardsClaimed: [Int]
     }
 
     private let saveKey = "AJFinanceData_v3"
@@ -1211,7 +1342,12 @@ final class AppState {
             animalDeathCount: animalDeathCount, lastHealthDecayDate: lastHealthDecayDate,
             animalCoins: animalCoins, ownedOutfitIds: ownedOutfitIds,
             equippedOutfitId: equippedOutfitId, isPIPMode: isPIPMode,
-            trips: trips, goalsCompletedCount: goalsCompletedCount
+            trips: trips, goalsCompletedCount: goalsCompletedCount,
+            gymStreak: gymStreak, lastGymDate: lastGymDate,
+            gymStreakRewardsClaimed: gymStreakRewardsClaimed,
+            currentWeight: currentWeight, startingWeight: startingWeight,
+            targetWeight: targetWeight,
+            weightLossRewardsClaimed: weightLossRewardsClaimed
         )
         if let encoded = try? JSONEncoder().encode(data) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
@@ -1327,5 +1463,12 @@ final class AppState {
         animalCoins = d.animalCoins; ownedOutfitIds = d.ownedOutfitIds
         equippedOutfitId = d.equippedOutfitId; isPIPMode = d.isPIPMode
         trips = d.trips
+        gymStreak = d.gymStreak
+        lastGymDate = d.lastGymDate
+        gymStreakRewardsClaimed = d.gymStreakRewardsClaimed
+        currentWeight = d.currentWeight
+        startingWeight = d.startingWeight
+        targetWeight = d.targetWeight
+        weightLossRewardsClaimed = d.weightLossRewardsClaimed
     }
 }

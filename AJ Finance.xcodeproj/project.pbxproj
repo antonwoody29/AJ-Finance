@@ -6,8 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E53C1E202FDD9000004F8046 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E53C1E212FDD9000004F8046 /* HealthKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E53C1E0F2FDD8FB4004F8046 /* AJ Finance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AJ Finance.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E53C1E212FDD9000004F8046 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -23,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E53C1E202FDD9000004F8046 /* HealthKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -34,6 +40,7 @@
 			children = (
 				E53C1E112FDD8FB4004F8046 /* AJ Finance */,
 				E53C1E102FDD8FB4004F8046 /* Products */,
+				E53C1E212FDD9000004F8046 /* HealthKit.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -247,11 +254,15 @@
 				CODE_SIGN_ENTITLEMENTS = "AJ Finance/AJ Finance.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = AJ;
+				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
+				INFOPLIST_KEY_NSCameraUsageDescription = "AJ Finance uses your camera to scan receipts.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "AJ Finance reads your Apple Health and Apple Watch data to show your activity rings, workouts, heart rate, and weight in the Life & Health tab.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AJ Finance saves your weight entries to Apple Health so they stay in sync.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -291,11 +302,15 @@
 				CODE_SIGN_ENTITLEMENTS = "AJ Finance/AJ Finance.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = AJ;
+				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
+				INFOPLIST_KEY_NSCameraUsageDescription = "AJ Finance uses your camera to scan receipts.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "AJ Finance reads your Apple Health and Apple Watch data to show your activity rings, workouts, heart rate, and weight in the Life & Health tab.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "AJ Finance saves your weight entries to Apple Health so they stay in sync.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

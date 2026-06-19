@@ -8,6 +8,7 @@ struct AddGoalView: View {
     @State private var targetText   = ""
     @State private var selectedEmoji = "🎯"
     @State private var showEmojiPicker = false
+    @FocusState private var amountFocused: Bool
 
     private let emojiOptions = ["🎯","🏠","✈️","🚗","💻","👟","📱","🎮","💍","🎓",
                                  "🏋️","🎸","🌴","💊","🍕","🎉","🐕","📚","🎨","💰",
@@ -96,6 +97,20 @@ struct AddGoalView: View {
                                         .foregroundColor(.white)
                                         .tint(.ajOrange)
                                         .keyboardType(.decimalPad)
+                                        .focused($amountFocused)
+                                    if amountFocused && !targetText.isEmpty {
+                                        Button {
+                                            amountFocused = false
+                                        } label: {
+                                            Text("Done")
+                                                .font(.system(size: 15, weight: .bold))
+                                                .foregroundColor(.black)
+                                                .padding(.horizontal, 14)
+                                                .padding(.vertical, 8)
+                                                .background(RoundedRectangle(cornerRadius: 10).fill(Color.ajOrange))
+                                        }
+                                        .transition(.scale.combined(with: .opacity))
+                                    }
                                 }
                             }
                         }

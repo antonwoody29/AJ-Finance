@@ -3,6 +3,7 @@ import SwiftUI
 struct SpendView: View {
     @Environment(AppState.self) private var appState
     @State private var showScanner = false
+    @State private var showTrips   = false
     @State private var selectedCategory: SpendCategory?
 
     var body: some View {
@@ -10,6 +11,9 @@ struct SpendView: View {
             Color.ajDark.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
+
+                    // Trip budget shortcut — always visible
+                    tripBudgetCard
 
                     if appState.monthlyTransactions.isEmpty {
                         // Rich empty state
@@ -67,6 +71,9 @@ struct SpendView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showScanner) {
             ReceiptScannerView()
+        }
+        .sheet(isPresented: $showTrips) {
+            NavigationStack { TripModeView() }
         }
     }
 
@@ -127,6 +134,38 @@ struct SpendView: View {
             }
         }
         .padding(.top, 20)
+    }
+
+    // MARK: - Trip Budget Card
+
+    private var tripBudgetCard: some View {
+        Button { showTrips = true } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(Color(red: 0.4, green: 0.76, blue: 1.0).opacity(0.18)).frame(width: 44, height: 44)
+                    Text("✈️").font(.system(size: 22))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Trip Budget Mode")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                    Text(appState.trips.first(where: { $0.isActive }).map { "Active: \($0.name)" } ?? "Plan your next trip budget")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.white.opacity(0.3))
+                    .font(.system(size: 13, weight: .semibold))
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(Color.ajCard)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red: 0.4, green: 0.76, blue: 1.0).opacity(0.3), lineWidth: 1))
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private let emptyStatePerks: [(icon: String, title: String, desc: String)] = [

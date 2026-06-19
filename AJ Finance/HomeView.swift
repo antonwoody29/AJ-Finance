@@ -612,11 +612,186 @@ struct HomeView: View {
 
     // MARK: - Touch
 
+    private func contextualTapSpeech() -> String {
+        let hour = Calendar.current.component(.hour, from: Date())
+
+        // Critical health — highest priority
+        if appState.animalHealth < 20 {
+            return [
+                "I'm running on fumes bestie 😰 help me out",
+                "My health is giving… concerning 😟",
+                "Save more money and I'll feel better fr 💔",
+                "Low health era. Not loving it. 😔",
+                "bestie I need you to log something today 🆘"
+            ].randomElement()!
+        }
+
+        // Low food
+        if appState.animalFood < 25 {
+            return [
+                "I'm literally starving rn 😩 log a receipt?",
+                "The hunger is real. The hunger is very real. 🍽️",
+                "bestie I haven't eaten in a hot minute 😭",
+                "Feed me? Log a transaction? Same thing 😂"
+            ].randomElement()!
+        }
+
+        // Mood-specific: sad
+        if appState.animalMood == .sad {
+            return [
+                "Not gonna lie… I'm in my feelings rn 😔",
+                "We've been spending a lot. It's giving worry.",
+                "I believe in us. I just worry sometimes 💙",
+                "We can fix this together bestie. One log at a time.",
+                "Low energy day. But we keep going 💙"
+            ].randomElement()!
+        }
+
+        // Mood-specific: angry
+        if appState.animalMood == .angry {
+            let savage = appState.accountabilityMode == .noCapSavage
+            return savage ? [
+                "I'm not mad. I'm disappointed. Actually I'm mad. 😤",
+                "The budget said no. You said watch me. 😤",
+                "We need to have a CONVERSATION bestie. 🔥",
+                "The spending is giving chaos energy and I don't love it."
+            ].randomElement()! : [
+                "Okay we need to talk about those numbers 👀",
+                "I'm not mad, just… concerned 😤",
+                "Let's refocus bestie. Goals are calling 🎯",
+                "That last spend was a lot. Just saying. 💯"
+            ].randomElement()!
+        }
+
+        // Mood: hype
+        if appState.animalMood == .hype {
+            return [
+                "WE ARE IN OUR WINNING ERA 🔥🔥🔥",
+                "THE NUMBERS ARE MOVING BESTIE LET'S GOOO 💰",
+                "I AM SO HYPED FOR US RIGHT NOW 🎉",
+                "We cooking. We really cooking fr 🍳🔥",
+                "Future us is rich and it starts TODAY ⭐"
+            ].randomElement()!
+        }
+
+        // Mood: sleep
+        if appState.animalMood == .sleep {
+            return [
+                "zzzz… huh? oh! hey 👀",
+                "I was literally just napping 😴",
+                "You woke me up for this? I respect it 😂",
+                "Sleep era. Financial rest. 😴",
+                "Okay I'm up I'm up 😭"
+            ].randomElement()!
+        }
+
+        // Streak reactions
+        if appState.streak == 0 {
+            return [
+                "Okay new day new bag. Streak starts NOW 🔥",
+                "The streak broke but we don't break 💙",
+                "Reset. Reload. We back. 👊",
+                "Zero streak? Nah. Log something today 👀",
+                "The comeback starts right here bestie 🌟"
+            ].randomElement()!
+        }
+
+        if appState.streak >= 14 {
+            return [
+                "TWO WEEKS STRAIGHT?? You're literally that girl/guy 🔥",
+                "\(appState.streak) days?? I'm not crying you're crying 🥺",
+                "The streak is ELITE and so are you 💙",
+                "We have been CONSISTENT and I am PROUD 🎉",
+                "\(appState.streak) day streak. Let's keep this energy fr 🔥"
+            ].randomElement()!
+        }
+
+        if appState.streak >= 7 {
+            return [
+                "\(appState.streak) days in and we're locked in 🔥",
+                "One whole week bestie! The streak is alive 💙",
+                "7+ days of not being a financial menace 🎉",
+                "We locked in fr. Don't stop now 🔥"
+            ].randomElement()!
+        }
+
+        // Savings milestones
+        if appState.totalSaved >= 1000 {
+            return [
+                "BESTIE WE SAVED OVER $\(Int(appState.totalSaved)) 😭🎉",
+                "Four digits in the savings? LETS GOOO 💰",
+                "$\(Int(appState.totalSaved)) saved and counting. We're literally winning.",
+                "The bag? Secured. 💼"
+            ].randomElement()!
+        }
+
+        if appState.totalSaved > 0 && appState.totalSaved < 50 {
+            return [
+                "Every dollar counts bestie 💙 Keep going!",
+                "$\(Int(appState.totalSaved)) saved so far. Small but mighty 🌱",
+                "The journey starts with one dollar. You got this 💪",
+                "Saving era. We're in it. 🐣"
+            ].randomElement()!
+        }
+
+        // Time-of-day
+        if hour < 7 {
+            return [
+                "You're up early?? Main character behavior 💙",
+                "Up before the algorithm. Respect. 🌅",
+                "Early bird gets the savings fr 🌞",
+                "0\(hour):\(String(format: "%02d", Calendar.current.component(.minute, from: Date()))) and you're already on it? Love that."
+            ].randomElement()!
+        }
+        if hour >= 22 {
+            return [
+                "Late night check-in. I respect the commitment 🌙",
+                "Midnight finance energy. Unhinged but valid 💙",
+                "You should probably be asleep bestie 😴",
+                "Night owl hours. The streak is safe though 🔥"
+            ].randomElement()!
+        }
+
+        // AccountabilityMode-flavored generics
+        switch appState.accountabilityMode {
+        case .noCapSavage:
+            return [
+                "I was minding my business fr 😭",
+                "You need accountability or just chaos? Both?",
+                "No cap you're either winning or explaining yourself 💯",
+                "Zero filter: tap me again and log a transaction 👀"
+            ].randomElement()!
+        case .keepItReal:
+            return [
+                "Real talk — how are the savings looking? 💯",
+                "No judgment. But also… how we doing on goals? 👀",
+                "Keeping it real: I see you. And I support you 💙",
+                "You got this. Also log your receipts. 😏"
+            ].randomElement()!
+        case .chillVibes:
+            return [
+                "Hey bestie 🌊 All good energy today",
+                "Chill check-in 💙 You're doing amazing",
+                "Good vibes only. Also maybe save a little? ✨",
+                "No pressure. Just love 🌊"
+            ].randomElement()!
+        }
+    }
+
     private func handleTap() {
         guard appState.animalIsAlive else { return }
         UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         appState.earnCoins(1)
-        appState.currentSpeech = tapSpeeches.randomElement() ?? "Hey! 👋"
+        // 40% chance of contextual speech, 60% personality tap pool
+        let useContextual = Double.random(in: 0...1) < 0.40
+            || appState.animalHealth < 20
+            || appState.animalFood < 25
+            || appState.animalMood == .sad
+            || appState.animalMood == .angry
+            || appState.streak == 0
+        appState.currentSpeech = useContextual
+            ? contextualTapSpeech()
+            : (tapSpeeches.randomElement() ?? "Hey! 👋")
         showBubble()
         burstCoins(1)
         resetBehavior()

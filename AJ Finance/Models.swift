@@ -830,6 +830,7 @@ enum SpendCategory: String, CaseIterable, Codable, Identifiable {
     case entertainment = "Entertainment"
     case coffee        = "Coffee"
     case health        = "Health"
+    case travel        = "Travel"
     case other         = "Other"
     var id: String { rawValue }
 
@@ -841,6 +842,7 @@ enum SpendCategory: String, CaseIterable, Codable, Identifiable {
         case .entertainment: return "🎬"
         case .coffee:        return "☕"
         case .health:        return "💊"
+        case .travel:        return "✈️"
         case .other:         return "📦"
         }
     }
@@ -853,6 +855,7 @@ enum SpendCategory: String, CaseIterable, Codable, Identifiable {
         case .entertainment: return Color(red: 0.588, green: 0.808, blue: 0.706)
         case .coffee:        return Color(red: 0.996, green: 0.792, blue: 0.341)
         case .health:        return Color(red: 1.0,   green: 0.624, blue: 0.953)
+        case .travel:        return Color(red: 0.4,   green: 0.76,  blue: 1.0)
         case .other:         return Color(red: 0.635, green: 0.608, blue: 0.996)
         }
     }
