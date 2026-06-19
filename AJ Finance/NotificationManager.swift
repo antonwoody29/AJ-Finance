@@ -301,13 +301,13 @@ final class AJNotificationDelegate: NSObject, UNUserNotificationCenterDelegate {
 
     static let shared = AJNotificationDelegate()
 
-    // Show notifications even when app is in foreground
+    // Suppress banner/sound when app is in foreground — only update badge count silently
     func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler handler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        handler([.banner, .sound, .badge])
+        handler([.badge])
     }
 
     // Handle tap — could deep-link in the future
