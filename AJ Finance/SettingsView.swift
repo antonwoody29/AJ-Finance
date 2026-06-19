@@ -6,79 +6,78 @@ struct SettingsView: View {
     @State private var showAnimalSelection = false
     @State private var showOutfitShop      = false
     @State private var testMood: AJMood?
+    @State private var showDeleteConfirm   = false
 
     var body: some View {
-        ZStack {
-            Color.ajDark.ignoresSafeArea()
-            ScrollView {
-                VStack(spacing: 20) {
+        ScrollView {
+            VStack(spacing: 20) {
 
-                    // Animal companion card
-                    animalCard
+                // Animal companion card
+                animalCard
 
-                    // AJ mood tester
-                    moodTesterCard
+                // AJ mood tester
+                moodTesterCard
 
-                    // Accountability mode
-                    accountabilityCard
+                // Accountability mode
+                accountabilityCard
 
-                    // Personality
-                    personalityCard
+                // Personality
+                personalityCard
 
-                    // Notifications
-                    notificationCard
+                // Notifications
+                notificationCard
 
-                    // Badge collection link
-                    AJCard {
-                        Button {
-                            showBadges = true
-                        } label: {
-                            HStack(spacing: 14) {
-                                Text("🏆")
-                                    .font(.system(size: 28))
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("Badge Collection")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(.white)
-                                    Text("\(appState.badges.count) of \(BadgeType.allCases.count) earned")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.5))
-                                }
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundColor(.ajOrange)
+                // Badge collection link
+                AJCard {
+                    Button {
+                        showBadges = true
+                    } label: {
+                        HStack(spacing: 14) {
+                            Text("🏆")
+                                .font(.system(size: 28))
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Badge Collection")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(.white)
+                                Text("\(appState.badges.count) of \(BadgeType.allCases.count) earned")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white.opacity(0.5))
                             }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(.ajOrange)
                         }
-                        .buttonStyle(.plain)
                     }
-
-                    // Family / Kid Mode
-                    familyCard
-
-                    // Daily Budget
-                    dailyBudgetCard
-
-                    // Evolution progress
-                    evolutionCard
-
-                    // Accountability Messages
-                    accountabilityMessagesCard
-
-                    // Stats
-                    statsCard
-
-                    // Notification test
-                    notificationTestCard
-
-                    // Data Export
-                    dataExportCard
-
-                    // Sign Out
-                    signOutCard
+                    .buttonStyle(.plain)
                 }
-                .padding(20)
+
+                // Family / Kid Mode
+                familyCard
+
+                // Daily Budget
+                dailyBudgetCard
+
+                // Evolution progress
+                evolutionCard
+
+                // Accountability Messages
+                accountabilityMessagesCard
+
+                // Stats
+                statsCard
+
+                // Notification test
+                notificationTestCard
+
+                // Data Export
+                dataExportCard
+
+                // Account (sign out + delete)
+                signOutCard
             }
+            .padding(20)
         }
+        .background(Color.ajDark.ignoresSafeArea())
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
         .navigationDestination(isPresented: $showBadges) {
@@ -910,7 +909,7 @@ struct SettingsView: View {
 
     private var signOutCard: some View {
         AJCard {
-            VStack(spacing: 14) {
+            VStack(spacing: 12) {
                 HStack {
                     Text("ACCOUNT")
                         .font(.system(size: 11, weight: .black))
@@ -920,7 +919,6 @@ struct SettingsView: View {
                     Text("👤").font(.system(size: 22))
                 }
 
-                // Replay onboarding — useful to see the new goal page with presets
                 Button {
                     appState.hasCompletedOnboarding = false
                     appState.save()
@@ -961,6 +959,38 @@ struct SettingsView: View {
                     )
                 }
                 .buttonStyle(.plain)
+
+                Button {
+                    showDeleteConfirm = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "trash.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text("Delete Account")
+                            .font(.system(size: 15, weight: .black))
+                    }
+                    .foregroundColor(.red)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.red.opacity(0.08))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.red.opacity(0.3), lineWidth: 1.5))
+                    )
+                }
+                .buttonStyle(.plain)
+                .confirmationDialog(
+                    "Delete Account",
+                    isPresented: $showDeleteConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("Delete Everything", role: .destructive) {
+                        appState.deleteAccount()
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("This will permanently erase all your data — goals, transactions, streaks, and your animal. This cannot be undone.")
+                }
             }
         }
     }

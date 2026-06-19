@@ -1384,6 +1384,49 @@ final class AppState {
         UserDefaults.standard.set("",    forKey: "aj_appleUserID")
     }
 
+    func deleteAccount() {
+        // Wipe all persisted data
+        if let bundleID = Bundle.main.bundleIdentifier {
+            UserDefaults.standard.removePersistentDomain(forName: bundleID)
+        }
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        // Reset all in-memory state
+        userName                  = ""
+        hasCompletedOnboarding    = false
+        isLoggedIn                = false
+        appleUserID               = ""
+        appleUserName             = ""
+        goals                     = []
+        transactions              = []
+        badges                    = []
+        xp                        = 0
+        level                     = 1
+        streak                    = 0
+        highestStreak             = 0
+        receiptCount              = 0
+        lastLogDate               = nil
+        accountabilityMode        = .chillVibes
+        ajPersonality             = .hypeCoach
+        reminderEnabled           = true
+        reminderHour              = 20
+        reminderMinute            = 0
+        selectedAnimal            = .tiger
+        animalHealth              = 100
+        animalIsAlive             = true
+        animalDeathCount          = 0
+        animalCoins               = 0
+        ownedOutfitIds            = []
+        equippedOutfitId          = nil
+        trips                     = []
+        goalsCompletedCount       = 0
+        gymStreak                 = 0
+        lastGymDate               = nil
+        currentWeight             = 0
+        startingWeight            = 0
+        targetWeight              = 0
+        accountabilityMessages    = []
+    }
+
     // MARK: - Email auth
 
     /// Creates an email account. Returns a user-facing error string, or nil on success.
