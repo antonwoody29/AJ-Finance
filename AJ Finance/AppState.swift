@@ -85,6 +85,7 @@ final class AppState {
     var rarePetTokens: Int = 0
     var unlockedCompanions: Set<String> = []        // rawValues that reached Final Form
     var evolutionGemsAwarded: [String: Int] = [:]   // companion rawValue → highest stage awarded
+    var companionTxCounts: [String: Int] = [:]      // rawValue → transactions logged with this companion
 
     // MARK: - Toast Queue
     var toasts: [ToastMessage] = []
@@ -225,9 +226,9 @@ final class AppState {
         if goalsCompletedCount >= 10 && totalSaved >= 2000 { return 3 }
         // Teen: 14-day streak AND $200+ saved
         if highestStreak >= 14 && totalSaved >= 200 { return 2 }
-        // Baby: hatched after first transaction logged
-        if !transactions.isEmpty { return 1 }
-        // Egg: starting state
+        // Baby: at least 1 transaction logged WHILE this companion is active
+        if (companionTxCounts[selectedAnimal.rawValue] ?? 0) > 0 { return 1 }
+        // Egg: no transactions yet with this companion
         return 0
     }
 
@@ -349,6 +350,7 @@ final class AppState {
             gems -= cost
         }
         selectedAnimal = animal
+        // New companions always start as egg (count defaults to 0 if never started)
         save()
         checkEvolutionRewards()
         return true
@@ -360,6 +362,9 @@ final class AppState {
         UserDefaults.standard.set(Array(unlockedCompanions), forKey: "aj_unlockedCompanions")
         if let data = try? JSONEncoder().encode(evolutionGemsAwarded) {
             UserDefaults.standard.set(data, forKey: "aj_evolutionGemsAwarded")
+        }
+        if let data = try? JSONEncoder().encode(companionTxCounts) {
+            UserDefaults.standard.set(data, forKey: "aj_companionTxCounts")
         }
     }
 
@@ -960,6 +965,7 @@ final class AppState {
     func addTransaction(_ tx: SpendEntry) {
         transactions.append(tx)
         receiptCount += 1
+        companionTxCounts[selectedAnimal.rawValue, default: 0] += 1
         updateStreak()
         earnXP(25)
         earnCoins(5)
@@ -1527,6 +1533,7 @@ final class AppState {
         rarePetTokens             = 0
         unlockedCompanions        = []
         evolutionGemsAwarded      = [:]
+        companionTxCounts         = [:]
     }
 
     // MARK: - Email auth
@@ -1592,6 +1599,10 @@ final class AppState {
         if let d = UserDefaults.standard.data(forKey: "aj_evolutionGemsAwarded"),
            let decoded = try? JSONDecoder().decode([String: Int].self, from: d) {
             evolutionGemsAwarded = decoded
+        }
+        if let d = UserDefaults.standard.data(forKey: "aj_companionTxCounts"),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: d) {
+            companionTxCounts = decoded
         }
 
         guard
