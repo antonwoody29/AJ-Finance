@@ -222,10 +222,10 @@ final class AppState {
 
     // 0=Egg, 1=Baby, 2=Teen, 3=Final Form
     var animalGrowthStage: Int {
-        // Final Form: 10+ goals completed AND $2,000+ total saved
-        if goalsCompletedCount >= 10 && totalSaved >= 2000 { return 3 }
-        // Teen: 14-day streak AND $200+ saved
-        if highestStreak >= 14 && totalSaved >= 200 { return 2 }
+        // Final Form: 30-day streak AND $1,000+ saved
+        if highestStreak >= 30 && totalSaved >= 1000 { return 3 }
+        // Teen: 30-day streak AND $200+ saved
+        if highestStreak >= 30 && totalSaved >= 200 { return 2 }
         // Baby: at least 1 transaction logged WHILE this companion is active
         if (companionTxCounts[selectedAnimal.rawValue] ?? 0) > 0 { return 1 }
         // Egg: no transactions yet with this companion
@@ -252,22 +252,22 @@ final class AppState {
         case 0:
             return "Log your first transaction to hatch!"
         case 1:
-            let streakLeft   = max(0, 14 - highestStreak)
-            let savingsLeft  = max(0, 200 - totalSaved)
+            let streakLeft  = max(0, 30 - highestStreak)
+            let savingsLeft = max(0, 200 - totalSaved)
             if streakLeft > 0 && savingsLeft > 0 {
-                return "\(streakLeft)d streak + $\(Int(savingsLeft)) more"
+                return "\(streakLeft)d streak + $\(Int(savingsLeft)) to save"
             } else if streakLeft > 0 {
-                return "\(streakLeft) more days streak"
+                return "\(streakLeft) more streak days"
             } else {
                 return "$\(Int(savingsLeft)) more to save"
             }
         case 2:
-            let goalsLeft   = max(0, 10 - goalsCompletedCount)
-            let savingsLeft = max(0, 2000 - totalSaved)
-            if goalsLeft > 0 && savingsLeft > 0 {
-                return "\(goalsLeft) goals + $\(Int(savingsLeft)) more"
-            } else if goalsLeft > 0 {
-                return "\(goalsLeft) more goals"
+            let streakLeft  = max(0, 30 - highestStreak)
+            let savingsLeft = max(0, 1000 - totalSaved)
+            if streakLeft > 0 && savingsLeft > 0 {
+                return "\(streakLeft)d streak + $\(Int(savingsLeft)) to save"
+            } else if streakLeft > 0 {
+                return "\(streakLeft) more streak days"
             } else {
                 return "$\(Int(savingsLeft)) more to save"
             }
