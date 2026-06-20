@@ -1,5 +1,27 @@
 import SwiftUI
 
+// MARK: - Lucky Wheel segment data
+
+private struct WheelSegmentData {
+    let prize: AppState.WheelPrize
+    let emoji: String
+    let label: String
+    let fullLabel: String
+    let color: Color
+}
+
+private let luckyWheelSegments: [WheelSegmentData] = [
+    .init(prize: .gems50,      emoji: "💎", label: "50",     fullLabel: "50 Gems",            color: Color(red:1.00, green:0.42, blue:0.17)),
+    .init(prize: .xp,          emoji: "⭐", label: "XP",     fullLabel: "XP Boost",           color: Color(red:1.00, green:0.85, blue:0.10)),
+    .init(prize: .gems100,     emoji: "💎", label: "100",    fullLabel: "100 Gems",           color: Color(red:0.95, green:0.65, blue:0.14)),
+    .init(prize: .commonCrate, emoji: "📦", label: "Crate",  fullLabel: "Common Crate",       color: Color(red:0.60, green:0.55, blue:0.70)),
+    .init(prize: .gems200,     emoji: "💎", label: "200",    fullLabel: "200 Gems",           color: Color(red:0.25, green:0.78, blue:0.48)),
+    .init(prize: .shield,      emoji: "🛡️", label: "Shield", fullLabel: "Streak Shield",      color: Color(red:0.72, green:0.32, blue:0.90)),
+    .init(prize: .gems500,     emoji: "💎", label: "500",    fullLabel: "500 Gems 🎉",        color: Color(red:0.35, green:0.65, blue:1.00)),
+    .init(prize: .rescue,      emoji: "🩺", label: "Rescue", fullLabel: "Pet Rescue Token",   color: Color(red:0.20, green:0.72, blue:0.60)),
+    .init(prize: .rareCrate,   emoji: "🎁", label: "Rare!",  fullLabel: "Rare Crate! 🔥",    color: Color(red:1.00, green:0.30, blue:0.15)),
+]
+
 struct StoreView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
@@ -8,8 +30,9 @@ struct StoreView: View {
     @State private var wheelResult: AppState.WheelPrize? = nil
     @State private var showWheelResult = false
     @State private var wheelAngle: Double = 0
-    @State private var showBoxResult   = false
-    @State private var boxResultText   = ""
+    @State private var showBoxResult        = false
+    @State private var boxResultText        = ""
+    @State private var highlightedSegmentIndex: Int? = nil
 
     var body: some View {
         ScrollView {
@@ -59,7 +82,8 @@ struct StoreView: View {
         .alert("🎡 Lucky Wheel", isPresented: $showWheelResult) {
             Button("Awesome!", role: .cancel) {}
         } message: {
-            Text("You won: \(wheelResult?.rawValue ?? "")")
+            let label = luckyWheelSegments.first(where: { $0.prize == wheelResult })?.fullLabel ?? "a prize"
+            Text("You won: \(label)!")
         }
         .alert("🎁 Weekly Box Opened!", isPresented: $showBoxResult) {
             Button("Let's go!", role: .cancel) {}
@@ -125,26 +149,46 @@ struct StoreView: View {
                     }
                 }
 
-                // Wheel visual
-                ZStack {
-                    Circle()
-                        .fill(
-                            AngularGradient(
-                                colors: [.ajOrange, .ajGold, .ajGreen, Color(red:0.35,green:0.70,blue:1), .purple, .ajOrange],
-                                center: .center
-                            )
-                        )
-                        .frame(width: 140, height: 140)
-                        .rotationEffect(.degrees(wheelAngle))
-                        .animation(wheelSpinning ? .easeOut(duration: 2.5) : .default, value: wheelAngle)
+                // Lucky Wheel visual
+                VStack(spacing: 0) {
+                    // Fixed pointer arrow (stays still while wheel spins)
+                    Image(systemName: "arrowtriangle.down.fill")
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundColor(.ajGold)
+                        .shadow(color: Color.ajGold.opacity(0.8), radius: 8)
+                        .padding(.bottom, -6)
+                        .zIndex(1)
 
-                    Circle()
-                        .fill(Color.ajDark)
-                        .frame(width: 50, height: 50)
+                    ZStack {
+                        // Rotating segmented wheel
+                        luckyWheelCanvas
+                            .frame(width: 234, height: 234)
+                            .rotationEffect(.degrees(wheelAngle))
 
-                    Text("🎡")
-                        .font(.system(size: 28))
+                        // Fixed center hub (does NOT spin)
+                        Circle()
+                            .fill(Color.ajDark)
+                            .frame(width: 46, height: 46)
+                            .overlay(Circle().stroke(Color.ajGold.opacity(0.85), lineWidth: 2.5))
+
+                        Text("🎡")
+                            .font(.system(size: 20))
+                    }
+
+                    // Winner banner — appears after spin
+                    if let idx = highlightedSegmentIndex {
+                        HStack(spacing: 8) {
+                            Text(luckyWheelSegments[idx].emoji)
+                                .font(.system(size: 22))
+                            Text("You won \(luckyWheelSegments[idx].fullLabel)!")
+                                .font(.system(size: 15, weight: .black))
+                                .foregroundColor(luckyWheelSegments[idx].color)
+                        }
+                        .padding(.top, 12)
+                        .transition(.scale(scale: 0.7).combined(with: .opacity))
+                    }
                 }
+                .animation(.spring(response: 0.4, dampingFraction: 0.7), value: highlightedSegmentIndex)
 
                 HStack(spacing: 10) {
                     // Free spin
@@ -198,12 +242,130 @@ struct StoreView: View {
 
     private func doSpin(paid: Bool) {
         guard !wheelSpinning else { return }
+
+        // Pick the prize first so we can compute the exact landing angle
+        let prize = appState.spinLuckyWheel(paid: paid)
+        wheelResult = prize
+        highlightedSegmentIndex = nil
+
+        let segCount  = Double(luckyWheelSegments.count)
+        let segAngle  = 360.0 / segCount
+        let segIdx    = luckyWheelSegments.firstIndex(where: { $0.prize == prize }) ?? 0
+
+        // Compute the rotation needed to land segment segIdx under the top pointer.
+        // Segment i's center sits at (i + 0.5) * segAngle degrees clockwise from the top
+        // in the wheel's own coordinate space.  Rotating the wheel by R clockwise brings
+        // position (360 - R) to the top.  Solving: R ≡ 360 - (i+0.5)*segAngle  (mod 360)
+        let rawTarget = (360.0 - (Double(segIdx) + 0.5) * segAngle)
+            .truncatingRemainder(dividingBy: 360.0)
+        let targetMod   = rawTarget < 0 ? rawTarget + 360.0 : rawTarget
+        let currentMod_ = wheelAngle.truncatingRemainder(dividingBy: 360.0)
+        let currentMod  = currentMod_ < 0 ? currentMod_ + 360.0 : currentMod_
+
+        var delta = targetMod - currentMod
+        if delta < 0 { delta += 360.0 }
+
+        // Small random jitter so it doesn't always land dead-center (looks more natural)
+        let jitter = Double.random(in: -0.25...0.25) * segAngle
+        let extraRotations = Double(Int.random(in: 5...7)) * 360.0
+        let finalAngle = wheelAngle + extraRotations + delta + jitter
+
         wheelSpinning = true
-        wheelAngle += Double.random(in: 720...1440)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
+        withAnimation(.easeOut(duration: 3.5)) {
+            wheelAngle = finalAngle
+        }
+
+        // Haptic ticks that decelerate with the wheel
+        let tickTimes: [Double] = [0.10, 0.24, 0.42, 0.65, 0.93, 1.27, 1.68, 2.16, 2.68, 3.16]
+        for t in tickTimes {
+            DispatchQueue.main.asyncAfter(deadline: .now() + t) {
+                UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
+            }
+        }
+
+        // Landing: highlight winner, then show result alert
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
             wheelSpinning = false
-            wheelResult = appState.spinLuckyWheel(paid: paid)
-            showWheelResult = true
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.65)) {
+                highlightedSegmentIndex = segIdx
+            }
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                showWheelResult = true
+            }
+        }
+    }
+
+    // MARK: - Lucky Wheel Canvas
+
+    private var luckyWheelCanvas: some View {
+        let count     = luckyWheelSegments.count
+        let segAngle  = 2.0 * Double.pi / Double(count)
+        let highlight = highlightedSegmentIndex
+
+        return Canvas { ctx, size in
+            let cx     = size.width  / 2
+            let cy     = size.height / 2
+            let center = CGPoint(x: cx, y: cy)
+            let radius = min(cx, cy) - 3
+
+            // Draw each segment
+            for i in 0..<count {
+                let startA = segAngle * Double(i) - .pi / 2
+                let endA   = startA + segAngle
+
+                var wedge = Path()
+                wedge.move(to: center)
+                wedge.addArc(center: center, radius: radius,
+                             startAngle: .radians(startA),
+                             endAngle:   .radians(endA),
+                             clockwise: false)
+                wedge.closeSubpath()
+
+                let seg           = luckyWheelSegments[i]
+                let isHighlighted = highlight == i
+
+                // Slightly brighten the winning segment
+                ctx.fill(wedge, with: .color(isHighlighted ? seg.color : seg.color.opacity(0.82)))
+                if isHighlighted {
+                    ctx.fill(wedge, with: .color(Color.white.opacity(0.22)))
+                }
+                ctx.stroke(wedge, with: .color(Color.black.opacity(0.28)), lineWidth: 1.5)
+
+                // Emoji + label centered in segment
+                let midA   = startA + segAngle / 2.0
+                let labelR = radius * 0.63
+                let lx     = cx + cos(midA) * labelR
+                let ly     = cy + sin(midA) * labelR
+
+                ctx.draw(
+                    Text(seg.emoji).font(.system(size: 13)),
+                    at: CGPoint(x: lx, y: ly - 8)
+                )
+                ctx.draw(
+                    Text(seg.label)
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundColor(.white),
+                    at: CGPoint(x: lx, y: ly + 8)
+                )
+            }
+
+            // Tick marks at each segment boundary
+            for i in 0..<count {
+                let tickA  = segAngle * Double(i) - .pi / 2
+                let outer  = radius + 2
+                let inner  = radius - 9
+                var tick   = Path()
+                tick.move(to:    CGPoint(x: cx + cos(tickA) * inner, y: cy + sin(tickA) * inner))
+                tick.addLine(to: CGPoint(x: cx + cos(tickA) * outer, y: cy + sin(tickA) * outer))
+                ctx.stroke(tick, with: .color(Color.white.opacity(0.55)), lineWidth: 2.5)
+            }
+
+            // Outer border ring
+            var ring = Path()
+            ring.addEllipse(in: CGRect(x: cx - radius, y: cy - radius,
+                                       width: radius * 2, height: radius * 2))
+            ctx.stroke(ring, with: .color(Color.white.opacity(0.18)), lineWidth: 4)
         }
     }
 
