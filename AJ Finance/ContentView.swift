@@ -18,33 +18,43 @@ extension Color {
 
 
 struct ContentView: View {
-    @State private var appState  = AppState()
-    @State private var storeKit  = StoreKitManager()
-    @State private var tab: Int  = 0
-    @State private var showMenu  = false
+    @State private var appState   = AppState()
+    @State private var storeKit   = StoreKitManager()
+    @State private var tab: Int   = 0
+    @State private var showMenu   = false
+    @State private var showSplash = true
 
     var body: some View {
-        Group {
-            if !appState.isLoggedIn {
-                SignInView().environment(appState).environment(storeKit)
-            } else if !appState.hasSeenAgeWarning {
-                AgeVerificationView().environment(appState).environment(storeKit)
-            } else if !appState.hasCompletedOnboarding {
-                OnboardingView().environment(appState).environment(storeKit)
-            } else { mainView }
+        ZStack {
+            // Main app (loads behind the splash)
+            Group {
+                if !appState.isLoggedIn {
+                    SignInView().environment(appState).environment(storeKit)
+                } else if !appState.hasSeenAgeWarning {
+                    AgeVerificationView().environment(appState).environment(storeKit)
+                } else if !appState.hasCompletedOnboarding {
+                    OnboardingView().environment(appState).environment(storeKit)
+                } else { mainView }
+            }
+            .onAppear { appState.load() }
+            .task {
+                await storeKit.loadProducts()
+                await storeKit.syncEntitlements(appState: appState)
+            }
+            .task {
+                await storeKit.listenForUpdates(appState: appState)
+            }
+
+            // Splash screen — sits on top, fades itself out
+            if showSplash {
+                SplashView {
+                    showSplash = false
+                }
+                .transition(.opacity)
+                .zIndex(99)
+            }
         }
-        .onAppear {
-            appState.load()
-        }
-        // Load products + sync subscription status on launch
-        .task {
-            await storeKit.loadProducts()
-            await storeKit.syncEntitlements(appState: appState)
-        }
-        // Listen for purchases / renewals / cancellations indefinitely
-        .task {
-            await storeKit.listenForUpdates(appState: appState)
-        }
+        .animation(.easeInOut(duration: 0.3), value: showSplash)
     }
 
     // MARK: - Main Tabbed Layout
