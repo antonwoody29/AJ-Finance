@@ -104,13 +104,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showMenu) {
             NavigationStack {
-                SettingsView()
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Done") { showMenu = false }
-                                .foregroundColor(.ajOrange)
-                        }
-                    }
+                HamburgerMenuView()
             }
             .environment(appState)
         }
@@ -210,6 +204,136 @@ private struct AJTabBar: View {
     private func triggerBounce(_ i: Int) {
         bouncing[i] = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { bouncing[i] = false }
+    }
+}
+
+// MARK: - Hamburger Menu Sheet
+
+struct HamburgerMenuView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    @State private var showSettings = false
+    @State private var showStore    = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+
+                // Profile card
+                VStack(spacing: 12) {
+                    AnimalCanvas(type: appState.selectedAnimal, mood: appState.animalMood,
+                                 size: 90, isWalking: false, evolutionStage: appState.animalGrowthStage)
+
+                    Text(appState.userName.isEmpty ? "AJ Lyfe" : appState.userName)
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundColor(.white)
+
+                    HStack(spacing: 16) {
+                        Label("\(appState.gems) 💎", systemImage: "")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.ajGold)
+
+                        Text("·")
+                            .foregroundColor(.white.opacity(0.3))
+
+                        Text(appState.evolutionEmoji + " " + appState.evolutionTitle)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.7))
+
+                        if appState.isAJLyfePlus {
+                            Text("·")
+                                .foregroundColor(.white.opacity(0.3))
+                            Text("👑 Plus")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundColor(.ajGold)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white.opacity(0.07))
+                )
+
+                // Menu items
+                VStack(spacing: 0) {
+                    menuRow(icon: "💎", title: "Store", subtitle: "Gems, crates, Lucky Wheel") {
+                        showStore = true
+                    }
+                    Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
+                    menuRow(icon: "⚙️", title: "Settings", subtitle: "Companion, personality, account") {
+                        showSettings = true
+                    }
+                }
+                .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.06)))
+
+                // Quick stats row
+                HStack(spacing: 12) {
+                    statPill("🔥 \(appState.streak)", "Day streak")
+                    statPill("🛡️ \(appState.streakShields)", "Shields")
+                    statPill("⭐ Lv\(appState.level)", "Level")
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 40)
+        }
+        .background(Color.ajDark.ignoresSafeArea())
+        .navigationTitle("Menu")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Done") { dismiss() }
+                    .foregroundColor(.ajOrange)
+            }
+        }
+        .navigationDestination(isPresented: $showStore) {
+            StoreView()
+        }
+        .navigationDestination(isPresented: $showSettings) {
+            SettingsView()
+        }
+    }
+
+    private func menuRow(icon: String, title: String, subtitle: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Text(icon)
+                    .font(.system(size: 26))
+                    .frame(width: 40)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                    Text(subtitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.3))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func statPill(_ value: String, _ label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 15, weight: .black))
+                .foregroundColor(.white)
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundColor(.white.opacity(0.45))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07)))
     }
 }
 

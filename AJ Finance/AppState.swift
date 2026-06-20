@@ -87,6 +87,19 @@ final class AppState {
     var evolutionGemsAwarded: [String: Int] = [:]   // companion rawValue → highest stage awarded
     var companionTxCounts: [String: Int] = [:]      // rawValue → transactions logged with this companion
 
+    // MARK: - Store & Economy
+    var streakShields: Int = 0
+    var petRescueTokens: Int = 0
+    var commonCrates: Int = 0
+    var rareCrates: Int = 0
+    var epicCrates: Int = 0
+    var legendaryCrates: Int = 0
+    var weeklyBoxLastClaimed: Date? = nil
+    var luckyWheelLastSpin: Date? = nil
+    var monthlyFreeStreakSaveUsedMonth: Int = -1   // Calendar.month number
+    var isAJLyfePlus: Bool = false
+    var hasFounderPack: Bool = false
+
     // MARK: - Toast Queue
     var toasts: [ToastMessage] = []
 
@@ -366,6 +379,166 @@ final class AppState {
         if let data = try? JSONEncoder().encode(companionTxCounts) {
             UserDefaults.standard.set(data, forKey: "aj_companionTxCounts")
         }
+        saveStoreState()
+    }
+
+    // MARK: - Store State Persistence
+
+    func saveStoreState() {
+        let ud = UserDefaults.standard
+        ud.set(streakShields,   forKey: "aj_streakShields")
+        ud.set(petRescueTokens, forKey: "aj_petRescueTokens")
+        ud.set(commonCrates,    forKey: "aj_commonCrates")
+        ud.set(rareCrates,      forKey: "aj_rareCrates")
+        ud.set(epicCrates,      forKey: "aj_epicCrates")
+        ud.set(legendaryCrates, forKey: "aj_legendaryCrates")
+        ud.set(monthlyFreeStreakSaveUsedMonth, forKey: "aj_freeStreakMonth")
+        ud.set(isAJLyfePlus,    forKey: "aj_isPlus")
+        ud.set(hasFounderPack,  forKey: "aj_founderPack")
+        if let d = weeklyBoxLastClaimed  { ud.set(d, forKey: "aj_weeklyBox") }
+        if let d = luckyWheelLastSpin    { ud.set(d, forKey: "aj_wheelSpin") }
+    }
+
+    func loadStoreState() {
+        let ud = UserDefaults.standard
+        streakShields   = ud.integer(forKey: "aj_streakShields")
+        petRescueTokens = ud.integer(forKey: "aj_petRescueTokens")
+        commonCrates    = ud.integer(forKey: "aj_commonCrates")
+        rareCrates      = ud.integer(forKey: "aj_rareCrates")
+        epicCrates      = ud.integer(forKey: "aj_epicCrates")
+        legendaryCrates = ud.integer(forKey: "aj_legendaryCrates")
+        monthlyFreeStreakSaveUsedMonth = ud.integer(forKey: "aj_freeStreakMonth")
+        isAJLyfePlus    = ud.bool(forKey: "aj_isPlus")
+        hasFounderPack  = ud.bool(forKey: "aj_founderPack")
+        weeklyBoxLastClaimed = ud.object(forKey: "aj_weeklyBox") as? Date
+        luckyWheelLastSpin   = ud.object(forKey: "aj_wheelSpin") as? Date
+    }
+
+    // MARK: - Store Computed
+
+    var canClaimWeeklyBox: Bool {
+        guard let last = weeklyBoxLastClaimed else { return true }
+        return Calendar.current.dateComponents([.day], from: last, to: Date()).day ?? 0 >= 7
+    }
+
+    var canSpinLuckyWheel: Bool {
+        guard let last = luckyWheelLastSpin else { return true }
+        return !Calendar.current.isDateInToday(last)
+    }
+
+    var monthlyFreeStreakAvailable: Bool {
+        Calendar.current.component(.month, from: Date()) != monthlyFreeStreakSaveUsedMonth
+    }
+
+    // MARK: - Store Actions
+
+    func claimWeeklyBox() {
+        weeklyBoxLastClaimed = Date()
+        let rewards: [(String, Int, String)] = [
+            ("💎 250 Gems",  0, "gems250"),
+            ("💎 500 Gems",  0, "gems500"),
+            ("💎 100 Gems",  0, "gems100"),
+            ("🛡️ Streak Shield", 0, "shield"),
+            ("🩺 Rescue Token",  0, "rescue"),
+            ("📦 Rare Crate",    0, "rareCrate"),
+            ("📦 Common Crate",  0, "commonCrate"),
+            ("💎 1000 Gems", 0, "gems1000")
+        ]
+        let pick = rewards.randomElement()!
+        switch pick.2 {
+        case "gems100":   awardGems(100,  reason: "Weekly Mystery Box 🎁")
+        case "gems250":   awardGems(250,  reason: "Weekly Mystery Box 🎁")
+        case "gems500":   awardGems(500,  reason: "Weekly Mystery Box 🎁")
+        case "gems1000":  awardGems(1000, reason: "Weekly Mystery Box 🎁")
+        case "shield":    streakShields += 1; showToast("🛡️ Streak Shield from Weekly Box!", icon: "🛡️", color: .ajOrange)
+        case "rescue":    petRescueTokens += 1; showToast("🩺 Pet Rescue Token from Weekly Box!", icon: "🩺", color: .ajGreen)
+        case "rareCrate": rareCrates += 1; showToast("📦 Rare Crate from Weekly Box!", icon: "📦", color: Color(red: 0.35, green: 0.70, blue: 1.0))
+        default:          commonCrates += 1; showToast("📦 Common Crate from Weekly Box!", icon: "📦", color: .white)
+        }
+        saveStoreState()
+        saveEvolutionState()
+    }
+
+    enum WheelPrize: String {
+        case gems50 = "💎 50 Gems"
+        case gems100 = "💎 100 Gems"
+        case gems200 = "💎 200 Gems"
+        case gems500 = "💎 500 Gems"
+        case shield = "🛡️ Streak Shield"
+        case rescue = "🩺 Rescue Token"
+        case commonCrate = "📦 Common Crate"
+        case rareCrate = "📦 Rare Crate"
+        case xp = "⭐ 500 XP"
+    }
+
+    @discardableResult
+    func spinLuckyWheel(paid: Bool) -> WheelPrize {
+        if paid {
+            guard gems >= 50 else { return .gems50 }
+            gems -= 50
+        }
+        luckyWheelLastSpin = Date()
+        let prizes: [WheelPrize] = [
+            .gems50, .gems50, .gems100, .gems100, .gems200,
+            .gems500, .shield, .rescue, .commonCrate, .rareCrate, .xp
+        ]
+        let prize = prizes.randomElement()!
+        switch prize {
+        case .gems50:      awardGems(50,  reason: "Lucky Wheel 🎡")
+        case .gems100:     awardGems(100, reason: "Lucky Wheel 🎡")
+        case .gems200:     awardGems(200, reason: "Lucky Wheel 🎡")
+        case .gems500:     awardGems(500, reason: "Lucky Wheel 🎡")
+        case .shield:      streakShields += 1; showToast("🛡️ Streak Shield from the wheel!", icon: "🛡️", color: .ajOrange)
+        case .rescue:      petRescueTokens += 1; showToast("🩺 Rescue Token from the wheel!", icon: "🩺", color: .ajGreen)
+        case .commonCrate: commonCrates += 1; showToast("📦 Common Crate from the wheel!", icon: "📦", color: .white)
+        case .rareCrate:   rareCrates += 1; showToast("📦 Rare Crate!", icon: "📦", color: Color(red: 0.35, green: 0.70, blue: 1.0))
+        case .xp:          earnXP(500); showToast("⭐ +500 XP from the wheel!", icon: "⭐", color: .ajGold)
+        }
+        saveStoreState()
+        saveEvolutionState()
+        return prize
+    }
+
+    func useStreakShield() -> Bool {
+        let month = Calendar.current.component(.month, from: Date())
+        if monthlyFreeStreakAvailable {
+            monthlyFreeStreakSaveUsedMonth = month
+            streak = max(streak, 1)
+            lastLogDate = Date()
+            showToast("🛡️ Free streak save used! One per month.", icon: "🛡️", color: .ajOrange)
+            saveStoreState()
+            return true
+        }
+        guard streakShields > 0 else { return false }
+        streakShields -= 1
+        streak = max(streak, 1)
+        lastLogDate = Date()
+        showToast("🛡️ Streak Shield used! Streak saved.", icon: "🛡️", color: .ajOrange)
+        saveStoreState()
+        return true
+    }
+
+    func openCrate(_ tier: CrateTier) {
+        switch tier {
+        case .common:    guard commonCrates    > 0 else { return }; commonCrates    -= 1
+        case .rare:      guard rareCrates      > 0 else { return }; rareCrates      -= 1
+        case .epic:      guard epicCrates      > 0 else { return }; epicCrates      -= 1
+        case .legendary: guard legendaryCrates > 0 else { return }; legendaryCrates -= 1
+        }
+        let gemAmounts: [CrateTier: [Int]] = [
+            .common:    [50, 75, 100, 125],
+            .rare:      [100, 150, 250, 350],
+            .epic:      [250, 350, 500, 750],
+            .legendary: [500, 750, 1000, 1500]
+        ]
+        let amount = gemAmounts[tier]!.randomElement()!
+        awardGems(amount, reason: "\(tier.rawValue) Crate opened!")
+        if tier == .rare || tier == .epic || tier == .legendary, Bool.random() {
+            streakShields += 1
+            showToast("🛡️ Bonus Streak Shield from crate!", icon: "🛡️", color: .ajOrange)
+        }
+        saveStoreState()
+        saveEvolutionState()
     }
 
     var equippedOutfit: OutfitItem? {
@@ -951,6 +1124,7 @@ final class AppState {
         NotificationManager.triggerGoalBadge(goalName: goal.name, emoji: goal.emoji)
         earnXP(500)
         earnCoins(100)
+        awardGems(50, reason: "Goal completed! 🏆")
         boostHealth(by: 30)
         checkEvolutionRewards()
         Task {
@@ -966,6 +1140,9 @@ final class AppState {
         transactions.append(tx)
         receiptCount += 1
         companionTxCounts[selectedAnimal.rawValue, default: 0] += 1
+        // Award 25 gems for first budget activity each day
+        let isFirstTodayTx = !transactions.dropLast().contains { Calendar.current.isDateInToday($0.date) }
+        if isFirstTodayTx { awardGems(25, reason: "Budget activity 💰") }
         updateStreak()
         earnXP(25)
         earnCoins(5)
@@ -1096,6 +1273,7 @@ final class AppState {
         animalFood = min(100, animalFood + 5)
         earnXP(8)
         earnCoins(3)
+        awardGems(25, reason: "Workout logged 💪")
         setMood(.hype, speech: gymWorkoutSpeeches.randomElement() ?? "GYM DAY! LET'S GOOO 💪")
         showToast("Workout logged! 💪 +3🪙 +2❤️", icon: "🏋️", color: Color(red: 0.4, green: 0.76, blue: 1.0))
 
@@ -1191,6 +1369,7 @@ final class AppState {
             if cal.isDateInToday(last) {
                 // already logged today
             } else if cal.isDateInYesterday(last) {
+                awardGems(25, reason: "Daily check-in 📅")
                 streak += 1
                 if streak == 3  {
                     setMood(.happy, speech: AppState.streakMilestoneGreeting(3))
@@ -1534,6 +1713,17 @@ final class AppState {
         unlockedCompanions        = []
         evolutionGemsAwarded      = [:]
         companionTxCounts         = [:]
+        streakShields             = 0
+        petRescueTokens           = 0
+        commonCrates              = 0
+        rareCrates                = 0
+        epicCrates                = 0
+        legendaryCrates           = 0
+        weeklyBoxLastClaimed      = nil
+        luckyWheelLastSpin        = nil
+        monthlyFreeStreakSaveUsedMonth = -1
+        isAJLyfePlus              = false
+        hasFounderPack            = false
     }
 
     // MARK: - Email auth
@@ -1577,6 +1767,7 @@ final class AppState {
     }
 
     func load() {
+        loadStoreState()
         // Load login state
         isLoggedIn    = UserDefaults.standard.bool(forKey: "aj_isLoggedIn")
         appleUserID   = UserDefaults.standard.string(forKey: "aj_appleUserID")   ?? ""

@@ -2071,6 +2071,36 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum CrateTier: String, CaseIterable {
+    case common    = "Common"
+    case rare      = "Rare"
+    case epic      = "Epic"
+    case legendary = "Legendary"
+
+    var emoji: String {
+        switch self {
+        case .common:    return "📦"
+        case .rare:      return "🔵"
+        case .epic:      return "🟣"
+        case .legendary: return "🌟"
+        }
+    }
+    var color: Color {
+        switch self {
+        case .common:    return Color(white: 0.75)
+        case .rare:      return Color(red: 0.35, green: 0.70, blue: 1.00)
+        case .epic:      return Color(red: 0.72, green: 0.38, blue: 1.00)
+        case .legendary: return Color(red: 1.00, green: 0.78, blue: 0.10)
+        }
+    }
+    var gemCost: Int {
+        switch self { case .common: return 100; case .rare: return 250; case .epic: return 500; case .legendary: return 1000 }
+    }
+    var usdPrice: String {
+        switch self { case .common: return "$0.99"; case .rare: return "$1.99"; case .epic: return "$2.99"; case .legendary: return "$4.99" }
+    }
+}
+
 enum CompanionRarity: String, Codable {
     case common    = "Common"
     case rare      = "Rare"
