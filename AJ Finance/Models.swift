@@ -1262,7 +1262,7 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case bee            = "Bee"
     case spider         = "Spider"
     // Dogs
-    case bulldogMax     = "Max"
+    case bulldogMax     = "Max Fat Boy Barnes"
     case poodleGG       = "GG"
     case poodleGoldie   = "Goldie"
     case poodleDolly    = "Dolly"
