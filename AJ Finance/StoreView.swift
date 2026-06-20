@@ -1,4 +1,5 @@
 import SwiftUI
+import StoreKit
 
 // MARK: - Lucky Wheel segment data
 
@@ -24,6 +25,7 @@ private let luckyWheelSegments: [WheelSegmentData] = [
 
 struct StoreView: View {
     @Environment(AppState.self) private var appState
+    @Environment(StoreKitManager.self) private var storeKit
     @Environment(\.dismiss) private var dismiss
 
     @State private var wheelSpinning   = false
@@ -461,20 +463,40 @@ struct StoreView: View {
 
     private var gemStoreSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("💎 Gem Store", subtitle: "One-time purchases")
+            sectionHeader("💎 Gem Store", subtitle: "Tap to buy with Apple Pay")
 
             let packs: [(String, String, String)] = [
-                ("100 💎", "$0.99", "aj_gems_100"),
-                ("500 💎", "$2.99", "aj_gems_500"),
-                ("1,200 💎", "$4.99", "aj_gems_1200"),
-                ("3,000 💎", "$9.99", "aj_gems_3000"),
-                ("7,000 💎", "$19.99", "aj_gems_7000"),
-                ("15,000 💎", "$39.99", "aj_gems_15000")
+                ("100 💎",    "$0.99",  SKID.gems100),
+                ("500 💎",    "$2.99",  SKID.gems500),
+                ("1,200 💎",  "$4.99",  SKID.gems1200),
+                ("3,000 💎",  "$9.99",  SKID.gems3000),
+                ("7,000 💎",  "$19.99", SKID.gems7000),
+                ("15,000 💎", "$39.99", SKID.gems15000)
             ]
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                ForEach(packs, id: \.2) { gems, price, _ in
-                    iapButton(label: gems, price: price, color: .ajGold)
+                ForEach(packs, id: \.2) { gems, fallbackPrice, productID in
+                    let displayPrice = storeKit.products[productID]?.displayPrice ?? fallbackPrice
+                    Button {
+                        Task { await storeKit.purchase(id: productID, appState: appState) }
+                    } label: {
+                        VStack(spacing: 4) {
+                            Text(gems)
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundColor(.ajGold)
+                            Text(displayPrice)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.65))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.ajGold.opacity(0.12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.ajGold.opacity(0.35), lineWidth: 1))
+                        )
+                    }
+                    .disabled(storeKit.purchaseInProgress)
                 }
             }
         }
@@ -526,9 +548,44 @@ struct StoreView: View {
                     }
                 }
 
-                iapButton(label: appState.isAJLyfePlus ? "✓ Subscribed" : "Subscribe — $1.99/mo",
-                          price: "", color: .ajGold, fullWidth: true)
-                    .disabled(appState.isAJLyfePlus)
+                // Real StoreKit purchase — triggers Apple Pay sheet
+                Button {
+                    Task { await storeKit.purchase(id: SKID.plusMonthly, appState: appState) }
+                } label: {
+                    HStack(spacing: 8) {
+                        if storeKit.purchaseInProgress {
+                            ProgressView().tint(.black).scaleEffect(0.85)
+                        }
+                        Text(appState.isAJLyfePlus
+                             ? "✓ Subscribed"
+                             : (storeKit.products[SKID.plusMonthly] != nil
+                                ? "Subscribe with Apple Pay — \(storeKit.products[SKID.plusMonthly]!.displayPrice)/mo"
+                                : "Subscribe — $1.99/mo"))
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundColor(appState.isAJLyfePlus ? .ajGold : .black)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(appState.isAJLyfePlus
+                                  ? AnyShapeStyle(Color.ajGold.opacity(0.18))
+                                  : AnyShapeStyle(LinearGradient(colors: [.ajGold, Color(red:0.95,green:0.65,blue:0.14)],
+                                                                 startPoint: .leading, endPoint: .trailing)))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajGold.opacity(0.5), lineWidth: 1.5))
+                    )
+                }
+                .disabled(appState.isAJLyfePlus || storeKit.purchaseInProgress)
+
+                // Restore Purchases (required by App Store guidelines)
+                Button {
+                    Task { await storeKit.restorePurchases(appState: appState) }
+                } label: {
+                    Text("Restore Purchases")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.40))
+                        .frame(maxWidth: .infinity)
+                }
             }
         }
     }
@@ -797,9 +854,25 @@ struct StoreView: View {
                     }
                 }
 
-                iapButton(label: appState.hasFounderPack ? "✓ Already Owned" : "Get Founder Pack — $9.99",
-                          price: "", color: Color(red: 1, green: 0.84, blue: 0.2), fullWidth: true)
-                    .disabled(appState.hasFounderPack)
+                Button {
+                    Task { await storeKit.purchase(id: SKID.founderPack, appState: appState) }
+                } label: {
+                    let price = storeKit.products[SKID.founderPack]?.displayPrice ?? "$9.99"
+                    Text(appState.hasFounderPack ? "✓ Already Owned" : "Get Founder Pack — \(price)")
+                        .font(.system(size: 15, weight: .black))
+                        .foregroundColor(appState.hasFounderPack ? Color(red:1,green:0.84,blue:0.2) : .black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(appState.hasFounderPack
+                                      ? AnyShapeStyle(Color(red:1,green:0.84,blue:0.2).opacity(0.18))
+                                      : AnyShapeStyle(LinearGradient(colors: [Color(red:1,green:0.84,blue:0.2), Color.ajOrange],
+                                                                     startPoint: .leading, endPoint: .trailing)))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(red:1,green:0.84,blue:0.2).opacity(0.5), lineWidth: 1.5))
+                        )
+                }
+                .disabled(appState.hasFounderPack || storeKit.purchaseInProgress)
             }
         }
     }

@@ -15,6 +15,7 @@ struct HomeView: View {
     @State private var showScanner        = false
     @State private var showAddGoal        = false
     @State private var showShop           = false
+    @State private var showStore          = false
     @State private var showDailyFoodCheck = false
 
     // Speech
@@ -302,6 +303,9 @@ struct HomeView: View {
         .sheet(isPresented: $showScanner)        { ReceiptScannerView() }
         .sheet(isPresented: $showAddGoal)        { AddGoalView() }
         .sheet(isPresented: $showShop)           { OutfitShopView() }
+        .sheet(isPresented: $showStore) {
+            NavigationStack { StoreView() }.environment(appState)
+        }
         .sheet(isPresented: $showDailyFoodCheck) {
             DailyFoodCheckView().environment(appState)
         }
@@ -1147,17 +1151,17 @@ struct HomeView: View {
             .onAppear { receiptPulse = true }
 
             // Secondary row
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showShop = true
                 } label: {
-                    HStack(spacing: 6) {
-                        Text("🛍️").font(.system(size: 17))
-                        Text("Shop").font(.system(size: 13, weight: .black)).foregroundColor(.white)
+                    VStack(spacing: 3) {
+                        Text("🛍️").font(.system(size: 18))
+                        Text("Shop").font(.system(size: 11, weight: .black)).foregroundColor(.white)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 15)
+                    .padding(.vertical, 13)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.black.opacity(0.48))
@@ -1167,15 +1171,33 @@ struct HomeView: View {
                 }
 
                 Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    showStore = true
+                } label: {
+                    VStack(spacing: 3) {
+                        Text("🎡").font(.system(size: 18))
+                        Text("Wheel").font(.system(size: 11, weight: .black)).foregroundColor(.ajGold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black.opacity(0.48))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajGold.opacity(0.45), lineWidth: 1.5))
+                            .shadow(color: Color.ajGold.opacity(0.18), radius: 8, y: 3)
+                    )
+                }
+
+                Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showAddGoal = true
                 } label: {
-                    HStack(spacing: 6) {
-                        Text("🎯").font(.system(size: 17))
-                        Text("Goals").font(.system(size: 13, weight: .black)).foregroundColor(.white)
+                    VStack(spacing: 3) {
+                        Text("🎯").font(.system(size: 18))
+                        Text("Goals").font(.system(size: 11, weight: .black)).foregroundColor(.white)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 15)
+                    .padding(.vertical, 13)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
                             .fill(Color.black.opacity(0.48))

@@ -2,11 +2,12 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
-    @State private var showBadges          = false
-    @State private var showAnimalSelection = false
-    @State private var showOutfitShop      = false
+    @State private var showBadges              = false
+    @State private var showAnimalSelection     = false
+    @State private var showOutfitShop          = false
     @State private var testMood: AJMood?
-    @State private var showDeleteConfirm   = false
+    @State private var showDeleteConfirm       = false
+    @State private var showUnsubscribeConfirm  = false
 
     var body: some View {
         ScrollView {
@@ -919,6 +920,34 @@ struct SettingsView: View {
                     Text("👤").font(.system(size: 22))
                 }
 
+                // Subscription status banner
+                if appState.isAJLyfePlus {
+                    HStack(spacing: 10) {
+                        Text("👑")
+                            .font(.system(size: 20))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AJ Lyfe Plus — Active")
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundColor(.ajGold)
+                            Text("All Plus perks unlocked. Thank you for subscribing!")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.50))
+                        }
+                        Spacer()
+                        Text("ACTIVE")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.ajGreen)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .background(Capsule().fill(Color.ajGreen.opacity(0.18)))
+                    }
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.ajGold.opacity(0.08))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.ajGold.opacity(0.25), lineWidth: 1))
+                    )
+                }
+
                 Button {
                     appState.hasCompletedOnboarding = false
                     appState.save()
@@ -939,6 +968,43 @@ struct SettingsView: View {
                     )
                 }
                 .buttonStyle(.plain)
+
+                // Unsubscribe — only visible when subscribed
+                if appState.isAJLyfePlus {
+                    Button {
+                        showUnsubscribeConfirm = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "xmark.circle")
+                                .font(.system(size: 15, weight: .semibold))
+                            Text("Cancel Subscription")
+                                .font(.system(size: 15, weight: .black))
+                        }
+                        .foregroundColor(.white.opacity(0.65))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(Color.white.opacity(0.06))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .confirmationDialog(
+                        "Cancel AJ Lyfe Plus?",
+                        isPresented: $showUnsubscribeConfirm,
+                        titleVisibility: .visible
+                    ) {
+                        Button("Yes, Cancel Subscription", role: .destructive) {
+                            appState.isAJLyfePlus = false
+                            appState.saveStoreState()
+                            appState.showToast("Subscription cancelled. Your gems & items are safe 👋", icon: "👋", color: .ajOrange)
+                        }
+                        Button("Keep AJ Lyfe Plus", role: .cancel) {}
+                    } message: {
+                        Text("Your Plus subscription will end. You keep every gem, crate, shield, and item you've already earned or bought — nothing disappears. You can re-subscribe anytime from the Store.")
+                    }
+                }
 
                 Button {
                     appState.signOut()

@@ -4,13 +4,12 @@ import SwiftUI
 
 struct AgeVerificationView: View {
     @Environment(AppState.self) private var appState
-    @State private var showKidEntry = false
-    @State private var appeared    = false
+    @State private var appeared = false
 
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color(red:0.04,green:0.02,blue:0.08), Color(red:0.02,green:0.01,blue:0.04)],
+                colors: [Color(red:0.06,green:0.01,blue:0.01), Color(red:0.04,green:0.02,blue:0.08)],
                 startPoint: .top, endPoint: .bottom
             )
             .ignoresSafeArea()
@@ -21,52 +20,63 @@ struct AgeVerificationView: View {
                 // Warning icon
                 ZStack {
                     Circle()
-                        .fill(Color.red.opacity(0.14))
-                        .frame(width: 108, height: 108)
+                        .fill(Color.red.opacity(0.18))
+                        .frame(width: 118, height: 118)
+                    Circle()
+                        .stroke(Color.red.opacity(0.35), lineWidth: 2)
+                        .frame(width: 118, height: 118)
                     Text("🔞")
-                        .font(.system(size: 60))
+                        .font(.system(size: 64))
                 }
-                .scaleEffect(appeared ? 1.0 : 0.6)
+                .scaleEffect(appeared ? 1.0 : 0.5)
                 .opacity(appeared ? 1.0 : 0)
-                .padding(.bottom, 20)
+                .padding(.bottom, 22)
 
-                Text("AJ")
-                    .font(.system(size: 38, weight: .black))
+                Text("AJ Lyfe")
+                    .font(.system(size: 36, weight: .black))
                     .foregroundColor(.white)
                     .opacity(appeared ? 1.0 : 0)
 
-                Text("18+ ONLY")
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundColor(Color(red:1.0,green:0.22,blue:0.22))
-                    .tracking(4)
-                    .padding(.bottom, 28)
+                Text("ADULTS ONLY — 18+")
+                    .font(.system(size: 18, weight: .black))
+                    .foregroundColor(Color(red:1.0, green:0.20, blue:0.20))
+                    .tracking(3)
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
+                    .opacity(appeared ? 1.0 : 0)
+
+                Text("THIS APP IS NOT FOR MINORS")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(Color(red:1.0, green:0.40, blue:0.20).opacity(0.85))
+                    .tracking(2)
+                    .padding(.bottom, 26)
                     .opacity(appeared ? 1.0 : 0)
 
                 // Disclaimers
                 VStack(alignment: .leading, spacing: 14) {
-                    AgeRow(icon: "⚠️", text: "You must be **18 years or older** to use this app.")
-                    AgeRow(icon: "💬", text: "This app contains **strong language** and adult content.")
-                    AgeRow(icon: "📊", text: "AJ is **NOT a financial advisor.** This is for motivation and tracking only — not professional financial advice.")
-                    AgeRow(icon: "🏳️‍🌈", text: "This is an **inclusive space.** Hate speech, discrimination, or content targeting any group is strictly prohibited.")
+                    AgeRow(icon: "🚫", text: "**No minors permitted.** You must be **18 years or older** to access this app. If you are under 18, please exit now.")
+                    AgeRow(icon: "💬", text: "This app contains **strong language**, adult humor, and mature financial content.")
+                    AgeRow(icon: "📊", text: "AJ is **NOT a financial advisor.** All content is for motivation and tracking only — not professional financial advice.")
+                    AgeRow(icon: "🏳️‍🌈", text: "This is an **inclusive space.** Hate speech or discrimination of any kind is strictly prohibited.")
                 }
                 .padding(20)
                 .background(Color.white.opacity(0.06))
                 .cornerRadius(18)
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.red.opacity(0.20), lineWidth: 1))
                 .padding(.horizontal, 22)
-                .offset(y: appeared ? 0 : 24)
+                .offset(y: appeared ? 0 : 28)
                 .opacity(appeared ? 1.0 : 0)
 
                 Spacer()
 
-                // CTAs
-                VStack(spacing: 12) {
+                // Single CTA — adults only, no kid bypass
+                VStack(spacing: 10) {
                     Button {
                         appState.hasSeenAgeWarning = true
                         appState.isKidMode = false
                         appState.save()
                     } label: {
-                        Text("I'm 18+  — Let's Get This Bag 💰")
+                        Text("I Am 18 or Older — Enter 💰")
                             .font(.system(size: 17, weight: .black))
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
@@ -77,35 +87,20 @@ struct AgeVerificationView: View {
                                     startPoint: .leading, endPoint: .trailing
                                 )
                                 .cornerRadius(16)
+                                .shadow(color: Color.ajOrange.opacity(0.5), radius: 14, y: 4)
                             )
                     }
 
-                    Button {
-                        showKidEntry = true
-                    } label: {
-                        Text("Parent / Family Setup 🔐")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundColor(.white.opacity(0.60))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color.white.opacity(0.08))
-                            .cornerRadius(14)
-                    }
-
-                    Text("By continuing you confirm you are 18+ and agree to our terms.")
+                    Text("By tapping above you confirm you are 18 or older and agree to our Terms of Service. Misrepresenting your age is a violation of our policies.")
                         .font(.system(size: 10))
-                        .foregroundColor(.white.opacity(0.28))
+                        .foregroundColor(.white.opacity(0.30))
                         .multilineTextAlignment(.center)
                 }
                 .padding(.horizontal, 24)
                 .padding(.bottom, 46)
-                .offset(y: appeared ? 0 : 24)
+                .offset(y: appeared ? 0 : 28)
                 .opacity(appeared ? 1.0 : 0)
             }
-        }
-        .sheet(isPresented: $showKidEntry) {
-            KidModeEntryView()
-                .environment(appState)
         }
         .onAppear {
             withAnimation(.spring(response: 0.65, dampingFraction: 0.72).delay(0.10)) {

@@ -19,21 +19,31 @@ extension Color {
 
 struct ContentView: View {
     @State private var appState  = AppState()
+    @State private var storeKit  = StoreKitManager()
     @State private var tab: Int  = 0
     @State private var showMenu  = false
 
     var body: some View {
         Group {
             if !appState.isLoggedIn {
-                SignInView().environment(appState)
+                SignInView().environment(appState).environment(storeKit)
             } else if !appState.hasSeenAgeWarning {
-                AgeVerificationView().environment(appState)
+                AgeVerificationView().environment(appState).environment(storeKit)
             } else if !appState.hasCompletedOnboarding {
-                OnboardingView().environment(appState)
+                OnboardingView().environment(appState).environment(storeKit)
             } else { mainView }
         }
         .onAppear {
             appState.load()
+        }
+        // Load products + sync subscription status on launch
+        .task {
+            await storeKit.loadProducts()
+            await storeKit.syncEntitlements(appState: appState)
+        }
+        // Listen for purchases / renewals / cancellations indefinitely
+        .task {
+            await storeKit.listenForUpdates(appState: appState)
         }
     }
 
@@ -69,6 +79,7 @@ struct ContentView: View {
             .animation(.easeInOut(duration: 0.2), value: tab)
             .ignoresSafeArea(edges: .bottom)
             .environment(appState)
+            .environment(storeKit)
 
             // Toast overlay (sits above content, below tab bar)
             VStack {
@@ -107,6 +118,7 @@ struct ContentView: View {
                 HamburgerMenuView()
             }
             .environment(appState)
+            .environment(storeKit)
         }
         .overlay {
             if !appState.animalIsAlive {
