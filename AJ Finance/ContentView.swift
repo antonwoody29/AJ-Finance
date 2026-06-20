@@ -20,6 +20,7 @@ extension Color {
 struct ContentView: View {
     @State private var appState  = AppState()
     @State private var tab: Int  = 0
+    @State private var showMenu  = false
 
     var body: some View {
         Group {
@@ -60,11 +61,8 @@ struct ContentView: View {
                 case 4:
                     NavigationStack { GamesView() }
                         .transition(.opacity)
-                case 5:
-                    NavigationStack { HealthView() }
-                        .transition(.opacity)
                 default:
-                    NavigationStack { SettingsView() }
+                    NavigationStack { HealthView() }
                         .transition(.opacity)
                 }
             }
@@ -85,6 +83,37 @@ struct ContentView: View {
             AJTabBar(selected: $tab)
         }
         .ignoresSafeArea(.keyboard)
+        // Hamburger button — top-right, above everything
+        .overlay(alignment: .topTrailing) {
+            Button {
+                showMenu = true
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            } label: {
+                Image(systemName: "line.3.horizontal")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                    .background(
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .overlay(Circle().stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    )
+            }
+            .padding(.trailing, 16)
+            .padding(.top, 56)
+        }
+        .sheet(isPresented: $showMenu) {
+            NavigationStack {
+                SettingsView()
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Done") { showMenu = false }
+                                .foregroundColor(.ajOrange)
+                        }
+                    }
+            }
+            .environment(appState)
+        }
         .overlay {
             if !appState.animalIsAlive {
                 RevivalOverlay()
@@ -108,7 +137,7 @@ struct ContentView: View {
 
 private struct AJTabBar: View {
     @Binding var selected: Int
-    @State private var bouncing = [Bool](repeating: false, count: 7)
+    @State private var bouncing = [Bool](repeating: false, count: 6)
 
     private struct TabItem {
         var label: String
@@ -117,13 +146,12 @@ private struct AJTabBar: View {
     }
 
     private let items: [TabItem] = [
-        .init(label: "Home",     icon: "house",                     activeIcon: "house.fill"),
-        .init(label: "Goals",    icon: "target",                    activeIcon: "target"),
-        .init(label: "Spend",    icon: "creditcard",                activeIcon: "creditcard.fill"),
-        .init(label: "Markets",  icon: "chart.line.uptrend.xyaxis", activeIcon: "chart.line.uptrend.xyaxis"),
-        .init(label: "Games",    icon: "gamecontroller",            activeIcon: "gamecontroller.fill"),
-        .init(label: "Health",   icon: "heart",                     activeIcon: "heart.fill"),
-        .init(label: "Settings", icon: "gearshape",                 activeIcon: "gearshape.fill")
+        .init(label: "Home",    icon: "house",                     activeIcon: "house.fill"),
+        .init(label: "Goals",   icon: "target",                    activeIcon: "target"),
+        .init(label: "Spend",   icon: "creditcard",                activeIcon: "creditcard.fill"),
+        .init(label: "Markets", icon: "chart.line.uptrend.xyaxis", activeIcon: "chart.line.uptrend.xyaxis"),
+        .init(label: "Games",   icon: "gamecontroller",            activeIcon: "gamecontroller.fill"),
+        .init(label: "Health",  icon: "heart",                     activeIcon: "heart.fill")
     ]
 
     var body: some View {
