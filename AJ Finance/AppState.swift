@@ -80,6 +80,12 @@ final class AppState {
     var isPIPMode: Bool = false
     var trips: [Trip] = []
 
+    // MARK: - Companion Evolution System
+    var gems: Int = 0
+    var rarePetTokens: Int = 0
+    var unlockedCompanions: Set<String> = []        // rawValues that reached Final Form
+    var evolutionGemsAwarded: [String: Int] = [:]   // companion rawValue → highest stage awarded
+
     // MARK: - Toast Queue
     var toasts: [ToastMessage] = []
 
@@ -213,39 +219,40 @@ final class AppState {
 
     // MARK: - Evolution
 
-    // 0 = egg, 1 = baby, 2 = adult (full form)
+    // 0=Egg, 1=Baby, 2=Teen, 3=Final Form
     var animalGrowthStage: Int {
-        // Adult: 10+ completed goals AND $2,000+ total saved
-        if goalsCompletedCount >= 10 && totalSaved >= 2000 { return 2 }
-        // Baby: 14-day streak AND $200+ saved
-        if highestStreak >= 14 && totalSaved >= 200 { return 1 }
-        // Egg: default starting form
+        // Final Form: 10+ goals completed AND $2,000+ total saved
+        if goalsCompletedCount >= 10 && totalSaved >= 2000 { return 3 }
+        // Teen: 14-day streak AND $200+ saved
+        if highestStreak >= 14 && totalSaved >= 200 { return 2 }
+        // Baby: hatched after first transaction logged
+        if !transactions.isEmpty { return 1 }
+        // Egg: starting state
         return 0
     }
 
-    var evolutionLevel: Int {
-        // Maps growth stage to a numeric level for badges/titles
-        switch animalGrowthStage {
-        case 2: return 2
-        case 1: return 1
-        default: return 0
-        }
-    }
-
     var evolutionTitle: String {
-        ["Egg", "Baby", "Full Form"][evolutionLevel]
+        ["Egg", "Baby", "Teen", "Final Form"][min(animalGrowthStage, 3)]
     }
 
     var evolutionEmoji: String {
-        ["🥚", "🐣", "⭐"][evolutionLevel]
+        ["🥚", "🐣", "🐾", "👑"][min(animalGrowthStage, 3)]
     }
 
-    // How far until next evolution (used in UI progress indicators)
+    var finalFormCount: Int { unlockedCompanions.count }
+
+    var hasEpicUnlocked: Bool {
+        AnimalType.allCases.contains { $0.rarity == .epic && unlockedCompanions.contains($0.rawValue) }
+    }
+
+    // How far until next evolution
     var nextEvolutionProgress: String {
         switch animalGrowthStage {
         case 0:
-            let streakLeft = max(0, 14 - highestStreak)
-            let savingsLeft = max(0, 200 - totalSaved)
+            return "Log your first transaction to hatch!"
+        case 1:
+            let streakLeft   = max(0, 14 - highestStreak)
+            let savingsLeft  = max(0, 200 - totalSaved)
             if streakLeft > 0 && savingsLeft > 0 {
                 return "\(streakLeft)d streak + $\(Int(savingsLeft)) more"
             } else if streakLeft > 0 {
@@ -253,8 +260,8 @@ final class AppState {
             } else {
                 return "$\(Int(savingsLeft)) more to save"
             }
-        case 1:
-            let goalsLeft = max(0, 10 - goalsCompletedCount)
+        case 2:
+            let goalsLeft   = max(0, 10 - goalsCompletedCount)
             let savingsLeft = max(0, 2000 - totalSaved)
             if goalsLeft > 0 && savingsLeft > 0 {
                 return "\(goalsLeft) goals + $\(Int(savingsLeft)) more"
@@ -264,7 +271,95 @@ final class AppState {
                 return "$\(Int(savingsLeft)) more to save"
             }
         default:
-            return "Max form reached!"
+            return "👑 Final Form reached!"
+        }
+    }
+
+    // MARK: - Companion Lock / Unlock
+
+    func isAnimalLocked(_ animal: AnimalType) -> Bool {
+        if unlockedCompanions.contains(animal.rawValue) { return false }
+        switch animal.rarity {
+        case .common:    return false
+        case .rare:      return rarePetTokens < 1
+        case .epic:      return finalFormCount < 2
+        case .legendary: return finalFormCount < 5 || !hasEpicUnlocked
+        }
+    }
+
+    func unlockHint(for animal: AnimalType) -> String {
+        if !isAnimalLocked(animal) { return "" }
+        switch animal.rarity {
+        case .common: return ""
+        case .rare:
+            return "Earn a 🎟️ Rare Pet Token by reaching Final Form, or get AJ Lyfe Plus"
+        case .epic:
+            let needed = max(0, 2 - finalFormCount)
+            return "Evolve \(needed) more companion\(needed == 1 ? "" : "s") to Final Form to unlock"
+        case .legendary:
+            if !hasEpicUnlocked { return "Unlock an Epic companion first, then evolve 5 to Final Form" }
+            let needed = max(0, 5 - finalFormCount)
+            return "Evolve \(needed) more companion\(needed == 1 ? "" : "s") to Final Form to unlock"
+        }
+    }
+
+    // MARK: - Gem Rewards & Evolution Progression
+
+    func awardGems(_ amount: Int, reason: String) {
+        gems += amount
+        showToast("💎 +\(amount) Gems — \(reason)", icon: "💎", color: .ajGold)
+    }
+
+    func checkEvolutionRewards() {
+        let stage = animalGrowthStage
+        let key   = selectedAnimal.rawValue
+        let last  = evolutionGemsAwarded[key] ?? -1
+        guard stage > last else { return }
+        for s in (last + 1)...stage {
+            switch s {
+            case 1:
+                awardGems(50,  reason: "\(selectedAnimal.rawValue) hatched! 🐣")
+            case 2:
+                awardGems(100, reason: "\(selectedAnimal.rawValue) is a Teen! 🐾")
+            case 3:
+                awardGems(250, reason: "\(selectedAnimal.rawValue) reached Final Form! 👑")
+                rarePetTokens += 1
+                unlockedCompanions.insert(key)
+                showToast("🎟️ Rare Pet Token earned!", icon: "🎟️", color: Color(red: 0.35, green: 0.70, blue: 1.0))
+                NotificationManager.triggerLevelUp(animalName: key)
+            default: break
+            }
+        }
+        evolutionGemsAwarded[key] = stage
+        saveEvolutionState()
+    }
+
+    // MARK: - Companion Switching
+
+    // nil = free (current companion at Final Form or companion already unlocked)
+    var companionSwitchCost: Int? {
+        animalGrowthStage >= 3 ? nil : 250
+    }
+
+    // Returns false if can't afford
+    @discardableResult
+    func switchCompanion(to animal: AnimalType) -> Bool {
+        if let cost = companionSwitchCost {
+            guard gems >= cost else { return false }
+            gems -= cost
+        }
+        selectedAnimal = animal
+        save()
+        checkEvolutionRewards()
+        return true
+    }
+
+    private func saveEvolutionState() {
+        UserDefaults.standard.set(gems,            forKey: "aj_gems")
+        UserDefaults.standard.set(rarePetTokens,   forKey: "aj_rarePetTokens")
+        UserDefaults.standard.set(Array(unlockedCompanions), forKey: "aj_unlockedCompanions")
+        if let data = try? JSONEncoder().encode(evolutionGemsAwarded) {
+            UserDefaults.standard.set(data, forKey: "aj_evolutionGemsAwarded")
         }
     }
 
@@ -852,6 +947,7 @@ final class AppState {
         earnXP(500)
         earnCoins(100)
         boostHealth(by: 30)
+        checkEvolutionRewards()
         Task {
             try? await Task.sleep(for: .seconds(4))
             isHypeDancing = false
@@ -884,6 +980,7 @@ final class AppState {
             showToast("Receipt logged! +25 XP ✅", icon: "✅", color: .ajGreen)
         }
         checkBadges()
+        checkEvolutionRewards()
         save()
     }
 
@@ -1150,7 +1247,7 @@ final class AppState {
     }
 
     private func checkEvolutionMilestones() {
-        if evolutionLevel >= 1 { earnBadge(.streak30) }
+        if animalGrowthStage >= 1 { earnBadge(.streak30) }
     }
 
     // MARK: - XP & Levels
@@ -1327,6 +1424,7 @@ final class AppState {
         UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
         UserDefaults.standard.set(accountabilityMessages, forKey: "aj_messages")
         UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
+        saveEvolutionState()
         saveFoodState()
         applyNotificationSchedule()
         let data = SaveData(
@@ -1425,6 +1523,10 @@ final class AppState {
         startingWeight            = 0
         targetWeight              = 0
         accountabilityMessages    = []
+        gems                      = 0
+        rarePetTokens             = 0
+        unlockedCompanions        = []
+        evolutionGemsAwarded      = [:]
     }
 
     // MARK: - Email auth
@@ -1484,6 +1586,13 @@ final class AppState {
         goalsCompletedCount = UserDefaults.standard.integer(forKey: "aj_goalsCompleted")
         accountabilityMessages = UserDefaults.standard.stringArray(forKey: "aj_messages") ?? []
         cryptoWatchlistIds = UserDefaults.standard.stringArray(forKey: "aj_cryptoWatch") ?? []
+        gems              = UserDefaults.standard.integer(forKey: "aj_gems")
+        rarePetTokens     = UserDefaults.standard.integer(forKey: "aj_rarePetTokens")
+        unlockedCompanions = Set(UserDefaults.standard.stringArray(forKey: "aj_unlockedCompanions") ?? [])
+        if let d = UserDefaults.standard.data(forKey: "aj_evolutionGemsAwarded"),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: d) {
+            evolutionGemsAwarded = decoded
+        }
 
         guard
             let raw = UserDefaults.standard.data(forKey: saveKey),

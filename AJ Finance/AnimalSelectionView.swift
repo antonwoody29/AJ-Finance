@@ -8,8 +8,11 @@ struct AnimalSelectionView: View {
 
     @State private var focusedIndex: Int = 0
     @State private var selectedAnimal: AnimalType?
-    @State private var showProfile   = false
+    @State private var showProfile        = false
     @State private var profileAnimal: AnimalType = .bear
+    @State private var showBeginConfirm   = false
+    @State private var showSwitchConfirm  = false
+    @State private var pendingAnimal: AnimalType? = nil
 
     private var all: [AnimalType] { AnimalType.allCases }
     private var focused: AnimalType { all[min(focusedIndex, all.count - 1)] }
@@ -71,6 +74,46 @@ struct AnimalSelectionView: View {
         }
         .onAppear {
             if let i = all.firstIndex(of: appState.selectedAnimal) { focusedIndex = i }
+            appState.checkEvolutionRewards()
+        }
+        // Begin Journey confirmation
+        .confirmationDialog(
+            "Begin Your Journey",
+            isPresented: $showBeginConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Begin Journey") {
+                if let a = pendingAnimal {
+                    appState.switchCompanion(to: a)
+                }
+                dismiss()
+            }
+            Button("Choose Another Companion", role: .cancel) {}
+        } message: {
+            if let a = pendingAnimal {
+                Text("Are you sure you want to begin your journey with \(a.rawValue)? This will become your active companion.")
+            }
+        }
+        // Switch companion confirmation
+        .confirmationDialog(
+            "Switch Companion",
+            isPresented: $showSwitchConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Switch Companion") {
+                if let a = pendingAnimal {
+                    if !appState.switchCompanion(to: a) {
+                        // Can't afford — do nothing (toast shown inside switchCompanion)
+                    }
+                }
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            if let a = pendingAnimal {
+                let costText = appState.companionSwitchCost.map { "This costs \($0) 💎 gems." } ?? "Switching is FREE — your current companion reached Final Form."
+                Text("Switch to \(a.rawValue)? Progress on your current companion will be saved. \(costText)")
+            }
         }
     }
 
@@ -165,17 +208,16 @@ struct AnimalSelectionView: View {
 
     private var bottomPanel: some View {
         VStack(spacing: 12) {
-            // Quick-jump grid
             animalMiniGrid
 
-            // Confirm button — locked animals show unlock hint
-            if focused.isLocked {
+            if appState.isAnimalLocked(focused) {
+                // Locked — show unlock requirement
                 VStack(spacing: 6) {
                     HStack(spacing: 6) {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 13))
-                        Text(focused.unlockHint)
+                        Image(systemName: "lock.fill").font(.system(size: 13))
+                        Text(appState.unlockHint(for: focused))
                             .font(.system(size: 12, weight: .semibold))
+                            .multilineTextAlignment(.center)
                     }
                     .foregroundColor(.white.opacity(0.55))
                     .frame(maxWidth: .infinity)
@@ -188,40 +230,82 @@ struct AnimalSelectionView: View {
                     )
                 }
                 .padding(.horizontal, 20)
-            } else {
-                Button {
-                    if let a = selectedAnimal {
-                        appState.selectedAnimal = a
-                        appState.save()
+
+            } else if appState.selectedAnimal == focused {
+                // Current companion
+                Button { dismiss() } label: {
+                    HStack(spacing: 8) {
+                        Text(focused.emoji).font(.system(size: 20))
+                        VStack(spacing: 2) {
+                            Text("✓ Your Companion")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.white.opacity(0.55))
+                            Text(appState.evolutionEmoji + " " + appState.evolutionTitle + "  ·  " + appState.nextEvolutionProgress)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.40))
+                        }
                     }
-                    dismiss()
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.09))
+                            .overlay(RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1.5))
+                    )
+                }
+                .padding(.horizontal, 20)
+
+            } else {
+                // Switch or Begin Journey
+                let isFree = appState.companionSwitchCost == nil
+                let cost   = appState.companionSwitchCost ?? 0
+                let canAfford = isFree || appState.gems >= cost
+                let isFirstCompanion = appState.transactions.isEmpty && appState.unlockedCompanions.isEmpty
+
+                Button {
+                    pendingAnimal = focused
+                    if isFirstCompanion || isFree {
+                        showBeginConfirm = true
+                    } else {
+                        showSwitchConfirm = true
+                    }
                 } label: {
                     HStack(spacing: 8) {
                         Text(focused.emoji).font(.system(size: 20))
-                        Text(selectedAnimal != nil
-                             ? "Choose \(focused.rawValue)"
-                             : appState.selectedAnimal == focused
-                                 ? "✓ Your Companion"
-                                 : "Select \(focused.rawValue)")
-                            .font(.system(size: 16, weight: .black))
-                            .foregroundColor(appState.selectedAnimal == focused && selectedAnimal == nil ? .white.opacity(0.55) : .black)
+                        VStack(spacing: 2) {
+                            Text(isFirstCompanion || isFree
+                                 ? "Begin Journey with \(focused.rawValue)"
+                                 : "Switch to \(focused.rawValue)")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(canAfford ? .black : .white.opacity(0.5))
+                            if !isFree {
+                                Text(canAfford
+                                     ? "Cost: \(cost) 💎  ·  You have \(appState.gems) 💎"
+                                     : "Need \(cost) 💎  ·  You have \(appState.gems) 💎")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(canAfford ? .black.opacity(0.6) : .white.opacity(0.35))
+                            } else if !isFirstCompanion {
+                                Text("FREE — your companion reached Final Form 👑")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.black.opacity(0.6))
+                            }
+                        }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 17)
+                    .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                appState.selectedAnimal == focused && selectedAnimal == nil
-                                ? AnyShapeStyle(Color.white.opacity(0.12))
-                                : AnyShapeStyle(LinearGradient(
+                            .fill(canAfford
+                                ? AnyShapeStyle(LinearGradient(
                                     colors: [.ajOrange, .ajOrangeRed],
-                                    startPoint: .leading, endPoint: .trailing
-                                  ))
+                                    startPoint: .leading, endPoint: .trailing))
+                                : AnyShapeStyle(Color.white.opacity(0.10))
                             )
-                            .shadow(color: .ajOrange.opacity(selectedAnimal != nil ? 0.45 : 0), radius: 12, y: 3)
+                            .shadow(color: .ajOrange.opacity(canAfford ? 0.4 : 0), radius: 12, y: 3)
                     )
                 }
-                .disabled(appState.selectedAnimal == focused && selectedAnimal == nil)
+                .disabled(!canAfford)
                 .padding(.horizontal, 20)
             }
         }
@@ -245,8 +329,7 @@ struct AnimalSelectionView: View {
                     ForEach(Array(all.enumerated()), id: \.offset) { i, animal in
                         Button {
                             withAnimation(.spring(response: 0.35)) {
-                                focusedIndex  = i
-                                selectedAnimal = animal == appState.selectedAnimal ? nil : animal
+                                focusedIndex = i
                             }
                         } label: {
                             VStack(spacing: 3) {
@@ -265,8 +348,8 @@ struct AnimalSelectionView: View {
                                         .frame(width: 44, height: 44)
                                     Text(animal.emoji)
                                         .font(.system(size: 24))
-                                        .opacity(animal.isLocked ? 0.4 : 1)
-                                    if animal.isLocked {
+                                        .opacity(appState.isAnimalLocked(animal) ? 0.4 : 1)
+                                    if appState.isAnimalLocked(animal) {
                                         Image(systemName: "lock.fill")
                                             .font(.system(size: 10, weight: .black))
                                             .foregroundColor(.white.opacity(0.8))
