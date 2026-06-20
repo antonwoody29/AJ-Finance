@@ -2,31 +2,32 @@ import SwiftUI
 import HealthKit
 import Combine
 
-// MARK: - HealthKit Manager (ObservableObject — crash-safe, Watch-aware)
+// MARK: - HealthKit Manager (ObservableObject — Watch-aware, live observer)
 
 @MainActor
 final class HealthKitManager: ObservableObject {
     private let store = HKHealthStore()
 
-    @Published var authorized    = false
-    @Published var todaySteps    = 0
-    @Published var activeCalories = 0.0
-    @Published var exerciseMinutes = 0
-    @Published var standHours    = 0
+    @Published var authorized       = false
+    @Published var isRefreshing     = false
+    @Published var todaySteps       = 0
+    @Published var activeCalories   = 0.0
+    @Published var exerciseMinutes  = 0
+    @Published var standHours       = 0
     @Published var heartRate: Double? = nil
+    @Published var heartRateDate: Date? = nil
     @Published var recentWorkouts: [HKWorkout] = []
     @Published var latestWeightLbs: Double? = nil
+    @Published var lastRefreshed: Date? = nil
 
     var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
-    // Types we want to read
+    private var stepObserver: HKObserverQuery?
+    private var hrObserver:   HKObserverQuery?
+
     private var readTypes: Set<HKObjectType> {
         var s = Set<HKObjectType>()
-        let ids: [HKQuantityTypeIdentifier] = [
-            .stepCount, .activeEnergyBurned, .appleExerciseTime,
-            .heartRate, .bodyMass
-        ]
-        for id in ids {
+        for id: HKQuantityTypeIdentifier in [.stepCount, .activeEnergyBurned, .appleExerciseTime, .heartRate, .bodyMass] {
             if let t = HKQuantityType.quantityType(forIdentifier: id) { s.insert(t) }
         }
         if let stand = HKCategoryType.categoryType(forIdentifier: .appleStandHour) { s.insert(stand) }
@@ -43,16 +44,23 @@ final class HealthKitManager: ObservableObject {
     func requestAuthorization() {
         guard isAvailable else { return }
         store.requestAuthorization(toShare: shareTypes, read: readTypes) { [weak self] granted, _ in
-            guard granted else { return }
             Task { @MainActor in
-                self?.authorized = true
-                self?.fetchAll()
+                self?.authorized = granted
+                if granted {
+                    self?.fetchAll()
+                    self?.startObserving()
+                }
             }
         }
     }
 
+    func refresh() {
+        guard authorized else { requestAuthorization(); return }
+        fetchAll()
+    }
+
     func fetchAll() {
-        guard authorized else { return }
+        isRefreshing = true
         fetchSteps()
         fetchCalories()
         fetchExerciseMinutes()
@@ -60,13 +68,54 @@ final class HealthKitManager: ObservableObject {
         fetchHeartRate()
         fetchWorkouts()
         fetchWeight()
+        // Clear the spinner after queries have had time to respond
+        Task {
+            try? await Task.sleep(nanoseconds: 1_500_000_000)
+            isRefreshing = false
+            lastRefreshed = Date()
+        }
     }
+
+    // MARK: - Live observer (fires whenever Watch syncs new data to Health)
+
+    private func startObserving() {
+        observeSteps()
+        observeHeartRate()
+    }
+
+    private func observeSteps() {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
+        if let old = stepObserver { store.stop(old) }
+        let q = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, _ in
+            Task { @MainActor in
+                self?.fetchSteps()
+                self?.fetchCalories()
+                self?.fetchExerciseMinutes()
+            }
+            completion()
+        }
+        store.execute(q)
+        stepObserver = q
+    }
+
+    private func observeHeartRate() {
+        guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
+        if let old = hrObserver { store.stop(old) }
+        let q = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, _ in
+            Task { @MainActor in self?.fetchHeartRate() }
+            completion()
+        }
+        store.execute(q)
+        hrObserver = q
+    }
+
+    // MARK: - Fetch methods
 
     private func fetchSteps() {
         guard let type = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
         let start = Calendar.current.startOfDay(for: Date())
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: Date())
-        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { [weak self] _, stats, _ in
+        let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
+        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = Int(stats?.sumQuantity()?.doubleValue(for: .count()) ?? 0)
             Task { @MainActor in self?.todaySteps = val }
         }
@@ -76,8 +125,8 @@ final class HealthKitManager: ObservableObject {
     private func fetchCalories() {
         guard let type = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) else { return }
         let start = Calendar.current.startOfDay(for: Date())
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: Date())
-        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { [weak self] _, stats, _ in
+        let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
+        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = stats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
             Task { @MainActor in self?.activeCalories = val }
         }
@@ -87,8 +136,8 @@ final class HealthKitManager: ObservableObject {
     private func fetchExerciseMinutes() {
         guard let type = HKQuantityType.quantityType(forIdentifier: .appleExerciseTime) else { return }
         let start = Calendar.current.startOfDay(for: Date())
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: Date())
-        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: predicate, options: .cumulativeSum) { [weak self] _, stats, _ in
+        let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
+        let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = Int(stats?.sumQuantity()?.doubleValue(for: .minute()) ?? 0)
             Task { @MainActor in self?.exerciseMinutes = val }
         }
@@ -98,8 +147,8 @@ final class HealthKitManager: ObservableObject {
     private func fetchStandHours() {
         guard let type = HKCategoryType.categoryType(forIdentifier: .appleStandHour) else { return }
         let start = Calendar.current.startOfDay(for: Date())
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: Date())
-        let q = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self] _, samples, _ in
+        let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
+        let q = HKSampleQuery(sampleType: type, predicate: pred, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self] _, samples, _ in
             let stood = samples?.filter { ($0 as? HKCategorySample)?.value == HKCategoryValueAppleStandHour.stood.rawValue }.count ?? 0
             Task { @MainActor in self?.standHours = stood }
         }
@@ -108,19 +157,27 @@ final class HealthKitManager: ObservableObject {
 
     private func fetchHeartRate() {
         guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
-        let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        let q = HKSampleQuery(sampleType: type, predicate: nil, limit: 1, sortDescriptors: [sort]) { [weak self] _, samples, _ in
-            let bpm = (samples?.first as? HKQuantitySample)?.quantity.doubleValue(for: HKUnit(from: "count/min"))
-            Task { @MainActor in self?.heartRate = bpm }
+        let sort  = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        // Only show readings from the last 4 hours — avoids stale overnight readings
+        let cutoff = Date().addingTimeInterval(-4 * 3600)
+        let pred   = HKQuery.predicateForSamples(withStart: cutoff, end: Date())
+        let q = HKSampleQuery(sampleType: type, predicate: pred, limit: 1, sortDescriptors: [sort]) { _, samples, _ in
+            let sample = samples?.first as? HKQuantitySample
+            let bpm    = sample?.quantity.doubleValue(for: HKUnit(from: "count/min"))
+            let date   = sample?.startDate
+            Task { @MainActor [weak self] in
+                self?.heartRate     = bpm
+                self?.heartRateDate = date
+            }
         }
         store.execute(q)
     }
 
     private func fetchWorkouts() {
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        let q = HKSampleQuery(sampleType: .workoutType(), predicate: nil, limit: 5, sortDescriptors: [sort]) { [weak self] _, samples, _ in
+        let q = HKSampleQuery(sampleType: .workoutType(), predicate: nil, limit: 5, sortDescriptors: [sort]) { _, samples, _ in
             let workouts = (samples as? [HKWorkout]) ?? []
-            Task { @MainActor in self?.recentWorkouts = workouts }
+            Task { @MainActor [weak self] in self?.recentWorkouts = workouts }
         }
         store.execute(q)
     }
@@ -128,16 +185,16 @@ final class HealthKitManager: ObservableObject {
     private func fetchWeight() {
         guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return }
         let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-        let q = HKSampleQuery(sampleType: type, predicate: nil, limit: 1, sortDescriptors: [sort]) { [weak self] _, samples, _ in
+        let q = HKSampleQuery(sampleType: type, predicate: nil, limit: 1, sortDescriptors: [sort]) { _, samples, _ in
             let lbs = (samples?.first as? HKQuantitySample)?.quantity.doubleValue(for: .pound())
-            Task { @MainActor in self?.latestWeightLbs = lbs }
+            Task { @MainActor [weak self] in self?.latestWeightLbs = lbs }
         }
         store.execute(q)
     }
 
     func saveWeight(_ lbs: Double) {
         guard authorized, let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return }
-        let qty = HKQuantity(unit: .pound(), doubleValue: lbs)
+        let qty    = HKQuantity(unit: .pound(), doubleValue: lbs)
         let sample = HKQuantitySample(type: type, quantity: qty, start: Date(), end: Date())
         store.save(sample) { _, _ in }
     }
@@ -234,6 +291,19 @@ struct HealthView: View {
                         .font(.system(size: 10, weight: .black))
                         .foregroundColor(.ajOrange)
                         .tracking(2)
+                    Spacer()
+                    // Refresh button
+                    Button { hk.refresh() } label: {
+                        Image(systemName: hk.isRefreshing ? "arrow.clockwise" : "arrow.clockwise")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.ajOrange.opacity(0.8))
+                            .rotationEffect(.degrees(hk.isRefreshing ? 360 : 0))
+                            .animation(hk.isRefreshing
+                                ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                                : .default,
+                                value: hk.isRefreshing)
+                    }
+                    .buttonStyle(.plain)
                 }
 
                 HStack(spacing: 0) {
@@ -251,18 +321,32 @@ struct HealthView: View {
                               color: Color(red: 0.4, green: 0.76, blue: 1.0))
                 }
 
-                if let bpm = hk.heartRate {
-                    HStack(spacing: 6) {
+                HStack(spacing: 6) {
+                    if let bpm = hk.heartRate {
                         Image(systemName: "heart.fill")
                             .font(.system(size: 12))
                             .foregroundColor(Color(red: 1, green: 0.3, blue: 0.4))
-                        Text("Heart rate: \(Int(bpm)) bpm")
+                        Text("\(Int(bpm)) bpm")
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.6))
-                        Spacer()
-                        Text("Latest reading")
-                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.7))
+                        if let d = hk.heartRateDate {
+                            Text("· \(d, style: .relative) ago")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.3))
+                        }
+                    } else {
+                        Image(systemName: "heart")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.25))
+                        Text("No recent heart rate")
+                            .font(.system(size: 11))
                             .foregroundColor(.white.opacity(0.3))
+                    }
+                    Spacer()
+                    if let last = hk.lastRefreshed {
+                        Text("Updated \(last, style: .relative) ago")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.25))
                     }
                 }
             }
@@ -320,7 +404,8 @@ struct HealthView: View {
                             Text(durationString(workout.duration))
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.ajOrange)
-                            if let cal = workout.totalEnergyBurned?.doubleValue(for: .kilocalorie()) {
+                            if let calType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
+                               let cal = workout.statistics(for: calType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) {
                                 Text("\(Int(cal)) cal")
                                     .font(.system(size: 11))
                                     .foregroundColor(.white.opacity(0.4))
