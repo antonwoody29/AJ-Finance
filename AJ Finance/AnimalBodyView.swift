@@ -26,7 +26,7 @@ struct CharConfig {
     enum MarkKind  { case none, stripes, spots, eyePatch, tear }
     enum SpecialKind { case none, horn, wings, trunk, gills, mane, spikes, crest, claws, horns }
     enum EyeKind   { case standard, bulgyTop, sleepy, wide }
-    enum BodyKind  { case standard, frog, flamingo, crab, turtle, snapper, hippo, giraffe, pig, insect, fish, shark, swordfish, alligator, kangaroo, plant, grasshopper, bee, spider }
+    enum BodyKind  { case standard, frog, flamingo, crab, turtle, snapper, hippo, giraffe, pig, insect, fish, shark, swordfish, alligator, kangaroo, plant, grasshopper, bee, spider, longNeckDog }
 
     // MARK: - Per-animal configs
 
@@ -370,7 +370,25 @@ struct CharConfig {
                          iris: Color(red:0.08,green:0.82,blue:0.88),
                          nose: Color(red:0.14,green:0.12,blue:0.18),
                          ear: .none, tail: .none, bodyKind: .spider)
-        // Dogs
+        // Dogs (Diamond & Lux)
+        case .yorkieDiamond:
+            return .init(body: Color(red:0.98,green:0.92,blue:0.96),
+                         belly: Color(red:1.0,green:0.97,blue:0.99),
+                         accent: Color(red:0.94,green:0.72,blue:0.84),
+                         iris: Color(red:0.40,green:0.26,blue:0.08),
+                         nose: Color(red:0.96,green:0.62,blue:0.74),
+                         ear: .pointy, tail: .fluffy,
+                         cheekBlush: true, muzzle: true, eyeKind: .wide)
+        case .luxDog:
+            return .init(body: Color(red:0.70,green:0.70,blue:0.76),
+                         belly: Color(red:0.88,green:0.88,blue:0.93),
+                         accent: Color(red:0.50,green:0.50,blue:0.58),
+                         iris: Color(red:0.35,green:0.45,blue:0.72),
+                         nose: Color(red:0.56,green:0.56,blue:0.64),
+                         ear: .floppy, tail: .long,
+                         cheekBlush: false, muzzle: true, eyeKind: .wide,
+                         bodyKind: .longNeckDog)
+        // Dogs (originals)
         case .bulldogMax:
             return .init(body: Color(red:0.92,green:0.88,blue:0.84),
                          belly: Color(red:0.98,green:0.96,blue:0.92),
@@ -795,6 +813,7 @@ struct AnimalBodyView: View {
         case .grasshopper:  drawGrasshopperBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .bee:          drawBeeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .spider:       drawSpiderBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
+        case .longNeckDog:  drawLongNeckDogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
         }
     }
@@ -869,6 +888,51 @@ struct AnimalBodyView: View {
         if cfg.marking != .eyePatch {
             drawMarkings(ctx, hx: cx, hy: headY, bx: cx, by: bodyY, u: u, cfg: cfg)
         }
+
+        if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
+    }
+
+    // MARK: - Long-neck dog body (Lux)
+
+    func drawLongNeckDogBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
+                              cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+        let feetY = sz.height * 0.90
+        let bodyY = sz.height * 0.66 + bob
+        let headY = sz.height * 0.20 + bob   // head sits much higher for long neck effect
+
+        // ── Tail ────────────────────────────────────────────────
+        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing * 0.25)
+
+        // ── Back leg ────────────────────────────────────────────
+        drawLeg(ctx, x: cx + u*0.10, y: feetY, u: u, cfg: cfg, angle: -legSwing * 0.70, back: true)
+
+        // ── Neck (explicit elegant column between head and body) ─
+        let neckTop    = headY + u * 0.17
+        let neckBottom = bodyY - u * 0.11
+        let neckW      = u * 0.14
+        var neck = Path(ellipseIn: CGRect(x: cx - neckW / 2, y: neckTop,
+                                          width: neckW, height: max(4, neckBottom - neckTop)))
+        ctx.fill(neck, with: .color(cfg.body))
+        ctx.stroke(neck, with: .color(cfg.outline), lineWidth: u * 0.026)
+
+        // ── Body ────────────────────────────────────────────────
+        drawBody(ctx, cx: cx, cy: bodyY, u: u, cfg: cfg)
+
+        // ── Front leg ───────────────────────────────────────────
+        drawLeg(ctx, x: cx - u*0.10, y: feetY, u: u, cfg: cfg, angle: legSwing * 0.70, back: false)
+
+        // ── Arms ────────────────────────────────────────────────
+        drawArm(ctx, x: cx - u*0.20, y: bodyY - u*0.04, u: u, cfg: cfg, angle:  legSwing * 0.35)
+        drawArm(ctx, x: cx + u*0.20, y: bodyY - u*0.04, u: u, cfg: cfg, angle: -legSwing * 0.35)
+
+        // ── Head ────────────────────────────────────────────────
+        drawHead(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+
+        // ── Ears ────────────────────────────────────────────────
+        drawEars(ctx, hx: cx, hy: headY, u: u, cfg: cfg)
+
+        // ── Face ────────────────────────────────────────────────
+        drawFace(ctx, hx: cx, hy: headY, u: u, cfg: cfg, mood: mood, blink: blink)
 
         if let o = outfit { drawOutfit(ctx, outfit: o, cx: cx, headY: headY, bodyY: bodyY, u: u) }
     }

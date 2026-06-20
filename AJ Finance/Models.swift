@@ -1268,6 +1268,9 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case poodleDolly    = "Dolly"
     case pitbullMario   = "Mario"
     case boxerMissy     = "Missy"
+    // Dogs (cont.)
+    case yorkieDiamond  = "Diamond"
+    case luxDog         = "Lux"
     // Birds
     case owl            = "Owl"
     case blueJay        = "Blue Jay"
@@ -1330,6 +1333,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "🐕‍🦺"
         case .pitbullMario:   return "🐕"
         case .boxerMissy:     return "🐾"
+        case .yorkieDiamond:  return "🐩"
+        case .luxDog:         return "🐕"
         case .owl:            return "🦉"
         case .blueJay:        return "💙"
         }
@@ -1406,6 +1411,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return Color(red: 0.60, green: 0.38, blue: 0.22)
         case .pitbullMario:   return Color(red: 0.92, green: 0.75, blue: 0.50)
         case .boxerMissy:     return Color(red: 0.78, green: 0.58, blue: 0.36)
+        case .yorkieDiamond:  return Color(red: 0.98, green: 0.92, blue: 0.96)
+        case .luxDog:         return Color(red: 0.70, green: 0.70, blue: 0.76)
         case .owl:            return Color(red: 0.72, green: 0.55, blue: 0.30)
         case .blueJay:        return Color(red: 0.25, green: 0.55, blue: 0.88)
         }
@@ -1468,6 +1475,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return .meadow
         case .pitbullMario:   return .meadow
         case .boxerMissy:     return .meadow
+        case .yorkieDiamond:  return .flowerGarden
+        case .luxDog:         return .arctic
         case .owl:            return .woodland
         case .blueJay:        return .flowerGarden
         }
@@ -1530,6 +1539,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Sweet but serious about the money 🐕‍🦺"
         case .pitbullMario:   return "No cap, all heart, full hustle 🐕"
         case .boxerMissy:     return "Hit different, save different 🐾"
+        case .yorkieDiamond:  return "Fancy forever, fabulous with finances 💎"
+        case .luxDog:         return "Grey matter, gold results 🩶"
         case .owl:            return "Wisest saver in the night 🦉"
         case .blueJay:        return "Loud, proud, and stacking coins 💙"
         }
@@ -1592,6 +1603,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Warm & Steady Builder"
         case .pitbullMario:   return "Relentless Hustler"
         case .boxerMissy:     return "Fighter & Finisher"
+        case .yorkieDiamond:  return "Diamond Tier Saver"
+        case .luxDog:         return "Sleek Wealth Sculptor"
         case .owl:            return "Wise Night Investor"
         case .blueJay:        return "Bold Territory Claimer"
         }
@@ -1687,6 +1700,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "You sweet as me? Then be SWEET to your wallet too — save it 🤎"
         case .pitbullMario:   return "It's-a me, Mario — and I'm telling you to SAVE THAT COIN before the level ends 🐕"
         case .boxerMissy:     return "Float like a butterfly, stack coins like a BOSS — Missy don't play 🥊"
+        case .yorkieDiamond:  return "Crown stays on while we STACK diamonds, darling — now save that bag 💎"
+        case .luxDog:         return "Big eyes on the prize, long game on the bag — Lux sees everything 🩶"
         case .owl:            return "I see everything in the dark. Your finances got nowhere to hide — let's fix them 🦉"
         case .blueJay:        return "Blue skies and BLUE CHIP savings — loud and proud about that bag 💙"
         }
@@ -1749,6 +1764,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Dolly thinks you're doing amazing! Keep saving sweetie! 🤎"
         case .pitbullMario:   return "Mario believes in you! Save those coins and level up! 🐕"
         case .boxerMissy:     return "Missy says you're a champion! Champions save money! 🥊"
+        case .yorkieDiamond:  return "Diamond says you're precious! Every save sparkles! 💎"
+        case .luxDog:         return "Lux sees something special in you — keep saving and shine! 🩶"
         case .owl:            return "The wise owl sees your future — and it's bright if you save! 🦉"
         case .blueJay:        return "Blue Jay says be bold and save bold! You've got this! 💙"
         }
@@ -1803,6 +1820,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "🍪"
         case .pitbullMario:   return "🥩"
         case .boxerMissy:     return "🥩"
+        case .yorkieDiamond:  return "🌸"
+        case .luxDog:         return "🫐"
         case .owl:            return "🦗"
         case .blueJay:        return "🫐"
         }
@@ -1865,6 +1884,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Brown Sugar Cookie"
         case .pitbullMario:   return "Champion Steak"
         case .boxerMissy:     return "Power Protein"
+        case .yorkieDiamond:  return "Pink Macarons"
+        case .luxDog:         return "Gourmet Blueberries"
         case .owl:            return "Night Crickets"
         case .blueJay:        return "Fresh Blueberries"
         }
@@ -1941,6 +1962,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Sweet and steady. Never flashy, always consistent. Dolly stacks quietly and wins loudly."
         case .pitbullMario:   return "Relentless hustle. Heart of a champion, focus of a fighter. Never stops chasing the bag."
         case .boxerMissy:     return "A fighter in the ring and the bank. Missy takes hits and keeps punching toward financial freedom."
+        case .yorkieDiamond:  return "Pure luxury energy. Fancy by nature, financially royal by choice. Diamond doesn't do broke."
+        case .luxDog:         return "Cool, composed, quietly devastating. Lux doesn't rush — and doesn't have to. Wealth follows elegance."
         case .owl:            return "Night-shift genius. Sees what others miss in the dark. The wisest financial mind in the forest."
         case .blueJay:        return "Bold and territorial about the bag. Stakes a claim, defends it hard, and sings loud about every win."
         }
@@ -2003,6 +2026,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "🍪 Cookie charm"
         case .pitbullMario:   return "🐾 Red nose badge"
         case .boxerMissy:     return "🐕 Champion bandana"
+        case .yorkieDiamond:  return "💎 Diamond bow pin"
+        case .luxDog:         return "🩶 Silver charm collar"
         case .owl:            return "📚 Wisdom tome"
         case .blueJay:        return "💙 Blue feather"
         }
@@ -2065,6 +2090,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .poodleDolly:    return "Gentle swirl and warm nuzzle"
         case .pitbullMario:   return "Power pose and chest bump"
         case .boxerMissy:     return "Shadow box combo then victory flex"
+        case .yorkieDiamond:  return "Sparkling pirouette with pink confetti"
+        case .luxDog:         return "Elegant slow-motion neck stretch survey"
         case .owl:            return "Silent head swivel then slow wing spread"
         case .blueJay:        return "Wing flare and bold victory call"
         }
