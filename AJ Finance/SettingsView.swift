@@ -73,6 +73,9 @@ struct SettingsView: View {
                 // Data Export
                 dataExportCard
 
+                // Legal & Support
+                legalSupportCard
+
                 // Account (sign out + delete)
                 signOutCard
             }
@@ -907,6 +910,118 @@ struct SettingsView: View {
             }
         }
     }
+
+    // MARK: - Legal & Support
+
+    @State private var showDisclaimer = false
+
+    private var legalSupportCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 0) {
+                Text("LEGAL & SUPPORT")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+                    .padding(.bottom, 14)
+
+                // Privacy Policy
+                Link(destination: URL(string: "https://drive.google.com/file/d/1JisvnOHnD2U470SJWKakUvG52v_Dif7i/view?usp=sharing")!) {
+                    legalRow(icon: "lock.shield.fill", title: "Privacy Policy",
+                             subtitle: "How AJ Lyfe collects, uses, and protects your info")
+                }
+                .buttonStyle(.plain)
+
+                legalDivider
+
+                // Terms of Use
+                Link(destination: URL(string: "https://drive.google.com/file/d/1VTiuNqBEsMgGS-3vLTxt3p6NLZO8mzU8/view?usp=sharing")!) {
+                    legalRow(icon: "doc.text.fill", title: "Terms of Use",
+                             subtitle: "Terms and conditions governing use of AJ Lyfe")
+                }
+                .buttonStyle(.plain)
+
+                legalDivider
+
+                // Contact Support
+                Link(destination: URL(string: "mailto:ajlyfe.support@gmail.com")!) {
+                    legalRow(icon: "envelope.fill", title: "Contact Support",
+                             subtitle: "ajlyfe.support@gmail.com")
+                }
+                .buttonStyle(.plain)
+
+                legalDivider
+
+                // Disclaimer (expandable)
+                Button {
+                    withAnimation(.spring(response: 0.35)) { showDisclaimer.toggle() }
+                } label: {
+                    HStack(spacing: 14) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.ajOrange)
+                            .frame(width: 32)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Disclaimer")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("Educational & informational use only")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                        }
+                        Spacer()
+                        Image(systemName: showDisclaimer ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.35))
+                    }
+                    .padding(.vertical, 12)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if showDisclaimer {
+                    Text("AJ Lyfe is intended for educational, informational, motivational, and personal finance tracking purposes only. AJ Lyfe does not provide financial, investment, tax, accounting, legal, or professional advice. Users are solely responsible for their financial decisions and should consult qualified professionals regarding their specific circumstances.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.60))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 4)
+                        .padding(.bottom, 8)
+                        .padding(.leading, 46)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+        }
+    }
+
+    private var legalDivider: some View {
+        Divider()
+            .background(Color.white.opacity(0.08))
+            .padding(.leading, 46)
+    }
+
+    private func legalRow(icon: String, title: String, subtitle: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(.ajOrange)
+                .frame(width: 32)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundColor(.white)
+                Text(subtitle)
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.45))
+            }
+            Spacer()
+            Image(systemName: "arrow.up.right")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.white.opacity(0.28))
+        }
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
+
+    // MARK: - Account
 
     private var signOutCard: some View {
         AJCard {
