@@ -3,16 +3,30 @@ import SwiftUI
 struct SplashView: View {
     var onFinish: () -> Void
 
-    @State private var logoScale: CGFloat   = 0.35
-    @State private var logoOpacity: Double  = 0
-    @State private var glowScale: CGFloat   = 0.8
-    @State private var glowOpacity: Double  = 0
-    @State private var textOffset: CGFloat  = 28
+    // Inner ring  — clockwise, 10 s / rotation
+    private let innerAnimals = [
+        "🐯","🐼","🦊","🐰","🐻","🐧",
+        "🦁","🐘","🐨","🐱","🦌","🐸",
+        "🐲","🦄","🌸","🦫","🐆","⚡"
+    ]
+    // Outer ring — counter-clockwise, 16 s / rotation
+    private let outerAnimals = [
+        "🦥","🦦","🦩","🐹","🐺","🦀",
+        "🦚","🦔","🦎","🐢","🐶","🐩",
+        "🦮","🐕‍🦺","🐕","🐾","🦉","💙"
+    ]
+
+    private let innerR: Double = 70
+    private let outerR: Double = 112
+
+    @State private var startTime    = Date()
+    @State private var ringsScale: CGFloat  = 0.45
+    @State private var ringsOpacity: Double = 0
+    @State private var textOffset: CGFloat  = 30
     @State private var textOpacity: Double  = 0
-    @State private var taglineOpacity: Double = 0
-    @State private var dot1: Bool = false
-    @State private var dot2: Bool = false
-    @State private var dot3: Bool = false
+    @State private var dot1 = false
+    @State private var dot2 = false
+    @State private var dot3 = false
     @State private var exitOpacity: Double  = 1
 
     var body: some View {
@@ -30,48 +44,66 @@ struct SplashView: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                // ── Logo area ──────────────────────────────────────────
+                // ── Animal rings ────────────────────────────────────────
                 ZStack {
-                    // Outer glow ring
+                    // Subtle orbit path rings
                     Circle()
-                        .stroke(Color.ajOrange.opacity(0.18), lineWidth: 2)
-                        .frame(width: 170, height: 170)
-                        .scaleEffect(glowScale)
-                        .opacity(glowOpacity)
+                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                        .frame(width: innerR * 2 + 20, height: innerR * 2 + 20)
+                    Circle()
+                        .stroke(Color.white.opacity(0.04), lineWidth: 1)
+                        .frame(width: outerR * 2 + 20, height: outerR * 2 + 20)
 
-                    // Inner glow fill
+                    // Orbiting animals (TimelineView = smooth, upright)
+                    TimelineView(.animation) { ctx in
+                        let t = ctx.date.timeIntervalSince(startTime)
+                        ZStack {
+                            // Inner — clockwise
+                            ForEach(0..<innerAnimals.count, id: \.self) { i in
+                                let base  = Double(i) / Double(innerAnimals.count) * 2 * .pi - .pi / 2
+                                let angle = base + t * (2 * .pi / 10.0)
+                                Text(innerAnimals[i])
+                                    .font(.system(size: 18))
+                                    .offset(x: cos(angle) * innerR,
+                                            y: sin(angle) * innerR)
+                            }
+                            // Outer — counter-clockwise
+                            ForEach(0..<outerAnimals.count, id: \.self) { i in
+                                let base  = Double(i) / Double(outerAnimals.count) * 2 * .pi - .pi / 2
+                                let angle = base - t * (2 * .pi / 16.0)
+                                Text(outerAnimals[i])
+                                    .font(.system(size: 15))
+                                    .offset(x: cos(angle) * outerR,
+                                            y: sin(angle) * outerR)
+                            }
+                        }
+                    }
+
+                    // Center hub
                     Circle()
                         .fill(
                             RadialGradient(
-                                colors: [Color.ajOrange.opacity(0.22), .clear],
-                                center: .center,
-                                startRadius: 20, endRadius: 90
+                                colors: [Color.ajOrange.opacity(0.30), .clear],
+                                center: .center, startRadius: 4, endRadius: 28
                             )
                         )
-                        .frame(width: 170, height: 170)
-                        .scaleEffect(glowScale)
-                        .opacity(glowOpacity)
+                        .frame(width: 56, height: 56)
+                        .overlay(Circle().stroke(Color.ajOrange.opacity(0.55), lineWidth: 1.5))
 
-                    // Logo circle
-                    Circle()
-                        .fill(Color.white.opacity(0.06))
-                        .frame(width: 120, height: 120)
-                        .overlay(Circle().stroke(Color.ajOrange.opacity(0.35), lineWidth: 1.5))
-
-                    // Mascot
-                    Text("🐾")
-                        .font(.system(size: 62))
+                    Text("AJ")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(.white)
                 }
-                .scaleEffect(logoScale)
-                .opacity(logoOpacity)
-                .padding(.bottom, 28)
+                .frame(width: 268, height: 268)
+                .scaleEffect(ringsScale)
+                .opacity(ringsOpacity)
+                .padding(.bottom, 30)
 
-                // ── App name ───────────────────────────────────────────
+                // ── App name ────────────────────────────────────────────
                 VStack(spacing: 6) {
                     Text("AJ Lyfe")
                         .font(.system(size: 44, weight: .black))
                         .foregroundColor(.white)
-
                     Text("Level up your finances 💰")
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(.white.opacity(0.48))
@@ -81,84 +113,64 @@ struct SplashView: View {
 
                 Spacer()
 
-                // ── Loading dots ───────────────────────────────────────
+                // ── Loading dots ────────────────────────────────────────
                 HStack(spacing: 9) {
-                    loadingDot(active: dot1, color: .ajOrange)
-                    loadingDot(active: dot2, color: .ajGold)
-                    loadingDot(active: dot3, color: Color(red: 0.25, green: 0.78, blue: 0.48))
+                    dot(active: dot1, color: .ajOrange)
+                    dot(active: dot2, color: .ajGold)
+                    dot(active: dot3, color: Color(red: 0.25, green: 0.78, blue: 0.48))
                 }
                 .opacity(textOpacity)
                 .padding(.bottom, 64)
             }
         }
         .opacity(exitOpacity)
-        .onAppear { runSequence() }
+        .onAppear {
+            startTime = Date()
+            animate()
+        }
     }
 
-    // MARK: - Dot helper
+    // MARK: - Helpers
 
-    private func loadingDot(active: Bool, color: Color) -> some View {
+    private func dot(active: Bool, color: Color) -> some View {
         Circle()
-            .fill(color.opacity(active ? 0.9 : 0.25))
+            .fill(color.opacity(active ? 0.90 : 0.22))
             .frame(width: 8, height: 8)
             .scaleEffect(active ? 1.35 : 1.0)
-            .animation(.easeInOut(duration: 0.38), value: active)
+            .animation(.easeInOut(duration: 0.35), value: active)
     }
 
-    // MARK: - Animation sequence
-
-    private func runSequence() {
-        // 1. Logo springs in
-        withAnimation(.spring(response: 0.55, dampingFraction: 0.68).delay(0.10)) {
-            logoScale   = 1.0
-            logoOpacity = 1.0
+    private func animate() {
+        // Rings spring in
+        withAnimation(.spring(response: 0.60, dampingFraction: 0.70).delay(0.10)) {
+            ringsScale   = 1.0
+            ringsOpacity = 1.0
         }
-
-        // 2. Glow pulses in
-        withAnimation(.easeOut(duration: 0.7).delay(0.20)) {
-            glowScale   = 1.0
-            glowOpacity = 1.0
-        }
-        withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true).delay(0.6)) {
-            glowScale = 1.10
-        }
-
-        // 3. Text rises up
-        withAnimation(.easeOut(duration: 0.5).delay(0.45)) {
+        // Text rises
+        withAnimation(.easeOut(duration: 0.50).delay(0.45)) {
             textOpacity = 1.0
             textOffset  = 0
         }
-        withAnimation(.easeOut(duration: 0.4).delay(0.65)) {
-            taglineOpacity = 1.0
-        }
-
-        // 4. Loading dots cycle
-        let dotDelay = 0.85
-        cycleDots(startDelay: dotDelay)
-
-        // 5. Fade out and call onFinish
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.6) {
-            withAnimation(.easeInOut(duration: 0.55)) {
-                exitOpacity = 0
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
-                onFinish()
-            }
+        // Dots cycle
+        cycleDots(after: 0.85)
+        // Exit
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.9) {
+            withAnimation(.easeInOut(duration: 0.50)) { exitOpacity = 0 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.50) { onFinish() }
         }
     }
 
-    private func cycleDots(startDelay: Double) {
-        let interval = 0.32
-        DispatchQueue.main.asyncAfter(deadline: .now() + startDelay) {
+    private func cycleDots(after delay: Double) {
+        let step = 0.30
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             dot1 = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + step) {
                 dot1 = false; dot2 = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + step) {
                     dot2 = false; dot3 = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + step) {
                         dot3 = false
-                        // Keep cycling until dismissed
-                        if exitOpacity > 0 { cycleDots(startDelay: 0.05) }
+                        if exitOpacity > 0 { cycleDots(after: 0.05) }
                     }
                 }
             }
