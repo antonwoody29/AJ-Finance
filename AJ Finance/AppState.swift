@@ -292,6 +292,9 @@ final class AppState {
     // MARK: - Companion Lock / Unlock
 
     func isAnimalLocked(_ animal: AnimalType) -> Bool {
+        let vipEmails: Set<String> = ["antonwoody29@gmail.com", "jwoody2597@gmail.com"]
+        let currentEmail = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+        if vipEmails.contains(currentEmail) { return false }
         if unlockedCompanions.contains(animal.rawValue) { return false }
         switch animal.rarity {
         case .common:    return false
