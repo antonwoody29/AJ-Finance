@@ -1277,6 +1277,9 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case guineaPigMJ    = "MJ"
     // Named Cats
     case catOreo        = "Oreo"
+    case catShadow      = "Shadow"
+    // Named Rabbits
+    case rabbitFluffy   = "Fluffy"
     // Birds
     case owl            = "Owl"
     case blueJay        = "Blue Jay"
@@ -1345,6 +1348,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "🐾"
         case .guineaPigMJ:    return "🐹"
         case .catOreo:        return "🐱"
+        case .catShadow:      return "🐱"
+        case .rabbitFluffy:   return "🐰"
         case .owl:            return "🦉"
         case .blueJay:        return "💙"
         }
@@ -1427,6 +1432,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return Color(red: 0.52, green: 0.32, blue: 0.16)
         case .guineaPigMJ:    return Color(red: 0.90, green: 0.50, blue: 0.16)
         case .catOreo:        return Color(red: 0.12, green: 0.12, blue: 0.14)
+        case .catShadow:      return Color(red: 0.06, green: 0.06, blue: 0.08)
+        case .rabbitFluffy:   return Color(red: 0.98, green: 0.96, blue: 0.97)
         case .owl:            return Color(red: 0.72, green: 0.55, blue: 0.30)
         case .blueJay:        return Color(red: 0.25, green: 0.55, blue: 0.88)
         }
@@ -1495,6 +1502,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return .burrow
         case .guineaPigMJ:    return .meadow
         case .catOreo:        return .forest
+        case .catShadow:      return .woodland
+        case .rabbitFluffy:   return .flowerGarden
         case .owl:            return .woodland
         case .blueJay:        return .flowerGarden
         }
@@ -1563,6 +1572,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Fluffy, fierce, and financially focused 🐾"
         case .guineaPigMJ:    return "Orange energy, unstoppable savings 🍊"
         case .catOreo:        return "Thick, unbothered, and stacking coins 🖤"
+        case .catShadow:      return "Silent moves, loud bag 🖤"
+        case .rabbitFluffy:   return "Soft life, serious savings 🌸"
         case .owl:            return "Wisest saver in the night 🦉"
         case .blueJay:        return "Loud, proud, and stacking coins 💙"
         }
@@ -1631,6 +1642,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Fluffy Nest Egg Builder"
         case .guineaPigMJ:    return "Bold Citrus Accumulator"
         case .catOreo:        return "Chunky Portfolio Holder"
+        case .catShadow:      return "Shadow Wealth Operative"
+        case .rabbitFluffy:   return "Cloud-Soft Accumulator"
         case .owl:            return "Wise Night Investor"
         case .blueJay:        return "Bold Territory Claimer"
         }
@@ -1732,6 +1745,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Fluffy on the outside, IRON WILL on the inside — pile up coins like I pile up hay 🐾"
         case .guineaPigMJ:    return "MJ don't play — orange is the new PAID, get your savings bag together NOW 🍊"
         case .catOreo:        return "Oreo don't diet AND don't apologize — thick, unbothered, AND stacking coins 🖤"
+        case .catShadow:      return "You can't see Shadow coming — but you WILL feel those savings hitting different 🖤"
+        case .rabbitFluffy:   return "Don't let this fluffy exterior fool you — Fluffy is OUT HERE stacking coins every single day 🐰"
         case .owl:            return "I see everything in the dark. Your finances got nowhere to hide — let's fix them 🦉"
         case .blueJay:        return "Blue skies and BLUE CHIP savings — loud and proud about that bag 💙"
         }
@@ -1800,6 +1815,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Hairy thinks you're amazing! Every fluffy save counts! 🐾"
         case .guineaPigMJ:    return "MJ says be bold and bright — just like your savings! 🍊"
         case .catOreo:        return "Oreo says round is the shape of a full piggy bank — keep filling! 🍪"
+        case .catShadow:      return "Shadow says the best savers move quietly and WIN big — be like Shadow! 🖤"
+        case .rabbitFluffy:   return "Fluffy says every little hop toward saving adds up to something huge! 🐰"
         case .owl:            return "The wise owl sees your future — and it's bright if you save! 🦉"
         case .blueJay:        return "Blue Jay says be bold and save bold! You've got this! 💙"
         }
@@ -1860,6 +1877,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "🌿"
         case .guineaPigMJ:    return "🥕"
         case .catOreo:        return "🍪"
+        case .catShadow:      return "🐟"
+        case .rabbitFluffy:   return "🥕"
         case .owl:            return "🦗"
         case .blueJay:        return "🫐"
         }
@@ -1928,6 +1947,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Wild Hay & Herbs"
         case .guineaPigMJ:    return "Fresh Carrot Sticks"
         case .catOreo:        return "Cream-Filled Cookies"
+        case .catShadow:      return "Midnight Tuna"
+        case .rabbitFluffy:   return "Sweet Baby Carrots"
         case .owl:            return "Night Crickets"
         case .blueJay:        return "Fresh Blueberries"
         }
@@ -2010,6 +2031,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Fluffy chaos with a hidden savings plan. Hairy squeaks loud and saves louder. Never underestimate the floof."
         case .guineaPigMJ:    return "Bright, bold, and aggressively cheerful. MJ moves fast, saves smart, and radiates citrus energy in every room."
         case .catOreo:        return "Thick, unbothered, and aggressively comfortable. Oreo saves with zero stress, maximum snacks, and legendary nap energy."
+        case .catShadow:      return "Mysterious, powerful, and completely unbothered. Shadow accumulates wealth the same way it moves — silently, then suddenly."
+        case .rabbitFluffy:   return "Impossibly soft exterior hiding an iron savings game. Fluffy hops fast toward every financial goal and never misses."
         case .owl:            return "Night-shift genius. Sees what others miss in the dark. The wisest financial mind in the forest."
         case .blueJay:        return "Bold and territorial about the bag. Stakes a claim, defends it hard, and sings loud about every win."
         }
@@ -2078,6 +2101,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "🍂 Cozy hay nest"
         case .guineaPigMJ:    return "🍊 Orange vitamin charm"
         case .catOreo:        return "🍪 Cookie tin"
+        case .catShadow:      return "🖤 Shadow crystal pendant"
+        case .rabbitFluffy:   return "🌸 Flower crown"
         case .owl:            return "📚 Wisdom tome"
         case .blueJay:        return "💙 Blue feather"
         }
@@ -2146,6 +2171,8 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .guineaPigHairy: return "Full body shimmy celebration then hay dive"
         case .guineaPigMJ:    return "Energetic zoomie victory lap"
         case .catOreo:        return "Slow waddle then dramatic belly flop victory pose"
+        case .catShadow:      return "Silent vanish then dramatic reappearance with full bag reveal"
+        case .rabbitFluffy:   return "Excited nose twitch then full binky victory jump"
         case .owl:            return "Silent head swivel then slow wing spread"
         case .blueJay:        return "Wing flare and bold victory call"
         }

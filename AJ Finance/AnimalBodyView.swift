@@ -387,7 +387,16 @@ struct CharConfig {
                          nose: Color(red:0.94,green:0.52,blue:0.58),
                          ear: .round, tail: .none,
                          cheekBlush: true, eyeKind: .wide)
-        // Named Cat
+        // Named Rabbits
+        case .rabbitFluffy:
+            return .init(body: Color(red:0.98,green:0.96,blue:0.97),
+                         belly: Color(red:1.0,green:0.98,blue:0.99),
+                         accent: Color(red:0.96,green:0.80,blue:0.88),
+                         iris: Color(red:0.72,green:0.14,blue:0.22),
+                         nose: Color(red:0.96,green:0.62,blue:0.72),
+                         ear: .bunnyTall, tail: .round,
+                         cheekBlush: true, eyeKind: .wide)
+        // Named Cats
         case .catOreo:
             return .init(body: Color(red:0.12,green:0.12,blue:0.14),
                          belly: Color(red:0.96,green:0.96,blue:0.96),
@@ -396,6 +405,14 @@ struct CharConfig {
                          nose: Color(red:0.88,green:0.52,blue:0.62),
                          ear: .pointy, tail: .long, marking: .spots,
                          cheekBlush: true, whiskers: true, muzzle: true, eyeKind: .wide)
+        case .catShadow:
+            return .init(body: Color(red:0.06,green:0.06,blue:0.08),
+                         belly: Color(red:0.14,green:0.14,blue:0.18),
+                         accent: Color(red:0.22,green:0.22,blue:0.28),
+                         iris: Color(red:0.72,green:0.52,blue:0.08),
+                         nose: Color(red:0.50,green:0.28,blue:0.38),
+                         ear: .pointy, tail: .long,
+                         whiskers: true, muzzle: true)
         // Chihuahua
         case .chihuahuaKing:
             return .init(body: Color(red:0.94,green:0.82,blue:0.62),
