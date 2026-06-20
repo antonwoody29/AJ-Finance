@@ -168,41 +168,62 @@ struct AnimalSelectionView: View {
             // Quick-jump grid
             animalMiniGrid
 
-            // Confirm button
-            Button {
-                if let a = selectedAnimal {
-                    appState.selectedAnimal = a
-                    appState.save()
+            // Confirm button — locked animals show unlock hint
+            if focused.isLocked {
+                VStack(spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 13))
+                        Text(focused.unlockHint)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundColor(.white.opacity(0.55))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.07))
+                            .overlay(RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color.white.opacity(0.15), lineWidth: 1.5))
+                    )
                 }
-                dismiss()
-            } label: {
-                HStack(spacing: 8) {
-                    Text(focused.emoji).font(.system(size: 20))
-                    Text(selectedAnimal != nil
-                         ? "Choose \(focused.rawValue)"
-                         : appState.selectedAnimal == focused
-                             ? "✓ Your Companion"
-                             : "Select \(focused.rawValue)")
-                        .font(.system(size: 16, weight: .black))
-                        .foregroundColor(appState.selectedAnimal == focused && selectedAnimal == nil ? .white.opacity(0.55) : .black)
+                .padding(.horizontal, 20)
+            } else {
+                Button {
+                    if let a = selectedAnimal {
+                        appState.selectedAnimal = a
+                        appState.save()
+                    }
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(focused.emoji).font(.system(size: 20))
+                        Text(selectedAnimal != nil
+                             ? "Choose \(focused.rawValue)"
+                             : appState.selectedAnimal == focused
+                                 ? "✓ Your Companion"
+                                 : "Select \(focused.rawValue)")
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(appState.selectedAnimal == focused && selectedAnimal == nil ? .white.opacity(0.55) : .black)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(
+                                appState.selectedAnimal == focused && selectedAnimal == nil
+                                ? AnyShapeStyle(Color.white.opacity(0.12))
+                                : AnyShapeStyle(LinearGradient(
+                                    colors: [.ajOrange, .ajOrangeRed],
+                                    startPoint: .leading, endPoint: .trailing
+                                  ))
+                            )
+                            .shadow(color: .ajOrange.opacity(selectedAnimal != nil ? 0.45 : 0), radius: 12, y: 3)
+                    )
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 17)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(
-                            appState.selectedAnimal == focused && selectedAnimal == nil
-                            ? AnyShapeStyle(Color.white.opacity(0.12))
-                            : AnyShapeStyle(LinearGradient(
-                                colors: [.ajOrange, .ajOrangeRed],
-                                startPoint: .leading, endPoint: .trailing
-                              ))
-                        )
-                        .shadow(color: .ajOrange.opacity(selectedAnimal != nil ? 0.45 : 0), radius: 12, y: 3)
-                )
+                .disabled(appState.selectedAnimal == focused && selectedAnimal == nil)
+                .padding(.horizontal, 20)
             }
-            .disabled(appState.selectedAnimal == focused && selectedAnimal == nil)
-            .padding(.horizontal, 20)
         }
         .padding(.top, 12)
         .padding(.bottom, 36)
@@ -244,6 +265,13 @@ struct AnimalSelectionView: View {
                                         .frame(width: 44, height: 44)
                                     Text(animal.emoji)
                                         .font(.system(size: 24))
+                                        .opacity(animal.isLocked ? 0.4 : 1)
+                                    if animal.isLocked {
+                                        Image(systemName: "lock.fill")
+                                            .font(.system(size: 10, weight: .black))
+                                            .foregroundColor(.white.opacity(0.8))
+                                            .offset(x: 12, y: 12)
+                                    }
                                 }
                                 if appState.selectedAnimal == animal {
                                     Circle()

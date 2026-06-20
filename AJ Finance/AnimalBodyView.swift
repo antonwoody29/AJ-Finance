@@ -370,6 +370,63 @@ struct CharConfig {
                          iris: Color(red:0.08,green:0.82,blue:0.88),
                          nose: Color(red:0.14,green:0.12,blue:0.18),
                          ear: .none, tail: .none, bodyKind: .spider)
+        // Dogs
+        case .bulldogMax:
+            return .init(body: Color(red:0.92,green:0.88,blue:0.84),
+                         belly: Color(red:0.98,green:0.96,blue:0.92),
+                         accent: Color(red:0.65,green:0.50,blue:0.38),
+                         iris: Color(red:0.35,green:0.22,blue:0.10),
+                         ear: .floppy, tail: .round, marking: .none,
+                         cheekBlush: true, muzzle: true)
+        case .poodleGG:
+            return .init(body: Color(red:0.96,green:0.96,blue:0.94),
+                         belly: Color(red:1.0,green:1.0,blue:0.98),
+                         accent: Color(red:0.72,green:0.60,blue:0.48),
+                         iris: Color(red:0.28,green:0.18,blue:0.08),
+                         ear: .floppy, tail: .fluffy, marking: .none,
+                         cheekBlush: true, muzzle: true)
+        case .poodleGoldie:
+            return .init(body: Color(red:0.96,green:0.78,blue:0.38),
+                         belly: Color(red:1.0,green:0.92,blue:0.72),
+                         accent: Color(red:0.80,green:0.58,blue:0.18),
+                         iris: Color(red:0.40,green:0.25,blue:0.06),
+                         ear: .floppy, tail: .fluffy, marking: .none,
+                         cheekBlush: true, muzzle: true)
+        case .poodleDolly:
+            return .init(body: Color(red:0.60,green:0.38,blue:0.22),
+                         belly: Color(red:0.72,green:0.50,blue:0.32),
+                         accent: Color(red:0.38,green:0.22,blue:0.10),
+                         iris: Color(red:0.30,green:0.18,blue:0.06),
+                         ear: .floppy, tail: .fluffy, marking: .none,
+                         cheekBlush: true, muzzle: true)
+        case .pitbullMario:
+            return .init(body: Color(red:0.92,green:0.75,blue:0.50),
+                         belly: Color(red:0.98,green:0.90,blue:0.76),
+                         accent: Color(red:0.70,green:0.50,blue:0.30),
+                         iris: Color(red:0.40,green:0.25,blue:0.08),
+                         nose: Color(red:0.88,green:0.38,blue:0.28),
+                         ear: .round, tail: .tuft, marking: .none,
+                         cheekBlush: false, muzzle: true)
+        case .boxerMissy:
+            return .init(body: Color(red:0.78,green:0.58,blue:0.36),
+                         belly: Color(red:0.90,green:0.78,blue:0.60),
+                         accent: Color(red:0.52,green:0.35,blue:0.18),
+                         iris: Color(red:0.38,green:0.22,blue:0.06),
+                         ear: .floppy, tail: .tuft, marking: .none,
+                         cheekBlush: true, muzzle: true)
+        // Birds
+        case .owl:
+            return .init(body: Color(red:0.72,green:0.55,blue:0.30),
+                         belly: Color(red:0.92,green:0.86,blue:0.72),
+                         accent: Color(red:0.45,green:0.32,blue:0.12),
+                         iris: Color(red:0.92,green:0.72,blue:0.18),
+                         ear: .pointy, tail: .none, marking: .none, special: .wings)
+        case .blueJay:
+            return .init(body: Color(red:0.25,green:0.55,blue:0.88),
+                         belly: Color(red:0.92,green:0.96,blue:1.0),
+                         accent: Color(red:0.12,green:0.28,blue:0.62),
+                         iris: Color(red:0.08,green:0.18,blue:0.52),
+                         ear: .pointy, tail: .none, marking: .stripes, special: .wings)
         }
     }
 }
