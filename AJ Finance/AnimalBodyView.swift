@@ -370,6 +370,41 @@ struct CharConfig {
                          iris: Color(red:0.08,green:0.82,blue:0.88),
                          nose: Color(red:0.14,green:0.12,blue:0.18),
                          ear: .none, tail: .none, bodyKind: .spider)
+        // Named Guinea Pigs
+        case .guineaPigHairy:
+            return .init(body: Color(red:0.52,green:0.32,blue:0.16),
+                         belly: Color(red:0.70,green:0.50,blue:0.30),
+                         accent: Color(red:0.36,green:0.20,blue:0.08),
+                         iris: Color(red:0.28,green:0.16,blue:0.06),
+                         nose: Color(red:0.90,green:0.50,blue:0.58),
+                         ear: .round, tail: .none, marking: .spots,
+                         cheekBlush: true, eyeKind: .wide)
+        case .guineaPigMJ:
+            return .init(body: Color(red:0.90,green:0.50,blue:0.16),
+                         belly: Color(red:1.0,green:0.82,blue:0.54),
+                         accent: Color(red:0.68,green:0.32,blue:0.06),
+                         iris: Color(red:0.34,green:0.18,blue:0.06),
+                         nose: Color(red:0.94,green:0.52,blue:0.58),
+                         ear: .round, tail: .none,
+                         cheekBlush: true, eyeKind: .wide)
+        // Named Cat
+        case .catOreo:
+            return .init(body: Color(red:0.12,green:0.12,blue:0.14),
+                         belly: Color(red:0.96,green:0.96,blue:0.96),
+                         accent: Color(red:0.94,green:0.94,blue:0.94),
+                         iris: Color(red:0.22,green:0.68,blue:0.26),
+                         nose: Color(red:0.88,green:0.52,blue:0.62),
+                         ear: .pointy, tail: .long, marking: .spots,
+                         cheekBlush: true, whiskers: true, muzzle: true, eyeKind: .wide)
+        // Chihuahua
+        case .chihuahuaKing:
+            return .init(body: Color(red:0.94,green:0.82,blue:0.62),
+                         belly: Color(red:1.0,green:0.96,blue:0.86),
+                         accent: Color(red:0.70,green:0.50,blue:0.26),
+                         iris: Color(red:0.40,green:0.26,blue:0.08),
+                         nose: Color(red:0.88,green:0.42,blue:0.52),
+                         ear: .huge, tail: .curled,
+                         cheekBlush: true, muzzle: true, eyeKind: .wide)
         // Dogs (Diamond & Lux)
         case .yorkieDiamond:
             return .init(body: Color(red:0.98,green:0.92,blue:0.96),
