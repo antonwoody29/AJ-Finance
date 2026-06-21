@@ -273,39 +273,56 @@ struct MyPetView: View {
                         } label: {
                             VStack(spacing: 3) {
                                 ZStack {
+                                    // Background circle
                                     Circle()
                                         .fill(isSelected
-                                            ? animal.bodyColor.opacity(0.30)
-                                            : (isLocked ? Color.white.opacity(0.03) : Color.white.opacity(0.06)))
+                                            ? animal.bodyColor.opacity(0.28)
+                                            : (isLocked ? Color.black.opacity(0.55) : Color.white.opacity(0.06)))
                                         .overlay(
                                             Circle().stroke(
-                                                isSelected ? animal.bodyColor : Color.clear,
-                                                lineWidth: 2
+                                                isSelected
+                                                    ? animal.bodyColor
+                                                    : (isLocked ? Color.white.opacity(0.12) : Color.clear),
+                                                lineWidth: isSelected ? 2 : 1
                                             )
                                         )
-                                        .frame(width: 46, height: 46)
+                                        .frame(width: 48, height: 48)
 
+                                    // Emoji — dimmed when locked
                                     Text(animal.emoji)
                                         .font(.system(size: 22))
-                                        .opacity(isLocked ? 0.3 : 1.0)
+                                        .opacity(isLocked ? 0.20 : 1.0)
 
+                                    // Lock overlay
                                     if isLocked {
-                                        Image(systemName: "lock.fill")
-                                            .font(.system(size: 10, weight: .bold))
-                                            .foregroundColor(.white.opacity(0.5))
-                                            .offset(x: 14, y: 14)
+                                        Circle()
+                                            .fill(Color.black.opacity(0.42))
+                                            .frame(width: 48, height: 48)
+                                        VStack(spacing: 1) {
+                                            Image(systemName: "lock.fill")
+                                                .font(.system(size: 13, weight: .black))
+                                                .foregroundColor(.white.opacity(0.85))
+                                            Text(rarityLabel(animal))
+                                                .font(.system(size: 6, weight: .black))
+                                                .foregroundColor(rarityColor(animal))
+                                        }
                                     }
 
-                                    if appState.unlockedCompanions.contains(animal.rawValue) {
+                                    // Final Form crown badge
+                                    if !isLocked && appState.unlockedCompanions.contains(animal.rawValue) {
                                         Text("👑")
-                                            .font(.system(size: 10))
-                                            .offset(x: 14, y: -14)
+                                            .font(.system(size: 9))
+                                            .offset(x: 15, y: -15)
                                     }
                                 }
 
                                 Text(animal.rawValue)
                                     .font(.system(size: 7, weight: isSelected ? .black : .semibold))
-                                    .foregroundColor(isSelected ? .ajOrange : .white.opacity(isLocked ? 0.25 : 0.5))
+                                    .foregroundColor(
+                                        isSelected ? .ajOrange :
+                                        isLocked   ? .white.opacity(0.22) :
+                                                     .white.opacity(0.55)
+                                    )
                                     .lineLimit(1)
                             }
                         }
@@ -313,6 +330,26 @@ struct MyPetView: View {
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Rarity Helpers
+
+    private func rarityLabel(_ animal: AnimalType) -> String {
+        switch animal.rarity {
+        case .common:    return ""
+        case .rare:      return "RARE"
+        case .epic:      return "EPIC"
+        case .legendary: return "LEGEND"
+        }
+    }
+
+    private func rarityColor(_ animal: AnimalType) -> Color {
+        switch animal.rarity {
+        case .common:    return .white
+        case .rare:      return Color(red: 0.35, green: 0.70, blue: 1.00)
+        case .epic:      return Color(red: 0.72, green: 0.38, blue: 1.00)
+        case .legendary: return Color(red: 1.00, green: 0.78, blue: 0.10)
         }
     }
 

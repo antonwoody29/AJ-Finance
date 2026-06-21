@@ -685,6 +685,8 @@ struct OnboardingView: View {
                 appState.goals.append(goal)
                 appState.hasCompletedOnboarding = true
                 appState.lastHealthDecayDate = Date()
+                // Starter gems for new users
+                if appState.gems == 0 { appState.gems = 300 }
                 appState.setMood(.hype, speech: "LETS GOOO \(name)! \(appState.selectedAnimal.catchphrase)")
                 appState.save()
                 NotificationManager.triggerFirstLogin(animalName: appState.selectedAnimal.rawValue)
