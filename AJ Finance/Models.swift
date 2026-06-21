@@ -798,27 +798,53 @@ enum AccountabilityMode: String, CaseIterable, Codable, Identifiable {
 }
 
 enum AJPersonality: String, CaseIterable, Codable, Identifiable {
-    case sassy      = "Sassy"
-    case hypeCoach  = "Hype Coach"
-    case wiseMentor = "Wise Mentor"
-    case bestFriend = "Best Friend"
+    case supportive   = "Supportive"
+    case savage       = "Savage"
+    case goblinMode   = "Goblin"
+    case critical     = "Critical"
+    case motivational = "Motivational"
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .sassy:      return "💅"
-        case .hypeCoach:  return "🏋️"
-        case .wiseMentor: return "🦉"
-        case .bestFriend: return "🤝"
+        case .supportive:   return "🤗"
+        case .savage:       return "🔥"
+        case .goblinMode:   return "👺"
+        case .critical:     return "🧠"
+        case .motivational: return "💪"
         }
     }
 
     var description: String {
         switch self {
-        case .sassy:      return "AJ keeps it cute but LETHAL with the comments"
-        case .hypeCoach:  return "AJ is YOUR biggest fan, always in your corner"
-        case .wiseMentor: return "AJ drops wisdom and long-term thinking"
-        case .bestFriend: return "AJ talks to you like a real one, no filter needed"
+        case .supportive:   return "Warm and encouraging — AJ always has your back"
+        case .savage:       return "Zero filter. AJ tells it exactly like it is"
+        case .goblinMode:   return "Unhinged chaos energy. AJ goes feral for you"
+        case .critical:     return "Sharp, analytical — makes you think harder"
+        case .motivational: return "Pure hype — your biggest cheerleader every day"
+        }
+    }
+}
+
+enum NotificationStyle: String, CaseIterable, Codable, Identifiable {
+    case hype    = "Hype"
+    case gentle  = "Gentle"
+    case minimal = "Minimal"
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .hype:    return "🔥"
+        case .gentle:  return "💙"
+        case .minimal: return "🔕"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .hype:    return "Full energy notifications — AJ doesn't hold back"
+        case .gentle:  return "Calm, supportive check-ins throughout the day"
+        case .minimal: return "Essential alerts only — no extra noise"
         }
     }
 }

@@ -23,7 +23,8 @@ final class AppState {
 
     // MARK: - Settings
     var accountabilityMode: AccountabilityMode = .keepItReal
-    var ajPersonality: AJPersonality = .bestFriend
+    var ajPersonality: AJPersonality = .supportive
+    var notificationStyle: NotificationStyle = .hype
     var reminderEnabled: Bool = true
     var reminderHour: Int = 20
     var reminderMinute: Int = 0
@@ -33,10 +34,8 @@ final class AppState {
     var appleUserID: String = ""
     var appleUserName: String = ""
 
-    // MARK: - Age & Kid Mode (UserDefaults, not SaveData)
+    // MARK: - Age Gate (UserDefaults, not SaveData)
     var hasSeenAgeWarning: Bool = false
-    var isKidMode: Bool = false
-    var kidModePin: String = ""   // 5-letter code set by parent in Settings
 
     // MARK: - Food System (UserDefaults)
     var animalFood: Double = 100.0
@@ -1600,13 +1599,12 @@ final class AppState {
         UserDefaults.standard.set(selectedAnimal.rawValue, forKey: "aj_animalName")
         UserDefaults.standard.set(reminderHour, forKey: "aj_reminderHour")
         UserDefaults.standard.set(reminderMinute, forKey: "aj_reminderMin")
-        // Age/mode flags
+        // Auth / age flags
         UserDefaults.standard.set(isLoggedIn,    forKey: "aj_isLoggedIn")
         UserDefaults.standard.set(appleUserID,   forKey: "aj_appleUserID")
         UserDefaults.standard.set(appleUserName, forKey: "aj_appleUserName")
         UserDefaults.standard.set(hasSeenAgeWarning, forKey: "aj_ageWarning")
-        UserDefaults.standard.set(isKidMode, forKey: "aj_kidMode")
-        UserDefaults.standard.set(kidModePin, forKey: "aj_kidPin")
+        UserDefaults.standard.set(notificationStyle.rawValue, forKey: "aj_notifStyle")
         // Evolution + extras
         UserDefaults.standard.set(highestStreak,       forKey: "aj_highStreak")
         UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
@@ -1692,7 +1690,8 @@ final class AppState {
         receiptCount              = 0
         lastLogDate               = nil
         accountabilityMode        = .chillVibes
-        ajPersonality             = .hypeCoach
+        ajPersonality             = .motivational
+        notificationStyle         = .hype
         reminderEnabled           = true
         reminderHour              = 20
         reminderMinute            = 0
@@ -1777,8 +1776,10 @@ final class AppState {
         appleUserName = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
         // Load age/mode flags
         hasSeenAgeWarning = UserDefaults.standard.bool(forKey: "aj_ageWarning")
-        isKidMode = UserDefaults.standard.bool(forKey: "aj_kidMode")
-        kidModePin = UserDefaults.standard.string(forKey: "aj_kidPin") ?? ""
+        if let styleRaw = UserDefaults.standard.string(forKey: "aj_notifStyle"),
+           let style = NotificationStyle(rawValue: styleRaw) {
+            notificationStyle = style
+        }
         animalFood = UserDefaults.standard.object(forKey: "aj_food") as? Double ?? 100.0
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date

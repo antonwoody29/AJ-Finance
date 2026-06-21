@@ -234,8 +234,10 @@ private struct AJTabBar: View {
 struct HamburgerMenuView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
-    @State private var showSettings = false
-    @State private var showStore    = false
+    @State private var showSettings    = false
+    @State private var showStore       = false
+    @State private var showMyPet       = false
+    @State private var showPersonality = false
 
     var body: some View {
         ScrollView {
@@ -284,7 +286,15 @@ struct HamburgerMenuView: View {
                         showStore = true
                     }
                     Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
-                    menuRow(icon: "⚙️", title: "Settings", subtitle: "Companion, personality, account") {
+                    menuRow(icon: "🐾", title: "My Pet", subtitle: "Companion, collection, outfits") {
+                        showMyPet = true
+                    }
+                    Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
+                    menuRow(icon: "🧠", title: "Personality", subtitle: "AJ's vibe & notification style") {
+                        showPersonality = true
+                    }
+                    Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
+                    menuRow(icon: "⚙️", title: "Settings", subtitle: "Notifications, legal, account") {
                         showSettings = true
                     }
                 }
@@ -312,6 +322,12 @@ struct HamburgerMenuView: View {
         }
         .navigationDestination(isPresented: $showStore) {
             StoreView()
+        }
+        .navigationDestination(isPresented: $showMyPet) {
+            MyPetView()
+        }
+        .navigationDestination(isPresented: $showPersonality) {
+            PersonalityView()
         }
         .navigationDestination(isPresented: $showSettings) {
             SettingsView()
