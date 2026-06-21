@@ -923,13 +923,14 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
     case level10      = "Level 10"
     case petWhisperer = "Pet Whisperer"
     case comeback     = "Comeback Kid"
+    case savingsLegend = "Savings Legend"
 
     var id: String { rawValue }
 
     var badgeCategory: BadgeCategory {
         switch self {
         case .streak3, .streak7, .streak14, .streak30, .weekWarrior: return .streaks
-        case .firstSave, .bigSaver, .centurySaver, .thousandaire, .coinCollector: return .savings
+        case .firstSave, .bigSaver, .centurySaver, .thousandaire, .coinCollector, .savingsLegend: return .savings
         case .firstReceipt, .receiptKing, .budgetHero, .minimalist: return .receipts
         case .firstGoal, .goalCrusher, .dreamBig, .tripStarter: return .goals
         case .levelUp, .level10, .petWhisperer, .comeback: return .milestones
@@ -960,6 +961,7 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
         case .level10:      return "🚀"
         case .petWhisperer: return "🐾"
         case .comeback:     return "💙"
+        case .savingsLegend: return "🏦"
         }
     }
 
@@ -986,7 +988,8 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
         case .levelUp:      return "Reach level 5"
         case .level10:      return "Reach level 10"
         case .petWhisperer: return "Keep your pet at 90%+ health for 7 days"
-        case .comeback:     return "Come back after your pet died"
+        case .comeback:      return "Come back after your pet died"
+        case .savingsLegend: return "Save money for 12 consecutive months"
         }
     }
 }
@@ -2816,4 +2819,58 @@ struct Trip: Identifiable, Codable {
     func budget(for category: TripCategory) -> Double {
         categoryBudgets[category.rawValue] ?? 0
     }
+}
+
+// MARK: - Lyfe Budget
+
+enum ExpenseCategory: String, CaseIterable, Codable, Identifiable {
+    case mustPay       = "Must Pays"
+    case canPay        = "I Can Pay"
+    case treatYourself = "Treat Yourself"
+    case wantIt        = "I Want That Sh*t"
+
+    var id: String { rawValue }
+
+    var emoji: String {
+        switch self {
+        case .mustPay:       return "🚨"
+        case .canPay:        return "🤷"
+        case .treatYourself: return "😎"
+        case .wantIt:        return "👀"
+        }
+    }
+
+    var tagline: String {
+        switch self {
+        case .mustPay:       return "Non-negotiables. Pay these or you're cooked."
+        case .canPay:        return "You'd survive without them. Barely."
+        case .treatYourself: return "Treat yourself. Responsibly-ish."
+        case .wantIt:        return "Wants, not needs. That sh*t better be worth it."
+        }
+    }
+
+    var examples: [String] {
+        switch self {
+        case .mustPay:       return ["Rent / Mortgage", "Utilities", "Groceries", "Childcare", "Insurance", "Car Payment", "Phone Bill"]
+        case .canPay:        return ["Streaming", "Gym", "Subscriptions", "Internet", "Debt Payments"]
+        case .treatYourself: return ["Date Nights", "Haircuts", "Nails", "Gaming", "Movies", "Hobbies", "Vacations"]
+        case .wantIt:        return ["New Phone", "Designer Clothes", "Sneakers", "Console", "Luxury Items"]
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .mustPay:       return Color(red: 1.0, green: 0.30, blue: 0.30)
+        case .canPay:        return Color(red: 0.98, green: 0.75, blue: 0.18)
+        case .treatYourself: return Color(red: 0.30, green: 0.78, blue: 0.50)
+        case .wantIt:        return Color(red: 0.60, green: 0.42, blue: 1.00)
+        }
+    }
+}
+
+struct BudgetExpense: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var amount: Double
+    var category: ExpenseCategory
 }

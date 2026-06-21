@@ -4,12 +4,16 @@ struct GoalsView: View {
     @Environment(AppState.self) private var appState
     @State private var showAddGoal = false
     @State private var showingSavingsSheet: SavingsGoal?
+    @State private var showLyfeBudget = false
 
     var body: some View {
         ZStack {
             Color.ajDark.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
+
+                    // Lyfe Budget entry card
+                    lyfeBudgetCard
 
                     // Overall progress ring
                     overallRingCard
@@ -74,6 +78,63 @@ struct GoalsView: View {
         .sheet(item: $showingSavingsSheet) { goal in
             AddSavingsSheet(goal: goal)
         }
+        .navigationDestination(isPresented: $showLyfeBudget) {
+            LyfeBudgetView()
+        }
+    }
+
+    private var lyfeBudgetCard: some View {
+        Button { showLyfeBudget = true } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [.ajGreen.opacity(0.25), Color(red: 0, green: 0.5, blue: 0.25).opacity(0.18)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 54, height: 54)
+                    Text("💰")
+                        .font(.system(size: 26))
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Lyfe Budget & Savings")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(.white)
+                    HStack(spacing: 8) {
+                        if appState.monthlyIncome > 0 {
+                            Text("$\(String(format: "%.0f", appState.budgetRemaining)) left this month")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(appState.budgetRemaining >= 0 ? .ajGreen : .ajOrangeRed)
+                        } else {
+                            Text("Plan your budget — earn 💎 + XP")
+                                .font(.system(size: 12))
+                                .foregroundColor(.white.opacity(0.50))
+                        }
+                        if appState.savingsStreak > 0 {
+                            Text("🔥 \(appState.savingsStreak)mo streak")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.ajGold)
+                        }
+                    }
+                }
+
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.30))
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.06))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.ajGreen.opacity(0.30), lineWidth: 1.5)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var overallRingCard: some View {

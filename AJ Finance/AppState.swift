@@ -102,6 +102,13 @@ final class AppState {
     // MARK: - Toast Queue
     var toasts: [ToastMessage] = []
 
+    // MARK: - Lyfe Budget
+    var monthlyIncome: Double = 0
+    var budgetExpenses: [BudgetExpense] = []
+    var savingsStreak: Int = 0
+    var lastSavingsMonth: Int = -1
+    var savingsStreakRewardsClaimed: [Int] = []
+
     // MARK: - Computed
 
     var totalSaved: Double {
@@ -228,6 +235,35 @@ final class AppState {
 
     var revivalCost: Int {
         min(1 + (animalDeathCount / 3) * 5, 15)
+    }
+
+    // MARK: - Budget Computed
+
+    var totalBudgetExpenses: Double {
+        budgetExpenses.reduce(0) { $0 + $1.amount }
+    }
+
+    var budgetRemaining: Double {
+        monthlyIncome - totalBudgetExpenses
+    }
+
+    var budgetSavingsPercent: Double {
+        guard monthlyIncome > 0 else { return 0 }
+        return max(0, (monthlyIncome - totalBudgetExpenses) / monthlyIncome)
+    }
+
+    var budgetHealthScore: Int {
+        guard monthlyIncome > 0 else { return 0 }
+        let ratio = totalBudgetExpenses / monthlyIncome
+        switch ratio {
+        case ..<0.5:  return 100
+        case ..<0.6:  return 85
+        case ..<0.7:  return 70
+        case ..<0.8:  return 55
+        case ..<0.9:  return 35
+        case ..<1.0:  return 15
+        default:      return 0
+        }
     }
 
     // MARK: - Evolution
@@ -1136,6 +1172,75 @@ final class AppState {
         }
     }
 
+    // MARK: - Lyfe Budget Operations
+
+    func addBudgetExpense(_ expense: BudgetExpense) {
+        budgetExpenses.append(expense)
+        saveBudget()
+    }
+
+    func removeBudgetExpense(id: UUID) {
+        budgetExpenses.removeAll { $0.id == id }
+        saveBudget()
+    }
+
+    @discardableResult
+    func confirmMonthlySavings() -> Bool {
+        let currentMonth = Calendar.current.component(.month, from: Date())
+        guard currentMonth != lastSavingsMonth else { return false }
+        let savings = monthlyIncome - totalBudgetExpenses
+        guard savings > 0, monthlyIncome > 0 else { return false }
+        let pct = savings / monthlyIncome
+        guard pct >= 0.05 else { return false }
+
+        let gemsEarned:  Int    = pct >= 0.20 ? 100 : pct >= 0.10 ? 50 : 25
+        let xpEarned:    Int    = pct >= 0.20 ? 200 : pct >= 0.10 ? 100 : 50
+        let healthBoost: Double = pct >= 0.20 ? 15  : pct >= 0.10 ? 8   : 4
+
+        awardGems(gemsEarned, reason: "Monthly savings confirmed! 💰")
+        earnXP(xpEarned)
+        boostHealth(by: healthBoost)
+        lastSavingsMonth = currentMonth
+        savingsStreak += 1
+        checkSavingsStreakMilestones()
+        saveBudget()
+        save()
+        return true
+    }
+
+    private func checkSavingsStreakMilestones() {
+        let milestones: [(Int, String, Color)] = [
+            (1,  "+50 💎 First Savings Month! 🌱",       .ajGreen),
+            (3,  "📦 Rare Crate earned! 3-Month Streak!", Color(red: 0.35, green: 0.70, blue: 1.0)),
+            (6,  "🐾 Evolution Boost! 6-Month Streak!",  .ajOrange),
+            (12, "🏆 Savings Legend Badge! Year-Long Streak!", .ajGold),
+        ]
+        for (months, msg, color) in milestones {
+            guard savingsStreak >= months, !savingsStreakRewardsClaimed.contains(months) else { continue }
+            savingsStreakRewardsClaimed.append(months)
+            switch months {
+            case 1:  awardGems(50, reason: "1-Month Savings Streak! 🌱")
+            case 3:  rareCrates += 1; saveStoreState()
+            case 6:  highestStreak = max(highestStreak, 30)
+                     UserDefaults.standard.set(highestStreak, forKey: "aj_highStreak")
+            case 12: earnBadge(.savingsLegend)
+            default: break
+            }
+            showToast(msg, icon: "💰", color: color)
+        }
+    }
+
+    func saveBudget() {
+        let ud = UserDefaults.standard
+        ud.set(monthlyIncome,    forKey: "aj_monthlyIncome")
+        ud.set(savingsStreak,    forKey: "aj_savingsStreak")
+        ud.set(lastSavingsMonth, forKey: "aj_lastSavingsMonth")
+        ud.set(savingsStreakRewardsClaimed, forKey: "aj_savingsStreakRewards")
+        if let d = try? JSONEncoder().encode(budgetExpenses) {
+            ud.set(d, forKey: "aj_budgetExpenses")
+        }
+    }
+
     // MARK: - Transaction Operations
 
     func addTransaction(_ tx: SpendEntry) {
@@ -1612,6 +1717,7 @@ final class AppState {
         UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
         saveEvolutionState()
         saveFoodState()
+        saveBudget()
         applyNotificationSchedule()
         let data = SaveData(
             userName: userName, hasCompletedOnboarding: hasCompletedOnboarding,
@@ -1726,6 +1832,11 @@ final class AppState {
         monthlyFreeStreakSaveUsedMonth = -1
         isAJLyfePlus              = false
         hasFounderPack            = false
+        monthlyIncome             = 0
+        budgetExpenses            = []
+        savingsStreak             = 0
+        lastSavingsMonth          = -1
+        savingsStreakRewardsClaimed = []
     }
 
     // MARK: - Email auth
@@ -1798,6 +1909,16 @@ final class AppState {
         if let d = UserDefaults.standard.data(forKey: "aj_companionTxCounts"),
            let decoded = try? JSONDecoder().decode([String: Int].self, from: d) {
             companionTxCounts = decoded
+        }
+
+        // Budget
+        monthlyIncome    = UserDefaults.standard.double(forKey: "aj_monthlyIncome")
+        savingsStreak    = UserDefaults.standard.integer(forKey: "aj_savingsStreak")
+        lastSavingsMonth = UserDefaults.standard.object(forKey: "aj_lastSavingsMonth") as? Int ?? -1
+        savingsStreakRewardsClaimed = UserDefaults.standard.array(forKey: "aj_savingsStreakRewards") as? [Int] ?? []
+        if let d = UserDefaults.standard.data(forKey: "aj_budgetExpenses"),
+           let decoded = try? JSONDecoder().decode([BudgetExpense].self, from: d) {
+            budgetExpenses = decoded
         }
 
         guard
