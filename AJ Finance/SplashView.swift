@@ -120,7 +120,16 @@ struct SplashView: View {
                     dot(active: dot3, color: Color(red: 0.25, green: 0.78, blue: 0.48))
                 }
                 .opacity(textOpacity)
-                .padding(.bottom, 64)
+                .padding(.bottom, 12)
+
+                // ── 18+ disclaimer ──────────────────────────────────────
+                Text("Must be 18 years of age or older to use this app")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.white.opacity(0.28))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 48)
+                    .opacity(textOpacity)
+                    .padding(.bottom, 40)
             }
         }
         .opacity(exitOpacity)

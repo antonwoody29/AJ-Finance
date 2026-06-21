@@ -4,6 +4,7 @@ struct OnboardingView: View {
     @Environment(AppState.self) private var appState
     @State private var page    = 0
     @State private var name    = ""
+    @State private var introStartTime = Date()
     @State private var selectedAnimalType: AnimalType = .tiger
     @State private var goalName     = ""
     @State private var goalEmoji    = "🎯"
@@ -56,17 +57,65 @@ struct OnboardingView: View {
 
     // MARK: - Page 0: Intro
 
+    private let introInner = ["🐯","🐼","🦊","🐰","🐻","🦁","🐘","🦄","🐸","🦌","🐺","🦋"]
+    private let introOuter = ["🦥","🦦","🦩","🐹","🦀","🦚","🦔","🐢","🐶","🦮","🦉","🐨"]
+
     private var introPage: some View {
         VStack(spacing: 0) {
             Spacer()
-            VStack(spacing: 24) {
-                AJTiger(mood: .hype, size: 180)
+            VStack(spacing: 28) {
+
+                // Orbiting animals
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.06), lineWidth: 1)
+                        .frame(width: 154, height: 154)
+                    Circle()
+                        .stroke(Color.white.opacity(0.04), lineWidth: 1)
+                        .frame(width: 232, height: 232)
+
+                    TimelineView(.animation) { ctx in
+                        let t = ctx.date.timeIntervalSince(introStartTime)
+                        ZStack {
+                            // Inner ring — clockwise
+                            ForEach(0..<introInner.count, id: \.self) { i in
+                                let base  = Double(i) / Double(introInner.count) * 2 * .pi - .pi / 2
+                                let angle = base + t * (2 * .pi / 11.0)
+                                Text(introInner[i])
+                                    .font(.system(size: 22))
+                                    .offset(x: cos(angle) * 67, y: sin(angle) * 67)
+                            }
+                            // Outer ring — counter-clockwise
+                            ForEach(0..<introOuter.count, id: \.self) { i in
+                                let base  = Double(i) / Double(introOuter.count) * 2 * .pi - .pi / 2
+                                let angle = base - t * (2 * .pi / 17.0)
+                                Text(introOuter[i])
+                                    .font(.system(size: 18))
+                                    .offset(x: cos(angle) * 106, y: sin(angle) * 106)
+                            }
+                        }
+                    }
+
+                    // Center hub
+                    Circle()
+                        .fill(RadialGradient(
+                            colors: [Color.ajOrange.opacity(0.28), .clear],
+                            center: .center, startRadius: 4, endRadius: 30
+                        ))
+                        .frame(width: 60, height: 60)
+                        .overlay(Circle().stroke(Color.ajOrange.opacity(0.55), lineWidth: 1.5))
+                    Text("AJ")
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundColor(.white)
+                }
+                .frame(width: 250, height: 250)
+                .onAppear { introStartTime = Date() }
 
                 VStack(spacing: 10) {
-                    Text("Meet AJ 🐯")
-                        .font(.system(size: 36, weight: .black))
+                    Text("Welcome to AJ Lyfe 🔥")
+                        .font(.system(size: 34, weight: .black))
                         .foregroundColor(.white)
-                    Text("Your personal finance tiger.\nHe's hype, honest, and here to help\nyou save real money.")
+                    Text("Your personal finance companion.\nHype, honest, and here to help\nyou save real money.")
                         .font(.system(size: 16))
                         .foregroundColor(.white.opacity(0.7))
                         .multilineTextAlignment(.center)
