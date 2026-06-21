@@ -5,12 +5,17 @@ struct SpendView: View {
     @State private var showScanner = false
     @State private var showTrips   = false
     @State private var selectedCategory: SpendCategory?
+    @State private var showRoast = false
+    @State private var showSubGraveyard = false
 
     var body: some View {
         ZStack {
             Color.ajDark.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
+
+                    // Subscription graveyard shortcut
+                    subscriptionCard
 
                     // Trip budget shortcut — always visible
                     tripBudgetCard
@@ -69,12 +74,40 @@ struct SpendView: View {
         }
         .navigationTitle("Spending")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $showScanner) {
-            ReceiptScannerView()
+        .sheet(isPresented: $showScanner) { ReceiptScannerView() }
+        .sheet(isPresented: $showTrips)   { NavigationStack { TripModeView() } }
+        .sheet(isPresented: $showRoast, onDismiss: { appState.pendingSpendRoast = nil }) {
+            SpendRoastSheet(roast: appState.pendingSpendRoast ?? "")
         }
-        .sheet(isPresented: $showTrips) {
-            NavigationStack { TripModeView() }
+        .navigationDestination(isPresented: $showSubGraveyard) { SubscriptionGraveyardView() }
+        .onChange(of: appState.pendingSpendRoast) { _, roast in
+            if roast != nil { showRoast = true }
         }
+    }
+
+    private var subscriptionCard: some View {
+        Button { showSubGraveyard = true } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(Color.ajOrangeRed.opacity(0.18)).frame(width: 44, height: 44)
+                    Text("☠️").font(.system(size: 22))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Subscription Graveyard")
+                        .font(.system(size: 15, weight: .bold)).foregroundColor(.white)
+                    Text(appState.subscriptions.isEmpty
+                         ? "Track & kill subscriptions eating your wallet"
+                         : "$\(String(format: "%.2f", appState.totalMonthlySubscriptions))/mo in active subs · \(appState.killedSubscriptions.count) killed")
+                        .font(.system(size: 12)).foregroundColor(.white.opacity(0.5))
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.3)).font(.system(size: 13, weight: .semibold))
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color.ajCard)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrangeRed.opacity(0.3), lineWidth: 1)))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Empty State
@@ -475,6 +508,38 @@ struct TransactionRow: View {
             Text(tx.isSaving ? "+$\(String(format: "%.2f", tx.amount))" : "-$\(String(format: "%.2f", tx.amount))")
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(tx.isSaving ? Color(red: 0, green: 0.8, blue: 0.27) : .white)
+        }
+    }
+}
+
+// MARK: - Spend Roast Sheet
+
+struct SpendRoastSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    var roast: String
+
+    var body: some View {
+        ZStack {
+            Color.ajDark.ignoresSafeArea()
+            VStack(spacing: 28) {
+                Spacer()
+                AnimalCanvas(type: appState.selectedAnimal, mood: .neutral, size: 110,
+                             isWalking: false, evolutionStage: appState.animalGrowthStage)
+                AJSpeechBubble(text: roast).frame(maxWidth: 300)
+                Text("AJ has thoughts 👀")
+                    .font(.system(size: 13)).foregroundColor(.white.opacity(0.4))
+                Spacer()
+                Button { dismiss() } label: {
+                    Text("Okay okay I hear you 😭")
+                        .font(.system(size: 16, weight: .black)).foregroundColor(.black)
+                        .frame(maxWidth: .infinity).padding(.vertical, 17)
+                        .background(RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)))
+                }
+                .padding(.horizontal, 28)
+                Spacer()
+            }
         }
     }
 }

@@ -5,6 +5,9 @@ struct GoalsView: View {
     @State private var showAddGoal = false
     @State private var showingSavingsSheet: SavingsGoal?
     @State private var showLyfeBudget = false
+    @State private var showNetWorth = false
+    @State private var showJars = false
+    @State private var showChallenges = false
 
     var body: some View {
         ZStack {
@@ -14,6 +17,14 @@ struct GoalsView: View {
 
                     // Lyfe Budget entry card
                     lyfeBudgetCard
+
+                    // Feature cards row
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
+                        featureCard(emoji: "📊", title: "Net Worth", subtitle: appState.netWorthItems.isEmpty ? "Track assets & debts" : netWorthLabel, color: .ajGreen) { showNetWorth = true }
+                        featureCard(emoji: "🫙", title: "Savings Jars", subtitle: appState.savingsJars.isEmpty ? "Create money jars" : "\(appState.savingsJars.count) jar\(appState.savingsJars.count == 1 ? "" : "s") · $\(String(format: "%.0f", appState.savingsJars.reduce(0) { $0 + $1.currentAmount })) saved", color: Color(red: 0.6, green: 0.42, blue: 1.0)) { showJars = true }
+                        featureCard(emoji: "⚔️", title: "Challenges", subtitle: appState.joinedChallenges.isEmpty ? "Win gems + XP" : "\(appState.joinedChallenges.filter { $0.claimedDate == nil }.count) active challenge\(appState.joinedChallenges.filter { $0.claimedDate == nil }.count == 1 ? "" : "s")", color: .ajOrange) { showChallenges = true }
+                        featureCard(emoji: "📋", title: "Subscriptions", subtitle: appState.subscriptions.isEmpty ? "Kill your leaks 💀" : "$\(String(format: "%.0f", appState.totalMonthlySubscriptions))/mo burning", color: .ajOrangeRed) { showSubsNav = true }
+                    }
 
                     // Overall progress ring
                     overallRingCard
@@ -78,9 +89,43 @@ struct GoalsView: View {
         .sheet(item: $showingSavingsSheet) { goal in
             AddSavingsSheet(goal: goal)
         }
-        .navigationDestination(isPresented: $showLyfeBudget) {
-            LyfeBudgetView()
+        .navigationDestination(isPresented: $showLyfeBudget)  { LyfeBudgetView() }
+        .navigationDestination(isPresented: $showNetWorth)    { NetWorthView() }
+        .navigationDestination(isPresented: $showJars)        { SavingsJarsView() }
+        .navigationDestination(isPresented: $showChallenges)  { SpendingChallengesView() }
+        .navigationDestination(isPresented: $showSubsNav)     { SubscriptionGraveyardView() }
+    }
+
+    @State private var showSubsNav = false
+
+    private var netWorthLabel: String {
+        let nw = appState.netWorth
+        let prefix = nw < 0 ? "-$" : "$"
+        let abs = Swift.abs(nw)
+        if abs >= 1000 { return "\(prefix)\(String(format: "%.1fK", abs / 1000))" }
+        return "\(prefix)\(String(format: "%.0f", abs))"
+    }
+
+    private func featureCard(emoji: String, title: String, subtitle: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text(emoji).font(.system(size: 28))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold)).foregroundColor(.white.opacity(0.25))
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title).font(.system(size: 14, weight: .black)).foregroundColor(.white)
+                    Text(subtitle).font(.system(size: 11)).foregroundColor(.white.opacity(0.55)).lineLimit(2)
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.06))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(color.opacity(0.35), lineWidth: 1.5)))
         }
+        .buttonStyle(.plain)
     }
 
     private var lyfeBudgetCard: some View {

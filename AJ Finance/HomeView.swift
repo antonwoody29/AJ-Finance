@@ -1115,6 +1115,11 @@ struct HomeView: View {
 
     private var bottomActions: some View {
         VStack(spacing: 8) {
+            // Daily check-in banner
+            if !appState.todayCheckInComplete {
+                CheckInBanner()
+            }
+
             // Hero CTA
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()

@@ -2874,3 +2874,102 @@ struct BudgetExpense: Codable, Identifiable {
     var amount: Double
     var category: ExpenseCategory
 }
+
+// MARK: - Subscription Graveyard
+
+struct Subscription: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var amount: Double
+    var emoji: String
+    var isKilled: Bool = false
+    var dateAdded: Date = Date()
+    var dateKilled: Date? = nil
+}
+
+// MARK: - Savings Jars
+
+enum JarColor: String, CaseIterable, Codable {
+    case orange, green, blue, purple, pink, gold
+    var color: Color {
+        switch self {
+        case .orange: return Color(red: 1.0,  green: 0.55, blue: 0.0)
+        case .green:  return Color(red: 0.0,  green: 0.82, blue: 0.37)
+        case .blue:   return Color(red: 0.25, green: 0.60, blue: 1.0)
+        case .purple: return Color(red: 0.60, green: 0.42, blue: 1.0)
+        case .pink:   return Color(red: 1.0,  green: 0.38, blue: 0.65)
+        case .gold:   return Color(red: 1.0,  green: 0.84, blue: 0.0)
+        }
+    }
+    var label: String { rawValue.capitalized }
+}
+
+struct SavingsJar: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var targetAmount: Double
+    var currentAmount: Double = 0
+    var emoji: String
+    var jarColor: JarColor = .purple
+    var createdDate: Date = Date()
+
+    var progress: Double { guard targetAmount > 0 else { return 0 }; return min(currentAmount / targetAmount, 1.0) }
+    var isCompleted: Bool { currentAmount >= targetAmount }
+}
+
+// MARK: - Net Worth
+
+enum NetWorthItemType: String, Codable, CaseIterable {
+    case cash        = "Cash & Savings"
+    case investment  = "Investments"
+    case property    = "Property"
+    case otherAsset  = "Other Asset"
+    case creditCard  = "Credit Card"
+    case loan        = "Loan"
+    case otherDebt   = "Other Debt"
+
+    var isAsset: Bool {
+        switch self { case .cash, .investment, .property, .otherAsset: return true; default: return false }
+    }
+    var emoji: String {
+        switch self {
+        case .cash:       return "💵"
+        case .investment: return "📈"
+        case .property:   return "🏠"
+        case .otherAsset: return "📦"
+        case .creditCard: return "💳"
+        case .loan:       return "🏦"
+        case .otherDebt:  return "📋"
+        }
+    }
+}
+
+struct NetWorthItem: Codable, Identifiable {
+    var id: UUID = UUID()
+    var name: String
+    var amount: Double
+    var type: NetWorthItemType
+    var dateAdded: Date = Date()
+}
+
+// MARK: - Spending Challenges
+
+struct SpendingChallenge: Codable, Identifiable {
+    var id: String
+    var title: String
+    var emoji: String
+    var description: String
+    var rewardGems: Int
+    var rewardXP: Int
+    var durationDays: Int
+    var joinedDate: Date? = nil
+    var completedDate: Date? = nil
+    var claimedDate: Date? = nil
+}
+
+// MARK: - Daily Check-In
+
+struct CheckInRecord: Codable {
+    var date: Date
+    var gemsEarned: Int
+}

@@ -109,6 +109,26 @@ final class AppState {
     var lastSavingsMonth: Int = -1
     var savingsStreakRewardsClaimed: [Int] = []
 
+    // MARK: - Subscription Graveyard
+    var subscriptions: [Subscription] = []
+
+    // MARK: - Savings Jars
+    var savingsJars: [SavingsJar] = []
+
+    // MARK: - Net Worth
+    var netWorthItems: [NetWorthItem] = []
+    var netWorthMilestonesReached: [Int] = []
+
+    // MARK: - Spending Challenges
+    var joinedChallenges: [SpendingChallenge] = []
+
+    // MARK: - Daily Check-In
+    var lastCheckInDate: Date? = nil
+    var checkInStreak: Int = 0
+
+    // MARK: - Spend Roast
+    var pendingSpendRoast: String? = nil
+
     // MARK: - Computed
 
     var totalSaved: Double {
@@ -264,6 +284,21 @@ final class AppState {
         case ..<1.0:  return 15
         default:      return 0
         }
+    }
+
+    // MARK: - Feature Computed
+
+    var liveSubscriptions: [Subscription]   { subscriptions.filter { !$0.isKilled } }
+    var killedSubscriptions: [Subscription] { subscriptions.filter { $0.isKilled } }
+    var totalMonthlySubscriptions: Double   { liveSubscriptions.reduce(0) { $0 + $1.amount } }
+
+    var totalAssets: Double       { netWorthItems.filter { $0.type.isAsset }.reduce(0) { $0 + $1.amount } }
+    var totalLiabilities: Double  { netWorthItems.filter { !$0.type.isAsset }.reduce(0) { $0 + $1.amount } }
+    var netWorth: Double          { totalAssets - totalLiabilities }
+
+    var todayCheckInComplete: Bool {
+        guard let last = lastCheckInDate else { return false }
+        return Calendar.current.isDateInToday(last)
     }
 
     // MARK: - Evolution
@@ -1269,9 +1304,187 @@ final class AppState {
             setMood(.happy)
             showToast("Receipt logged! +25 XP ✅", icon: "✅", color: .ajGreen)
         }
+        if let roast = generateSpendRoast(for: tx) {
+            pendingSpendRoast = roast
+        }
         checkBadges()
         checkEvolutionRewards()
         save()
+    }
+
+    func generateSpendRoast(for tx: SpendEntry) -> String? {
+        guard !tx.isSaving, tx.amount >= 15 else { return nil }
+        let amt = Int(tx.amount)
+        let roasts: [SpendCategory: [String]] = [
+            .food: [
+                "Another food delivery? Your chef lives rent free in your wallet 🍕",
+                "Bro $\(amt) on food? Your fridge is literally right there 😭",
+                "The restaurant industry sends its thanks 💸",
+                "Your delivery driver knows your address better than your friends do 📍",
+                "$\(amt) spent eating? AJ is watching. And judging. Lovingly. 👀",
+            ],
+            .entertainment: [
+                "Entertainment tax is REAL and you're paying in full 🎭",
+                "$\(amt) for fun? The vibes better have been immaculate 💀",
+                "AJ approves of fun... this once 👀",
+                "The fun budget took a hit. Worth it? 🎬",
+            ],
+            .shopping: [
+                "Another bag enters the chat 🛍️",
+                "$\(amt) spent? AJ is judging AND respecting it simultaneously 👀",
+                "The algorithm knew you'd buy it. Predictable bestie 😭",
+                "Your future self is watching this with concern 💀",
+                "Retail therapy logged. The economy thanks you 🛒",
+            ],
+            .health: [
+                "Investing in yourself! AJ actually approves this one 💪",
+                "$\(amt) on health is money well spent fr 🏥",
+            ],
+            .other: [
+                "The miscellaneous fund catches everything 📦",
+                "$\(amt) out the door. Hope it was worth it 👀",
+                "Spending logged. No questions asked. 😌",
+            ],
+        ]
+        let fallback = ["$\(amt) gone like that 💨 Easy come easy go bestie", "Another day another dollar spent 💸"]
+        let pool = roasts[tx.category] ?? fallback
+        return pool.randomElement()
+    }
+
+    // MARK: - Subscription Graveyard
+
+    func addSubscription(_ sub: Subscription) {
+        subscriptions.append(sub)
+        showToast("Added \(sub.name) — $\(String(format: "%.2f", sub.amount))/mo 📋", icon: "📋", color: .ajOrangeRed)
+        saveFeatures()
+    }
+
+    func killSubscription(id: UUID) {
+        guard let idx = subscriptions.firstIndex(where: { $0.id == id }) else { return }
+        subscriptions[idx].isKilled = true
+        subscriptions[idx].dateKilled = Date()
+        let sub = subscriptions[idx]
+        let yearlySaved = sub.amount * 12
+        gems += 25
+        earnXP(50)
+        boostHealth(by: 5)
+        showToast("☠️ Killed \(sub.name)! +$\(String(format: "%.0f", yearlySaved))/yr back in your pocket", icon: "☠️", color: .ajGreen)
+        setMood(.hype, speech: "YOU FINALLY KILLED \(sub.name.uppercased()) 💀 That's $\(String(format: "%.0f", yearlySaved)) BACK IN YOUR HANDS every year!")
+        saveFeatures()
+    }
+
+    func deleteSubscription(id: UUID) {
+        subscriptions.removeAll { $0.id == id }
+        saveFeatures()
+    }
+
+    // MARK: - Savings Jars
+
+    func addSavingsJar(_ jar: SavingsJar) {
+        savingsJars.append(jar)
+        showToast("🫙 New jar created: \(jar.name)!", icon: "🫙", color: .ajGreen)
+        saveFeatures()
+    }
+
+    func addToJar(id: UUID, amount: Double) {
+        guard let idx = savingsJars.firstIndex(where: { $0.id == id }) else { return }
+        let wasComplete = savingsJars[idx].isCompleted
+        savingsJars[idx].currentAmount += amount
+        let jar = savingsJars[idx]
+        if !wasComplete && jar.isCompleted {
+            gems += 100; earnXP(200); boostHealth(by: 10)
+            showToast("🫙 \(jar.name) is FULL! +100💎 +200XP", icon: "🫙", color: .ajGold)
+            setMood(.hype, speech: "THE JAR IS FULL 🫙 I am SO proud of you bestie! $\(String(format: "%.0f", jar.targetAmount)) achieved!")
+        } else {
+            showToast("+$\(String(format: "%.0f", amount)) added to \(jar.name) 💰", icon: "💰", color: .ajGreen)
+        }
+        saveFeatures()
+    }
+
+    func deleteSavingsJar(id: UUID) {
+        savingsJars.removeAll { $0.id == id }
+        saveFeatures()
+    }
+
+    // MARK: - Net Worth
+
+    func addNetWorthItem(_ item: NetWorthItem) {
+        netWorthItems.append(item)
+        checkNetWorthMilestones()
+        saveFeatures()
+    }
+
+    func deleteNetWorthItem(id: UUID) {
+        netWorthItems.removeAll { $0.id == id }
+        saveFeatures()
+    }
+
+    private func checkNetWorthMilestones() {
+        let milestones = [1_000, 5_000, 10_000, 25_000, 50_000, 100_000]
+        let nw = netWorth
+        for m in milestones where nw >= Double(m) && !netWorthMilestonesReached.contains(m) {
+            netWorthMilestonesReached.append(m)
+            let label = m >= 1000 ? "$\(m / 1000)K" : "$\(m)"
+            gems += 100; earnXP(250)
+            showToast("📈 Net Worth hit \(label)! +100💎 +250XP", icon: "📈", color: .ajGold)
+            setMood(.hype, speech: "YOUR NET WORTH HIT \(label) 📈 BESTIE WE ARE BUILT DIFFERENT!")
+        }
+    }
+
+    // MARK: - Spending Challenges
+
+    func joinChallenge(_ challenge: SpendingChallenge) {
+        var c = challenge; c.joinedDate = Date()
+        if let idx = joinedChallenges.firstIndex(where: { $0.id == c.id }) {
+            joinedChallenges[idx] = c
+        } else {
+            joinedChallenges.append(c)
+        }
+        showToast("⚔️ Challenge started: \(c.title)!", icon: "⚔️", color: .ajOrange)
+        saveFeatures()
+    }
+
+    func claimChallengeReward(id: String) {
+        guard let idx = joinedChallenges.firstIndex(where: { $0.id == id }) else { return }
+        joinedChallenges[idx].claimedDate = Date()
+        let c = joinedChallenges[idx]
+        gems += c.rewardGems; earnXP(c.rewardXP); boostHealth(by: 8)
+        showToast("🏆 Challenge complete! +\(c.rewardGems)💎 +\(c.rewardXP)XP", icon: "🏆", color: .ajGold)
+        setMood(.hype, speech: "CHALLENGE COMPLETE 🏆 You're literally built different bestie!")
+        saveFeatures()
+    }
+
+    // MARK: - Daily Check-In
+
+    func performDailyCheckIn() {
+        let cal = Calendar.current
+        guard !todayCheckInComplete else { return }
+        if let last = lastCheckInDate,
+           let yesterday = cal.date(byAdding: .day, value: -1, to: cal.startOfDay(for: Date())),
+           cal.isDate(last, equalTo: yesterday, toGranularity: .day) {
+            checkInStreak += 1
+        } else {
+            checkInStreak = 1
+        }
+        lastCheckInDate = Date()
+        let bonus = min(checkInStreak, 7) * 10
+        gems += bonus
+        earnXP(20)
+        showToast("✅ Daily check-in! +\(bonus)💎 (Day \(checkInStreak))", icon: "✅", color: .ajGreen)
+        saveFeatures()
+    }
+
+    // MARK: - Feature Persistence
+
+    func saveFeatures() {
+        let ud = UserDefaults.standard
+        if let d = try? JSONEncoder().encode(subscriptions)    { ud.set(d, forKey: "aj_subscriptions") }
+        if let d = try? JSONEncoder().encode(savingsJars)      { ud.set(d, forKey: "aj_savingsJars") }
+        if let d = try? JSONEncoder().encode(netWorthItems)    { ud.set(d, forKey: "aj_netWorthItems") }
+        if let d = try? JSONEncoder().encode(joinedChallenges) { ud.set(d, forKey: "aj_joinedChallenges") }
+        ud.set(netWorthMilestonesReached, forKey: "aj_netWorthMilestones")
+        ud.set(checkInStreak, forKey: "aj_checkInStreak")
+        if let d = lastCheckInDate { ud.set(d, forKey: "aj_lastCheckIn") }
     }
 
     // MARK: - Animal Life System
@@ -1837,6 +2050,14 @@ final class AppState {
         savingsStreak             = 0
         lastSavingsMonth          = -1
         savingsStreakRewardsClaimed = []
+        subscriptions             = []
+        savingsJars               = []
+        netWorthItems             = []
+        netWorthMilestonesReached = []
+        joinedChallenges          = []
+        lastCheckInDate           = nil
+        checkInStreak             = 0
+        pendingSpendRoast         = nil
     }
 
     // MARK: - Email auth
@@ -1910,6 +2131,16 @@ final class AppState {
            let decoded = try? JSONDecoder().decode([String: Int].self, from: d) {
             companionTxCounts = decoded
         }
+
+        // Features
+        let ud = UserDefaults.standard
+        if let d = ud.data(forKey: "aj_subscriptions"),    let v = try? JSONDecoder().decode([Subscription].self,        from: d) { subscriptions    = v }
+        if let d = ud.data(forKey: "aj_savingsJars"),      let v = try? JSONDecoder().decode([SavingsJar].self,          from: d) { savingsJars      = v }
+        if let d = ud.data(forKey: "aj_netWorthItems"),    let v = try? JSONDecoder().decode([NetWorthItem].self,        from: d) { netWorthItems    = v }
+        if let d = ud.data(forKey: "aj_joinedChallenges"), let v = try? JSONDecoder().decode([SpendingChallenge].self,   from: d) { joinedChallenges = v }
+        netWorthMilestonesReached = ud.array(forKey: "aj_netWorthMilestones") as? [Int] ?? []
+        checkInStreak  = ud.integer(forKey: "aj_checkInStreak")
+        lastCheckInDate = ud.object(forKey: "aj_lastCheckIn") as? Date
 
         // Budget
         monthlyIncome    = UserDefaults.standard.double(forKey: "aj_monthlyIncome")
