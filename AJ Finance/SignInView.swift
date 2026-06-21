@@ -223,6 +223,13 @@ struct SignInView: View {
                         .font(.system(size: 12))
                         .foregroundColor(.white.opacity(0.30))
                         .multilineTextAlignment(.center)
+
+                    Text("Must be 18 years of age or older to use this app.")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white.opacity(0.22))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                        .padding(.top, 4)
                 }
 
                 Spacer().frame(height: 56)
@@ -484,6 +491,13 @@ struct EmailAuthSheet: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 36)
                             .padding(.top, 14)
+
+                        Text("Must be 18 years of age or older to use this app.")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.white.opacity(0.20))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 36)
+                            .padding(.top, 2)
 
                         Spacer().frame(height: 40)
                     }
