@@ -113,7 +113,7 @@ struct SettingsView: View {
                     .tracking(2)
                     .padding(.bottom, 14)
 
-                Link(destination: URL(string: "https://drive.google.com/file/d/1JisvnOHnD2U470SJWKakUvG52v_Dif7i/view?usp=sharing")!) {
+                Link(destination: URL(string: "https://antonwoody29.github.io/AJ-Finance/Privacy-Policy.html")!) {
                     legalRow(icon: "lock.shield.fill", title: "Privacy Policy",
                              subtitle: "How AJ Lyfe collects, uses, and protects your info")
                 }
@@ -121,7 +121,7 @@ struct SettingsView: View {
 
                 legalDivider
 
-                Link(destination: URL(string: "https://drive.google.com/file/d/1VTiuNqBEsMgGS-3vLTxt3p6NLZO8mzU8/view?usp=sharing")!) {
+                Link(destination: URL(string: "https://antonwoody29.github.io/AJ-Finance/terms-of-use.html")!) {
                     legalRow(icon: "doc.text.fill", title: "Terms of Service",
                              subtitle: "Terms and conditions governing use of AJ Lyfe")
                 }
