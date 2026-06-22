@@ -44,25 +44,10 @@ private enum AJID {
     static let monthly28th  = "aj_monthly_28th"
     static let monthly31st  = "aj_monthly_31st"
     static let monthly1stNoon = "aj_monthly_1st_noon"
-    // Fitness (daily)
-    static let fit6am   = "aj_fit_6am"
+    // Fitness (daily — 3 per day)
     static let fit7am   = "aj_fit_7am"
-    static let fit8am   = "aj_fit_8am"
-    static let fit9am   = "aj_fit_9am"
-    static let fit10am  = "aj_fit_10am"
-    static let fit11am  = "aj_fit_11am"
     static let fit12pm  = "aj_fit_12pm"
-    static let fit1pm   = "aj_fit_1pm"
-    static let fit2pm   = "aj_fit_2pm"
-    static let fit3pm   = "aj_fit_3pm"
-    static let fit4pm   = "aj_fit_4pm"
-    static let fit5pm   = "aj_fit_5pm"
     static let fit530pm = "aj_fit_530pm"
-    static let fit6pm   = "aj_fit_6pm"
-    static let fit7pm   = "aj_fit_7pm"
-    static let fit8pm   = "aj_fit_8pm"
-    static let fit9pm   = "aj_fit_9pm"
-    static let fit10pm  = "aj_fit_10pm"
     // Fitness special (weekly)
     static let fitSat   = "aj_fit_sat"
     static let fitSun   = "aj_fit_sun"
@@ -333,27 +318,12 @@ private enum AJCopy {
 
     // MARK: Fitness
 
-    static let fit6am  = "Ayeee you did your push-ups today?? AYEEE BRUHH 💪"
-    static let fit7am  = "Time to get that ass up and get this MONEY. Let's GO 💸"
-    static let fit8am  = "Bruhh did you walk today?? The bag won't secure itself 👜"
-    static let fit9am  = "Move that ass if you want them Megan knees — you won't be bullshitting 🦵"
-    static let fit10am = "10k steps ain't gonna happen by themselves bestie. Get up. 🏃"
-    static let fit11am = "Did you stretch? Did you move? AJ is watching. Don't play. 👀"
-    static let fit12pm = "Lunch break = walk break. Yes I said what I said. 🚶‍♂️"
-    static let fit1pm  = "You sitting down or you getting that body right? AJ needs an answer. 👊"
-    static let fit2pm  = "Two push-ups. That's all. Then 10. Then you're doing a whole set. Trust. 😤"
-    static let fit3pm  = "The 3pm crash hits different when you didn't move today. Correlation? 🤔"
-    static let fit4pm  = "You got time to scroll. You got time to do a squat. Same thing. 💅"
-    static let fit5pm  = "Work is done. Gym is open. Excuses are closed. Let's get it 💪"
+    static let fit7am   = "Time to get that ass up and get this MONEY. Let's GO 💸"
+    static let fit12pm  = "Lunch break = walk break. Yes I said what I said. 🚶‍♂️"
     static let fit530pm = "That body ain't gonna build itself. AJ is begging you. 🙏"
-    static let fit6pm  = "You skipped yesterday. Don't skip today. AJ has receipts. 🧾"
-    static let fit7pm  = "It's not too late to do a walk. Or 20 push-ups. Or SOMETHING. 😭"
-    static let fit8pm  = "Last call for movement bestie. Your future body is begging rn 🙏"
-    static let fit9pm  = "Did you move today? Be honest. AJ can handle the truth. Maybe. 😬"
-    static let fit10pm = "Log your steps and go to sleep. Rest is gains too. AJ said so. 💤"
-    static let fitSat  = "Saturday is not a rest day. It's a GRIND day. Let's go champ 🏆"
-    static let fitSun  = "Sunday reset hits harder when you actually worked out. Trust AJ. 💪"
-    static let fitMon  = "New week, new body goals. You promised AJ. Don't let us down. 👀"
+    static let fitSat   = "Saturday is not a rest day. It's a GRIND day. Let's go champ 🏆"
+    static let fitSun   = "Sunday reset hits harder when you actually worked out. Trust AJ. 💪"
+    static let fitMon   = "New week, new body goals. You promised AJ. Don't let us down. 👀"
 
     // MARK: Event-triggered
 
@@ -793,33 +763,20 @@ struct NotificationManager {
 
     private static func scheduleFitnessCheckIns(animalName: String) {
         let allFitnessIDs = [
-            AJID.fit6am, AJID.fit7am, AJID.fit8am, AJID.fit9am, AJID.fit10am, AJID.fit11am,
-            AJID.fit12pm, AJID.fit1pm, AJID.fit2pm, AJID.fit3pm, AJID.fit4pm, AJID.fit5pm,
-            AJID.fit530pm, AJID.fit6pm, AJID.fit7pm, AJID.fit8pm, AJID.fit9pm, AJID.fit10pm,
-            AJID.fitSat, AJID.fitSun, AJID.fitMon
+            AJID.fit7am, AJID.fit12pm, AJID.fit530pm,
+            AJID.fitSat, AJID.fitSun, AJID.fitMon,
+            // Remove any old hourly IDs still pending on device
+            "aj_fit_6am", "aj_fit_8am", "aj_fit_9am", "aj_fit_10am", "aj_fit_11am",
+            "aj_fit_1pm", "aj_fit_2pm", "aj_fit_3pm", "aj_fit_4pm", "aj_fit_5pm",
+            "aj_fit_6pm", "aj_fit_7pm", "aj_fit_8pm", "aj_fit_9pm", "aj_fit_10pm"
         ]
         center.removePendingNotificationRequests(withIdentifiers: allFitnessIDs)
 
-        // Daily fitness (all days)
+        // Daily fitness — 3 per day only
         let daily: [(String, String, Int, Int)] = [
-            (AJID.fit6am,   AJCopy.fit6am,   6,  0),
             (AJID.fit7am,   AJCopy.fit7am,   7,  0),
-            (AJID.fit8am,   AJCopy.fit8am,   8,  0),
-            (AJID.fit9am,   AJCopy.fit9am,   9,  0),
-            (AJID.fit10am,  AJCopy.fit10am,  10, 0),
-            (AJID.fit11am,  AJCopy.fit11am,  11, 0),
             (AJID.fit12pm,  AJCopy.fit12pm,  12, 0),
-            (AJID.fit1pm,   AJCopy.fit1pm,   13, 0),
-            (AJID.fit2pm,   AJCopy.fit2pm,   14, 0),
-            (AJID.fit3pm,   AJCopy.fit3pm,   15, 0),
-            (AJID.fit4pm,   AJCopy.fit4pm,   16, 0),
-            (AJID.fit5pm,   AJCopy.fit5pm,   17, 0),
-            (AJID.fit530pm, AJCopy.fit530pm,  17, 30),
-            (AJID.fit6pm,   AJCopy.fit6pm,   18, 0),
-            (AJID.fit7pm,   AJCopy.fit7pm,   19, 0),
-            (AJID.fit8pm,   AJCopy.fit8pm,   20, 0),
-            (AJID.fit9pm,   AJCopy.fit9pm,   21, 0),
-            (AJID.fit10pm,  AJCopy.fit10pm,  22, 5),
+            (AJID.fit530pm, AJCopy.fit530pm, 17, 30),
         ]
         for (id, body, hour, minute) in daily {
             let c = content(title: "Fitness check 💪", body: body, badge: 0)
