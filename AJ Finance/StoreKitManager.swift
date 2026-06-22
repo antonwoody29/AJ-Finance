@@ -7,7 +7,7 @@ import SwiftUI
 enum SKID {
     static let plusMonthly      = "com.aj.AJLyfe.plus.monthly"
     static let founderPack      = "com.aj.AJLyfe.founder.pack"
-    static let gems100          = "com.aj.AJLyfe.gems.100"
+    static let gems100          = "com.aj.AJ_Finance.gem100"
     static let gems500          = "com.aj.AJLyfe.gems.500"
     static let gems1200         = "com.aj.AJLyfe.gems.1200"
     static let gems3000         = "com.aj.AJLyfe.gems.3000"
