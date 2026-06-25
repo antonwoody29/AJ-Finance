@@ -2236,6 +2236,14 @@ enum CrateTier: String, CaseIterable {
     var usdPrice: String {
         switch self { case .common: return "$0.99"; case .rare: return "$1.99"; case .epic: return "$2.99"; case .legendary: return "$4.99" }
     }
+    var crateProductID: String {
+        switch self {
+        case .common:    return "com.aj.AJLyfe.crate.common"
+        case .rare:      return "com.aj.AJLyfe.crate.rare"
+        case .epic:      return "com.aj.AJLyfe.crate.epic"
+        case .legendary: return "com.aj.AJLyfe.crate.legendary"
+        }
+    }
 }
 
 enum CompanionRarity: String, Codable {

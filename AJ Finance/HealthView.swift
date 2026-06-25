@@ -232,6 +232,7 @@ struct HealthView: View {
                     weightCard
                     rewardsCard
                     logWorkoutButton
+                    healthDataInfoCard
                     disclaimerButton
                     Spacer(minLength: 100)
                 }
@@ -704,6 +705,56 @@ struct HealthView: View {
             .background(RoundedRectangle(cornerRadius: 16)
                 .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
                 .shadow(color: .ajOrange.opacity(0.4), radius: 10, y: 4))
+        }
+    }
+
+    // MARK: - Health Data Info
+
+    private var healthDataInfoCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 8) {
+                    Image(systemName: "heart.text.square.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.ajOrange)
+                    Text("WHAT AJ READS FROM APPLE HEALTH")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(1.5)
+                }
+
+                let items: [(String, String, String)] = [
+                    ("figure.walk",     "Steps",           "Daily step count to track your activity"),
+                    ("flame.fill",      "Active Calories", "Calories burned to show your workout effort"),
+                    ("bolt.fill",       "Exercise Minutes","Time spent exercising each day"),
+                    ("person.fill",     "Stand Hours",     "Hourly standing to encourage movement"),
+                    ("heart.fill",      "Heart Rate",      "Most recent reading from Apple Watch"),
+                    ("dumbbell.fill",   "Workouts",        "Last 5 workouts logged in the Health app"),
+                    ("scalemass.fill",  "Body Weight",     "Most recent weigh-in so you can log progress"),
+                ]
+
+                ForEach(items, id: \.1) { icon, label, reason in
+                    HStack(alignment: .top, spacing: 10) {
+                        Image(systemName: icon)
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.5))
+                            .frame(width: 18)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(label)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white)
+                            Text(reason)
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                        }
+                    }
+                }
+
+                Text("AJ only writes body weight back to Health when you log it manually. All other data is read-only. Nothing is shared with third parties.")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.35))
+                    .padding(.top, 4)
+            }
         }
     }
 

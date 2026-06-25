@@ -634,7 +634,7 @@ struct StoreView: View {
                         gemBuyButton(label: "Shield", cost: 100, action: {
                             if appState.gems >= 100 { appState.gems -= 100; appState.streakShields += 1; appState.saveStoreState() }
                         })
-                        iapButton(label: "Shield", price: "$0.99", color: .ajOrange)
+                        iapButton(label: "Shield", price: "$0.99", color: .ajOrange, productID: SKID.shield)
                     }
 
                     Divider().background(Color.white.opacity(0.1))
@@ -661,7 +661,7 @@ struct StoreView: View {
                                 appState.saveStoreState()
                             }
                         })
-                        iapButton(label: "Restore", price: "$1.99", color: .ajOrange)
+                        iapButton(label: "Restore", price: "$1.99", color: .ajOrange, productID: SKID.streakRestore)
                     }
                 }
             }
@@ -712,7 +712,7 @@ struct StoreView: View {
                                             appState.saveStoreState()
                                         }
                                     })
-                                    iapButton(label: tier.usdPrice, price: "", color: tier.color, small: true)
+                                    iapButton(label: tier.usdPrice, price: "", color: tier.color, productID: tier.crateProductID, small: true)
                                 }
                             }
                         }
@@ -753,7 +753,7 @@ struct StoreView: View {
                         gemBuyButton(label: "150 💎", cost: 150, action: {
                             if appState.gems >= 150 { appState.gems -= 150; appState.petRescueTokens += 1; appState.saveStoreState() }
                         })
-                        iapButton(label: "Token — $0.99", price: "", color: .ajGreen)
+                        iapButton(label: "Token — $0.99", price: "", color: .ajGreen, productID: SKID.rescueToken)
                     }
 
                     Divider().background(Color.white.opacity(0.1))
@@ -777,7 +777,7 @@ struct StoreView: View {
                                 appState.saveStoreState()
                             }
                         })
-                        iapButton(label: "Bundle — $2.99", price: "", color: .ajGreen)
+                        iapButton(label: "Bundle — $2.99", price: "", color: .ajGreen, productID: SKID.recoveryBundle)
                     }
                 }
             }
@@ -890,9 +890,9 @@ struct StoreView: View {
         }
     }
 
-    private func iapButton(label: String, price: String, color: Color, fullWidth: Bool = false, small: Bool = false) -> some View {
+    private func iapButton(label: String, price: String, color: Color, productID: String, fullWidth: Bool = false, small: Bool = false) -> some View {
         Button {
-            // IAP integration placeholder — requires App Store Connect product IDs
+            Task { await storeKit.purchase(id: productID, appState: appState) }
         } label: {
             Text(price.isEmpty ? label : "\(label) — \(price)")
                 .font(.system(size: small ? 11 : 13, weight: .black))
@@ -906,6 +906,7 @@ struct StoreView: View {
                         .overlay(RoundedRectangle(cornerRadius: small ? 8 : 12).stroke(color.opacity(0.4), lineWidth: 1))
                 )
         }
+        .disabled(storeKit.purchaseInProgress)
     }
 
     private func gemBuyButton(label: String, cost: Int, small: Bool = false, action: @escaping () -> Void) -> some View {

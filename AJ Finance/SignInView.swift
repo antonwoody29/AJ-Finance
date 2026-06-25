@@ -101,10 +101,11 @@ struct SignInView: View {
             )
             .ignoresSafeArea()
 
-            // Stars
+            // Stars — non-interactive, must not absorb taps
             SignInStarField(phase: starPhase)
+                .allowsHitTesting(false)
 
-            // Large ambient glow that pulses with the animal colour
+            // Large ambient glow — non-interactive
             Circle()
                 .fill(
                     RadialGradient(
@@ -116,6 +117,7 @@ struct SignInView: View {
                 .offset(y: -80 + (glowPulse ? -10 : 10))
                 .animation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true), value: glowPulse)
                 .animation(.easeInOut(duration: 0.6), value: currentPair.0)
+                .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 Spacer()
@@ -176,8 +178,8 @@ struct SignInView: View {
                         handleAppleSignIn(result)
                     }
                     .signInWithAppleButtonStyle(.white)
-                    .frame(height: 54)
-                    .cornerRadius(16)
+                    .frame(maxWidth: .infinity, minHeight: 54, maxHeight: 54)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
                     .padding(.horizontal, 32)
                     .shadow(color: .white.opacity(0.10), radius: 14, y: 4)
 
