@@ -1,5 +1,4 @@
 import SwiftUI
-import AuthenticationServices
 
 // MARK: - Floating Head crop helper
 
@@ -171,26 +170,6 @@ struct SignInView: View {
 
                 // ── Auth buttons ───────────────────────────────────
                 VStack(spacing: 12) {
-                    // Sign in with Apple
-                    SignInWithAppleButton(.signIn) { request in
-                        request.requestedScopes = [.fullName, .email]
-                    } onCompletion: { result in
-                        handleAppleSignIn(result)
-                    }
-                    .signInWithAppleButtonStyle(.white)
-                    .frame(maxWidth: .infinity, minHeight: 54, maxHeight: 54)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
-                    .padding(.horizontal, 32)
-                    .shadow(color: .white.opacity(0.10), radius: 14, y: 4)
-
-                    // Divider
-                    HStack(spacing: 10) {
-                        Rectangle().fill(Color.white.opacity(0.14)).frame(height: 1)
-                        Text("or").font(.system(size: 12)).foregroundColor(.white.opacity(0.35))
-                        Rectangle().fill(Color.white.opacity(0.14)).frame(height: 1)
-                    }
-                    .padding(.horizontal, 40)
-
                     // Email auth button
                     Button {
                         showEmailAuth = true
@@ -266,32 +245,6 @@ struct SignInView: View {
                 }
                 startCycle()
             }
-        }
-    }
-
-    // MARK: - Apple Sign In handler
-
-    private func handleAppleSignIn(_ result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .success(let auth):
-            guard let cred = auth.credential as? ASAuthorizationAppleIDCredential else {
-                showError("Authentication failed. Please use email instead.")
-                return
-            }
-            let name = [cred.fullName?.givenName, cred.fullName?.familyName]
-                .compactMap { $0 }.joined(separator: " ")
-            let stored = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
-            // Dispatch to main thread — @Observable mutations must happen on main actor
-            DispatchQueue.main.async {
-                appState.login(userID: cred.user, name: name.isEmpty ? stored : name)
-            }
-
-        case .failure(let error):
-            let code = (error as NSError).code
-            // 1001 = invalidResponse, 1002 = notHandled, 1003 = failed, 1004 = notInteractive
-            // 1000 = canceled (user tapped Cancel) — don't show error for that
-            if code == 1000 { return }
-            showError("Apple Sign In isn't available right now. Please use email instead.")
         }
     }
 
