@@ -1785,8 +1785,18 @@ struct AnimalBodyView: View {
             ctx.draw(Text(emoji).font(.system(size: u * 0.27)),
                      at: CGPoint(x: cx, y: headY - u * 0.40), anchor: .center)
         case .glasses:
-            ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
-                     at: CGPoint(x: cx, y: headY - u * 0.03), anchor: .center)
+            let eyeY   = headY - u * 0.040
+            let eyeSep = u * 0.096
+            switch outfit.id {
+            case "glasses_shades": drawShadesGlasses(ctx, cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_heart":  drawHeartGlasses(ctx,  cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_monocle":
+                ctx.draw(Text("🧐").font(.system(size: u * 0.22)),
+                         at: CGPoint(x: cx + eyeSep * 0.5, y: eyeY + u * 0.005), anchor: .center)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.20)),
+                         at: CGPoint(x: cx, y: eyeY), anchor: .center)
+            }
         case .collar:
             ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
                      at: CGPoint(x: cx, y: headY + u * 0.28), anchor: .center)
@@ -1794,6 +1804,95 @@ struct AnimalBodyView: View {
             ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
                      at: CGPoint(x: cx, y: bodyY - u * 0.02), anchor: .center)
         }
+    }
+
+    // MARK: - Designer Shades
+
+    func drawShadesGlasses(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let lw = u * 0.092   // lens half-width
+        let lh = u * 0.062   // lens half-height
+        let frameColor = Color(red: 0.08, green: 0.08, blue: 0.08)
+        let lensColor  = Color(red: 0.05, green: 0.05, blue: 0.10)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            // Slightly rounded-rectangle lens
+            var lens = Path(roundedRect: CGRect(x: ex - lw, y: eyeY - lh, width: lw * 2, height: lh * 2),
+                            cornerRadius: lh * 0.55)
+            ctx.fill(lens, with: .color(lensColor.opacity(0.88)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.018)
+        }
+        // Bridge
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw,  y: eyeY - lh * 0.25))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw,  y: eyeY - lh * 0.25))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.016)
+        // Temple arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * lw,        y: eyeY - lh * 0.25))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22,  y: eyeY + u * 0.018))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.016)
+        }
+    }
+
+    // MARK: - Heart Glasses
+
+    func drawHeartGlasses(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let r: CGFloat   = u * 0.072   // heart half-size
+        let frameColor   = Color(red: 0.55, green: 0.05, blue: 0.20)
+        let lensColor    = Color(red: 1.00, green: 0.38, blue: 0.60)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            let topY = eyeY - r * 0.80   // top of heart sits above eye center
+            var heart = heartLensPath(cx: ex, topY: topY, r: r)
+            ctx.fill(heart, with: .color(lensColor.opacity(0.72)))
+            ctx.stroke(heart, with: .color(frameColor), lineWidth: u * 0.016)
+        }
+        // Bridge connecting inner tops of hearts
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + r * 0.55, y: eyeY - r * 0.72))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - r * 0.55, y: eyeY - r * 0.72))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.015)
+        // Temple arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * r * 0.80, y: eyeY - r * 0.72))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY - r * 0.10))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.015)
+        }
+    }
+
+    // Heart lens shape: two circular bumps at top, point at bottom
+    private func heartLensPath(cx: CGFloat, topY: CGFloat, r: CGFloat) -> Path {
+        var p = Path()
+        let dip    = CGPoint(x: cx,          y: topY)            // top center dip
+        let tip    = CGPoint(x: cx,          y: topY + r * 2.0)  // bottom tip
+        let leftM  = CGPoint(x: cx - r * 0.88, y: topY + r * 0.6)
+        let rightM = CGPoint(x: cx + r * 0.88, y: topY + r * 0.6)
+
+        p.move(to: dip)
+        // Left bump
+        p.addCurve(to: leftM,
+                   control1: CGPoint(x: cx - r * 0.55, y: topY - r * 0.42),
+                   control2: CGPoint(x: cx - r * 1.00, y: topY + r * 0.10))
+        // Left lower to tip
+        p.addCurve(to: tip,
+                   control1: CGPoint(x: cx - r * 0.88, y: topY + r * 1.25),
+                   control2: CGPoint(x: cx - r * 0.25, y: topY + r * 1.78))
+        // Right lower from tip
+        p.addCurve(to: rightM,
+                   control1: CGPoint(x: cx + r * 0.25, y: topY + r * 1.78),
+                   control2: CGPoint(x: cx + r * 0.88, y: topY + r * 1.25))
+        // Right bump back to dip
+        p.addCurve(to: dip,
+                   control1: CGPoint(x: cx + r * 1.00, y: topY + r * 0.10),
+                   control2: CGPoint(x: cx + r * 0.55, y: topY - r * 0.42))
+        p.closeSubpath()
+        return p
     }
 
     func drawEggOutfit(_ ctx: GraphicsContext, outfit: OutfitItem,
@@ -1805,8 +1904,15 @@ struct AnimalBodyView: View {
             ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
                      at: CGPoint(x: cx, y: eggTop - u * 0.09), anchor: .center)
         case .glasses:
-            ctx.draw(Text(emoji).font(.system(size: u * 0.18)),
-                     at: CGPoint(x: cx, y: cy + u * 0.02), anchor: .center)
+            let eggEyeY = cy - u * 0.015
+            let eggSep  = u * 0.088
+            switch outfit.id {
+            case "glasses_shades": drawShadesGlasses(ctx, cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_heart":  drawHeartGlasses(ctx,  cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
+                         at: CGPoint(x: cx, y: eggEyeY), anchor: .center)
+            }
         case .collar:
             ctx.draw(Text(emoji).font(.system(size: u * 0.18)),
                      at: CGPoint(x: cx, y: cy + u * 0.18), anchor: .center)
