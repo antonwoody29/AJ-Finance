@@ -725,7 +725,7 @@ struct AppStoreExportScreen: View {
     @State private var status: [String] = ["⏳ 1/4 Home", "⏳ 2/4 Spend", "⏳ 3/4 Goals", "⏳ 4/4 Animals"]
     @State private var done = false
 
-    private let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+    private let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSTemporaryDirectory())
 
     var body: some View {
         ZStack {

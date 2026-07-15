@@ -167,7 +167,7 @@ struct GoalsView: View {
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.30))
+                    .foregroundColor(.white.opacity(0.45))
             }
             .padding(16)
             .background(

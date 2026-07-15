@@ -2,15 +2,17 @@ import SwiftUI
 
 struct MyPetView: View {
     @Environment(AppState.self) private var appState
-    @State private var showOutfitShop   = false
+    @State private var showOutfitShop    = false
     @State private var showSwitchConfirm = false
     @State private var pendingSwitch: AnimalType? = nil
+    @State private var showMilestones    = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
                 currentCompanionCard
                 companionStatsCard
+                AJCard { PetExtendedStatsView() }
                 evolutionProgressCard
                 companionCollectionCard
                 customizationCard
@@ -22,6 +24,10 @@ struct MyPetView: View {
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showOutfitShop) {
             OutfitShopView()
+                .environment(appState)
+        }
+        .sheet(isPresented: $showMilestones) {
+            MilestoneShareView()
                 .environment(appState)
         }
         .confirmationDialog(
@@ -320,8 +326,8 @@ struct MyPetView: View {
                                     .font(.system(size: 7, weight: isSelected ? .black : .semibold))
                                     .foregroundColor(
                                         isSelected ? .ajOrange :
-                                        isLocked   ? .white.opacity(0.22) :
-                                                     .white.opacity(0.55)
+                                        isLocked   ? .white.opacity(0.45) :
+                                                     .white.opacity(0.70)
                                     )
                                     .lineLimit(1)
                             }
@@ -400,6 +406,30 @@ struct MyPetView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                Divider().background(Color.white.opacity(0.08))
+
+                // Share milestones
+                Button {
+                    showMilestones = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("📲").font(.system(size: 18))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Share Your Progress")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("Generate milestone cards to share with friends")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.3))
+                    }
+                }
+                .buttonStyle(.plain)
             }
         }
     }

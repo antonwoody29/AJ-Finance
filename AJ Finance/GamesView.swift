@@ -2,9 +2,10 @@ import SwiftUI
 
 struct GamesView: View {
     @Environment(AppState.self) private var appState
-    @State private var showBudgetBlitz  = false
-    @State private var showTrivia       = false
-    @State private var showSavingsRace  = false
+    @State private var showBudgetBlitz   = false
+    @State private var showTrivia        = false
+    @State private var showSavingsRace   = false
+    @State private var showLifeChoices   = false
 
     var body: some View {
         ZStack {
@@ -56,6 +57,17 @@ struct GamesView: View {
                         ) {
                             showSavingsRace = true
                         }
+
+                        GameCard(
+                            emoji: "🎭",
+                            title: "Life Choices",
+                            subtitle: "Real scenarios. Real decisions.",
+                            detail: "6 real-life money situations. Pick the best path and learn why it matters.",
+                            coinReward: "Up to +90 🪙 · +270 XP",
+                            color: Color(red: 0.7, green: 0.4, blue: 1.0)
+                        ) {
+                            showLifeChoices = true
+                        }
                     }
                     .padding(.horizontal, 16)
 
@@ -86,6 +98,10 @@ struct GamesView: View {
         .sheet(isPresented: $showSavingsRace) {
             SavingsSprintGame()
         }
+        .sheet(isPresented: $showLifeChoices) {
+            LifeChoicesGame()
+                .environment(appState)
+        }
     }
 
     private var animalBanner: some View {
@@ -94,18 +110,21 @@ struct GamesView: View {
                 Text(appState.selectedAnimal.emoji)
                     .font(.system(size: 46))
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Play & Earn Coins!")
+                    Text("Play & Level Up!")
                         .font(.system(size: 17, weight: .black))
                         .foregroundColor(.white)
-                    Text("Win games to earn 🪙 coins. Spend them in the outfit shop to dress up \(appState.selectedAnimal.rawValue)!")
+                    Text("Win games to earn 🪙 coins and ⭐ XP. Dress up \(appState.selectedAnimal.rawValue) in the outfit shop!")
                         .font(.system(size: 12))
                         .foregroundColor(.white.opacity(0.6))
                         .lineLimit(3)
-                    HStack(spacing: 6) {
+                    HStack(spacing: 12) {
                         Text("🪙 \(appState.animalCoins)")
                             .font(.system(size: 13, weight: .black))
                             .foregroundColor(.ajGold)
-                        Text("current balance")
+                        Text("⭐ Lv.\(appState.level)")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundColor(.ajOrange)
+                        Text("current")
                             .font(.system(size: 11))
                             .foregroundColor(.white.opacity(0.4))
                     }

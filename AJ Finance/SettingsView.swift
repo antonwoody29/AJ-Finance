@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
+    @Environment(StoreKitManager.self) private var storeKit
     @State private var showDeleteConfirm      = false
     @State private var showUnsubscribeConfirm = false
     @State private var showTimePicker         = false
@@ -12,6 +13,7 @@ struct SettingsView: View {
                 notificationCard
                 legalSupportCard
                 accountCard
+                restoreCard
             }
             .padding(20)
         }
@@ -90,9 +92,11 @@ struct SettingsView: View {
                             .foregroundColor(.white.opacity(0.5))
                     }
                     Spacer()
-                    Toggle("", isOn: .constant(true))
-                        .tint(.ajOrange)
-                        .labelsHidden()
+                    Text("ON")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajGreen)
+                        .padding(.horizontal, 8).padding(.vertical, 4)
+                        .background(Capsule().fill(Color.ajGreen.opacity(0.18)))
                 }
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.04)))
@@ -113,27 +117,33 @@ struct SettingsView: View {
                     .tracking(2)
                     .padding(.bottom, 14)
 
-                Link(destination: URL(string: "https://antonwoody29.github.io/AJ-Finance/Privacy-Policy.html")!) {
-                    legalRow(icon: "lock.shield.fill", title: "Privacy Policy",
-                             subtitle: "How AJ Lyfe collects, uses, and protects your info")
+                if let privacyURL = URL(string: "https://antonwoody29.github.io/AJ-Finance/Privacy-Policy.html") {
+                    Link(destination: privacyURL) {
+                        legalRow(icon: "lock.shield.fill", title: "Privacy Policy",
+                                 subtitle: "How AJ Lyfe collects, uses, and protects your info")
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 legalDivider
 
-                Link(destination: URL(string: "https://antonwoody29.github.io/AJ-Finance/terms-of-use.html")!) {
-                    legalRow(icon: "doc.text.fill", title: "Terms of Service",
-                             subtitle: "Terms and conditions governing use of AJ Lyfe")
+                if let termsURL = URL(string: "https://antonwoody29.github.io/AJ-Finance/terms-of-use.html") {
+                    Link(destination: termsURL) {
+                        legalRow(icon: "doc.text.fill", title: "Terms of Service",
+                                 subtitle: "Terms and conditions governing use of AJ Lyfe")
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 legalDivider
 
-                Link(destination: URL(string: "mailto:ajlyfe.support@gmail.com")!) {
-                    legalRow(icon: "envelope.fill", title: "Contact Support",
-                             subtitle: "ajlyfe.support@gmail.com")
+                if let mailURL = URL(string: "mailto:ajlyfe.support@gmail.com") {
+                    Link(destination: mailURL) {
+                        legalRow(icon: "envelope.fill", title: "Contact Support",
+                                 subtitle: "ajlyfe.support@gmail.com")
+                    }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
 
                 legalDivider
 
@@ -254,13 +264,13 @@ struct SettingsView: View {
                             Text("Cancel Subscription")
                                 .font(.system(size: 15, weight: .black))
                         }
-                        .foregroundColor(.white.opacity(0.65))
+                        .foregroundColor(.white.opacity(0.82))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
                             RoundedRectangle(cornerRadius: 14)
                                 .fill(Color.white.opacity(0.06))
-                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.20), lineWidth: 1))
                         )
                     }
                     .buttonStyle(.plain)
@@ -331,6 +341,44 @@ struct SettingsView: View {
                 } message: {
                     Text("This will permanently erase all your data — goals, transactions, streaks, and your animal. This cannot be undone.")
                 }
+            }
+        }
+    }
+
+    // MARK: - Restore Purchases
+
+    private var restoreCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("PURCHASES")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                Button {
+                    Task { await storeKit.restorePurchases(appState: appState) }
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.ajOrange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Restore Purchases")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("Restores AJ Lyfe Plus and any previous purchases")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.45))
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.3))
+                    }
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
             }
         }
     }

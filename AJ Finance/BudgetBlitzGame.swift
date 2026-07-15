@@ -18,14 +18,15 @@ struct BudgetBlitzGame: View {
 
     enum GamePhase { case playing, result }
 
-    // Expense cards: (emoji, description, amount, isSmart, explanation)
-    private let cards: [(String, String, String, Bool, String)] = [
-        ("☕", "Daily coffee run", "$6/day", false, "That's $180/month! Brew at home instead."),
+    // Full card bank — 45+ scenarios
+    static let allCards: [(String, String, String, Bool, String)] = [
+        // DAILY HABITS
+        ("☕", "Daily coffee run", "$6/day", false, "That's $180/month! Brew at home 3x a week and save $80+."),
         ("🍳", "Meal prep for the week", "$45", true, "Smart! Way cheaper than eating out every day."),
         ("🎮", "Game you'll play once", "$70", false, "Impulse buy alert. Sleep on it first!"),
         ("📚", "Course to boost your skills", "$30", true, "Investing in yourself always pays off."),
         ("👟", "Designer shoes on sale", "$120", false, "Sale doesn't mean savings if you didn't need them."),
-        ("💡", "Energy-saving light bulbs", "$25", true, "Saves money in the long run. Smart move!"),
+        ("💡", "Energy-saving light bulbs", "$25", true, "Saves money long-term. Smart move!"),
         ("🍕", "Eating out instead of cooking", "$18", false, "Home-cooked meal is $4. You just spent $14 extra."),
         ("🔧", "Fix your car now vs later", "$200", true, "Small fix now beats a $2000 bill later."),
         ("📱", "New phone (yours works fine)", "$800", false, "Your current phone works. This is a want, not need."),
@@ -35,14 +36,57 @@ struct BudgetBlitzGame: View {
         ("🚗", "Rideshare for a 10 min walk", "$12", false, "Walk it! Free exercise AND free money."),
         ("💊", "Doctor visit you've been avoiding", "$50", true, "Prevention is way cheaper than treatment. Go!"),
         ("🛍️", "Clothes because you're bored", "$85", false, "Retail therapy hits different when it hits your savings."),
+        // SMART FINANCIAL MOVES
+        ("📦", "Switching to generic brands", "$30 saved", true, "Same ingredients, fraction of the price. Always smart."),
+        ("🔔", "Setting up bill autopay", "Free", true, "Autopay prevents late fees. $35 saved per missed bill."),
+        ("🏦", "Opening a high-yield savings account", "Free", true, "10-25x more interest than standard accounts. Do it now!"),
+        ("💳", "Paying credit card minimum only", "$25/mo", false, "You'll pay 3x the purchase in interest over time. Bad move."),
+        ("🚿", "Shorter showers to cut utilities", "Saves $15/mo", true, "5 minutes saved = ~$180/year. Small habit, big impact."),
+        ("🍜", "Cooking a $5 meal at home", "$5", true, "Restaurant version = $20. You just saved $15."),
+        ("🎁", "Buying gifts a month early", "$50", true, "No panic buying = 30% more bargaining power. Smart!"),
+        ("📊", "Tracking expenses in an app", "Free", true, "People who track spending save 20% more on average."),
+        ("💸", "Paying $200 extra on debt", "$200", true, "Extra debt payments save HUGE on interest. Future you says thanks!"),
+        ("🔄", "Refinancing a high-interest loan", "Free to check", true, "Even 1% lower rate can save thousands over the loan life."),
+        // IMPULSE TRAPS
+        ("🛒", "3AM Amazon cart checkout", "$67", false, "No good purchases happen at 3AM. Sleep on it."),
+        ("🎰", "Lottery tickets weekly", "$20/mo", false, "Odds are 1 in 300 million. Invest that $20 instead."),
+        ("🌮", "Food delivery 5x this week", "$75", false, "That's $300/month! Cook 3 meals and save $150."),
+        ("🏠", "Extended warranty on everything", "$50", false, "Most warranties are pure profit for the seller. Skip it."),
+        ("✈️", "Booking flights without checking dates", "$600", false, "Tuesday flights are cheapest. Checking 3 days saves $150 average."),
+        ("👑", "Premium subscription you use twice", "$14.99/mo", false, "That's $180/year for occasional use. Downgrade or cancel."),
+        ("🎤", "VIP concert upgrade on impulse", "$150", false, "Regular tickets are fine. Save $100+ for your goals."),
+        ("🍦", "Dessert at every restaurant", "$8", false, "$8 x 4x/month = $384/year on dessert. Make it at home!"),
+        ("💄", "Full-price makeup without checking dupes", "$85", false, "Quality dupes exist at 1/3 the price. Do 5 min of research!"),
+        ("🚕", "Taxi when transit exists", "$25", false, "$3 transit vs $25 taxi = $22 wasted. Walk or take the bus!"),
+        // SMART INVESTMENTS
+        ("📈", "Setting up $50/mo auto-invest", "$50/mo", true, "Dollar-cost averaging at its finest. $50/mo = $35K+ in 20 years."),
+        ("🏥", "Maxing HSA contribution", "$300", true, "HSA is triple tax-advantaged. Best medical savings vehicle available."),
+        ("🎓", "Employer 401k match", "Free money", true, "Always take the full employer match. That's 100% instant return!"),
+        ("📋", "Creating a will", "$150-500", true, "Protects your family. Worth every penny and often done cheaply."),
+        ("🏠", "Renter's insurance", "$15/mo", true, "Protects everything you own for less than 50 cents a day."),
+        ("📚", "Library card for books/courses", "Free", true, "Thousands of books, audiobooks, courses — completely free. Use it!"),
+        ("🤝", "Negotiating salary increase", "Free", true, "Average raise from negotiating: $5,000/year. Always ask!"),
+        ("📱", "Canceling 3 unused apps", "$30/mo saved", true, "App subscriptions add up to $400+/year. Audit monthly!"),
+        ("🏷️", "Price-matching a purchase", "Saves $40", true, "Most stores match competitors' prices. Always ask!"),
+        ("💰", "Using cashback credit card (paid in full)", "2% back", true, "Free money on purchases you make anyway — if you pay in full!"),
     ]
 
+    @State private var activeCards: [(String, String, String, Bool, String)] = []
+
     var currentCard: (String, String, String, Bool, String)? {
-        guard currentIndex < cards.count else { return nil }
-        return cards[currentIndex]
+        guard currentIndex < activeCards.count else { return nil }
+        return activeCards[currentIndex]
     }
 
-    var progress: Double { Double(currentIndex) / Double(cards.count) }
+    var progress: Double { Double(currentIndex) / Double(max(activeCards.count, 1)) }
+
+    private func buildActiveCards() -> [(String, String, String, Bool, String)] {
+        let recentIds = Set(appState.recentBlitzCardIds)
+        let allWithIndex = BudgetBlitzGame.allCards.enumerated().map { ($0.offset, $0.element) }
+        let fresh = allWithIndex.filter { !recentIds.contains($0.0) }.map { $0.1 }
+        let pool = fresh.isEmpty ? BudgetBlitzGame.allCards : fresh
+        return Array(pool.shuffled().prefix(12))
+    }
 
     var body: some View {
         NavigationStack {
@@ -64,6 +108,11 @@ struct BudgetBlitzGame: View {
                         .foregroundColor(.ajOrange)
                 }
             }
+            .onAppear {
+                if activeCards.isEmpty {
+                    activeCards = buildActiveCards()
+                }
+            }
         }
     }
 
@@ -74,7 +123,7 @@ struct BudgetBlitzGame: View {
             // Progress
             VStack(spacing: 6) {
                 HStack {
-                    Text("Round \(min(currentIndex + 1, cards.count)) / \(cards.count)")
+                    Text("Round \(min(currentIndex + 1, activeCards.count)) / \(activeCards.count)")
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.white.opacity(0.6))
                     Spacer()
@@ -100,8 +149,8 @@ struct BudgetBlitzGame: View {
             if let card = currentCard {
                 ZStack {
                     // Next card preview
-                    if currentIndex + 1 < cards.count {
-                        expenseCard(cards[currentIndex + 1])
+                    if currentIndex + 1 < activeCards.count {
+                        expenseCard(activeCards[currentIndex + 1])
                             .scaleEffect(0.94)
                             .offset(y: 8)
                             .opacity(0.5)
@@ -244,6 +293,11 @@ struct BudgetBlitzGame: View {
         let correct = smart == card.3
         let direction: CGFloat = smart ? 400 : -400
 
+        // Track this card to avoid repetition
+        if let globalIndex = BudgetBlitzGame.allCards.firstIndex(where: { $0.1 == card.1 }) {
+            appState.trackBlitzCard(globalIndex)
+        }
+
         if correct {
             score += 1
             coinsEarned += 5
@@ -270,9 +324,12 @@ struct BudgetBlitzGame: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                 showFeedback = false
             }
-            if currentIndex >= cards.count {
+            if currentIndex >= activeCards.count {
                 withAnimation(.spring()) { phase = .result }
+                let xpEarned = score * 8
                 appState.earnCoins(coinsEarned)
+                appState.earnXP(xpEarned)
+                appState.boostPetStats(from: .dailyInteraction, amount: Double(score))
                 appState.save()
             }
         }
@@ -284,7 +341,7 @@ struct BudgetBlitzGame: View {
         VStack(spacing: 24) {
             Spacer()
 
-            let pct = Double(score) / Double(cards.count)
+            let pct = Double(score) / Double(max(activeCards.count, 1))
             let grade: (String, String, Color) = {
                 if pct >= 0.9 { return ("🏆", "Financial Genius!", .ajGold) }
                 if pct >= 0.7 { return ("⭐", "Smart Spender!", .ajOrange) }
@@ -299,27 +356,33 @@ struct BudgetBlitzGame: View {
                 .font(.system(size: 28, weight: .black))
                 .foregroundColor(grade.2)
 
-            Text("\(score) / \(cards.count) correct")
+            Text("\(score) / \(activeCards.count) correct")
                 .font(.system(size: 18))
                 .foregroundColor(.white.opacity(0.7))
 
-            // Coins earned
+            // Rewards earned
             AJCard {
-                HStack {
+                HStack(spacing: 30) {
                     Spacer()
-                    VStack(spacing: 6) {
+                    VStack(spacing: 4) {
                         Text("🪙 +\(coinsEarned)")
-                            .font(.system(size: 32, weight: .black))
+                            .font(.system(size: 26, weight: .black))
                             .foregroundColor(.ajGold)
-                        Text("coins earned!")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.6))
-                        Text("New balance: 🪙 \(appState.animalCoins)")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.ajGold.opacity(0.7))
+                        Text("coins")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    VStack(spacing: 4) {
+                        Text("⭐ +\(score * 8)")
+                            .font(.system(size: 26, weight: .black))
+                            .foregroundColor(.ajOrange)
+                        Text("XP")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.5))
                     }
                     Spacer()
                 }
+                .padding(.vertical, 4)
             }
             .padding(.horizontal, 30)
 
@@ -334,6 +397,7 @@ struct BudgetBlitzGame: View {
                     currentIndex = 0
                     score = 0
                     coinsEarned = 0
+                    activeCards = buildActiveCards()
                     withAnimation(.spring()) { phase = .playing }
                 } label: {
                     Text("Play Again 🔄")

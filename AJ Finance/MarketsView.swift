@@ -173,7 +173,7 @@ struct MarketsView: View {
         Button { withAnimation(.spring(response: 0.3)) { selectedSegment = idx } } label: {
             Text(label)
                 .font(.system(size: 13, weight: .black))
-                .foregroundColor(selectedSegment == idx ? .black : .white.opacity(0.55))
+                .foregroundColor(selectedSegment == idx ? .black : .white.opacity(0.70))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 10)
                 .background(

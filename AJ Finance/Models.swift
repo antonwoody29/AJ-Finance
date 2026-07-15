@@ -924,6 +924,11 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
     case petWhisperer = "Pet Whisperer"
     case comeback     = "Comeback Kid"
     case savingsLegend = "Savings Legend"
+    // Combined & Bond
+    case comboWarrior  = "Combo Warrior"
+    case weekCombo     = "7-Day Combo"
+    case bondMaster    = "Bond Master"
+    case missionsPro   = "Mission Pro"
 
     var id: String { rawValue }
 
@@ -933,7 +938,8 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
         case .firstSave, .bigSaver, .centurySaver, .thousandaire, .coinCollector, .savingsLegend: return .savings
         case .firstReceipt, .receiptKing, .budgetHero, .minimalist: return .receipts
         case .firstGoal, .goalCrusher, .dreamBig, .tripStarter: return .goals
-        case .levelUp, .level10, .petWhisperer, .comeback: return .milestones
+        case .levelUp, .level10, .petWhisperer, .comeback,
+             .comboWarrior, .weekCombo, .bondMaster, .missionsPro: return .milestones
         }
     }
 
@@ -962,6 +968,10 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
         case .petWhisperer: return "🐾"
         case .comeback:     return "💙"
         case .savingsLegend: return "🏦"
+        case .comboWarrior: return "🏆"
+        case .weekCombo:    return "🔥"
+        case .bondMaster:   return "💜"
+        case .missionsPro:  return "📋"
         }
     }
 
@@ -990,6 +1000,10 @@ enum BadgeType: String, CaseIterable, Codable, Identifiable {
         case .petWhisperer: return "Keep your pet at 90%+ health for 7 days"
         case .comeback:      return "Come back after your pet died"
         case .savingsLegend: return "Save money for 12 consecutive months"
+        case .comboWarrior:  return "Complete fitness + finance on the same day"
+        case .weekCombo:     return "7-day combo streak: fitness + finance every day"
+        case .bondMaster:    return "Reach bond level 50 with your companion"
+        case .missionsPro:   return "Complete 10 daily missions"
         }
     }
 }

@@ -181,7 +181,7 @@ struct OutfitItemCard: View {
     private var buttonForeground: Color {
         if isEquipped { return .ajGreen }
         if isOwned    { return .ajOrange }
-        return canAfford ? .black : .white.opacity(0.35)
+        return canAfford ? .black : .white.opacity(0.60)
     }
 
     private var buttonBackground: Color {

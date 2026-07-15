@@ -217,7 +217,7 @@ struct AppIconPreviewScreen: View {
         guard let uiImage = renderer.uiImage,
               let png = uiImage.pngData() else { return }
 
-        let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        guard let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
         let url  = docs.appendingPathComponent("AppIcon_AJ_1024.png")
         try? png.write(to: url)
         exportPath = url.path

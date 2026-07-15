@@ -57,6 +57,10 @@ private enum AJID {
     static let miss48   = "aj_miss_48h"
     static let miss72   = "aj_miss_72h"
     static let miss7d   = "aj_miss_7d"
+    // Missions & combo
+    static let missionsEvening = "aj_missions_evening"
+    static let comboReminder   = "aj_combo_reminder"
+    static let comboEarned     = "aj_combo_earned"
 }
 
 // MARK: - Message Pools
@@ -426,6 +430,9 @@ struct NotificationManager {
         scheduleMonthlyNotifications()
         // Fitness
         scheduleFitnessCheckIns(animalName: animalName)
+        // Missions & combo
+        scheduleMissionReminder(animalName: animalName)
+        scheduleComboReminder(animalName: animalName)
         // Cancel miss-you (user is in the app)
         cancelMissYou()
     }
@@ -523,6 +530,34 @@ struct NotificationManager {
     static func triggerSavingsMilestone(animalName: String) {
         let c = content(title: "Savings Hit 💰", body: "You hit a savings milestone bestie!! AJ is doing backflips rn 🤸", badge: 1)
         schedule(id: "aj_savings_\(UUID().uuidString)", content: c, trigger: after(seconds: 2))
+    }
+
+    static func triggerMissionComplete(missionTitle: String, animalName: String) {
+        let c = content(title: "Mission Complete! 🎯", body: "'\(missionTitle)' done! \(animalName) is SO proud of you rn 🔥", badge: 1)
+        schedule(id: "aj_mission_\(UUID().uuidString)", content: c, trigger: after(seconds: 1))
+    }
+
+    static func triggerComboBonusEarned(streak: Int) {
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.comboEarned])
+        let body = streak > 1
+            ? "Fitness + Finance AGAIN?! That's a \(streak)-day combo streak. You're elite. 🔥"
+            : "You hit fitness AND finances today! Combo bonus unlocked — +30 gems! 🏆"
+        let c = content(title: "DAILY COMBO! 🏆", body: body, badge: 1)
+        schedule(id: AJID.comboEarned, content: c, trigger: after(seconds: 2))
+    }
+
+    static func scheduleMissionReminder(animalName: String) {
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.missionsEvening])
+        let c = content(title: "Missions not done yet! 📋", body: "\(animalName) checked and there's still missions waiting. Don't let 'em expire! ⏰", badge: 1)
+        var comps = DateComponents(); comps.hour = 20; comps.minute = 30
+        schedule(id: AJID.missionsEvening, content: c, trigger: calendar(comps, repeats: true))
+    }
+
+    static func scheduleComboReminder(animalName: String) {
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.comboReminder])
+        let c = content(title: "Combo bonus available! 💪", body: "Do fitness + finance today for a bonus gem reward. \(animalName) is waiting on you! 🎯", badge: 0)
+        var comps = DateComponents(); comps.hour = 17; comps.minute = 0
+        schedule(id: AJID.comboReminder, content: c, trigger: calendar(comps, repeats: true))
     }
 
     // MARK: - Miss You

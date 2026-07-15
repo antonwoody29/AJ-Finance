@@ -200,7 +200,7 @@ struct StoreView: View {
                     } label: {
                         Text(appState.canSpinLuckyWheel ? "Free Spin" : "Come back tomorrow")
                             .font(.system(size: 14, weight: .black))
-                            .foregroundColor(appState.canSpinLuckyWheel ? .black : .white.opacity(0.4))
+                            .foregroundColor(appState.canSpinLuckyWheel ? .black : .white.opacity(0.60))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 12)
                             .background(
@@ -222,7 +222,7 @@ struct StoreView: View {
                             Text("50 💎")
                                 .font(.system(size: 11, weight: .semibold))
                         }
-                        .foregroundColor(appState.gems >= 50 ? .ajGold : .white.opacity(0.3))
+                        .foregroundColor(appState.gems >= 50 ? .ajGold : .white.opacity(0.55))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 10)
                         .background(
@@ -402,7 +402,7 @@ struct StoreView: View {
                 } label: {
                     Text(appState.canClaimWeeklyBox ? "Claim Box 🎁" : "Next box in \(daysUntilBox) days")
                         .font(.system(size: 15, weight: .black))
-                        .foregroundColor(appState.canClaimWeeklyBox ? .black : .white.opacity(0.4))
+                        .foregroundColor(appState.canClaimWeeklyBox ? .black : .white.opacity(0.60))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                         .background(
@@ -548,6 +548,15 @@ struct StoreView: View {
                     }
                 }
 
+                // Auto-renewal disclosure (required by App Store guidelines)
+                if !appState.isAJLyfePlus {
+                    Text("AJ Lyfe Plus automatically renews for \(storeKit.products[SKID.plusMonthly]?.displayPrice ?? "$1.99")/month unless cancelled at least 24 hours before the renewal date. Manage or cancel anytime in your iPhone Settings → Apple ID → Subscriptions.")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.35))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
                 // Real StoreKit purchase — triggers Apple Pay sheet
                 Button {
                     Task { await storeKit.purchase(id: SKID.plusMonthly, appState: appState) }
@@ -558,9 +567,7 @@ struct StoreView: View {
                         }
                         Text(appState.isAJLyfePlus
                              ? "✓ Subscribed"
-                             : (storeKit.products[SKID.plusMonthly] != nil
-                                ? "Subscribe with Apple Pay — \(storeKit.products[SKID.plusMonthly]!.displayPrice)/mo"
-                                : "Subscribe — $1.99/mo"))
+                             : "Subscribe with Apple Pay — \(storeKit.products[SKID.plusMonthly]?.displayPrice ?? "$1.99")/mo")
                             .font(.system(size: 15, weight: .black))
                             .foregroundColor(appState.isAJLyfePlus ? .ajGold : .black)
                     }

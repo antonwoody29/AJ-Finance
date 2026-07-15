@@ -129,6 +129,39 @@ final class AppState {
     // MARK: - Spend Roast
     var pendingSpendRoast: String? = nil
 
+    // MARK: - Extended Pet Stats
+    var petStrength: Double = 50       // 0-100, boosted by fitness
+    var petEnergy: Double = 70         // 0-100, boosted by workouts
+    var petStamina: Double = 60        // 0-100, boosted by gym streak
+    var petHappiness: Double = 70      // 0-100, boosted by financial wins
+    var petConfidence: Double = 60     // 0-100, boosted by savings goals
+    var petMotivation: Double = 65     // 0-100, boosted by completing goals
+    var petSecurity: Double = 50       // 0-100, boosted by staying in budget
+    var petBondLevel: Int = 0          // 0-100, increases with daily interaction
+    var lastBondDate: Date? = nil
+
+    // MARK: - Daily Missions
+    var dailyMissions: [DailyMission] = []
+    var lastMissionsDate: Date? = nil
+    var weeklyMissions: [DailyMission] = []
+    var lastWeeklyMissionsDate: Date? = nil
+
+    // MARK: - Combined Goal Tracking
+    var combinedGoalStreak: Int = 0       // days with both fitness + financial activity
+    var lastCombinedGoalDate: Date? = nil
+    var combinedBonusClaimed: [String] = []  // "YYYY-MM-DD" dates claimed
+
+    // MARK: - Prompt History (for rotation)
+    var recentTriviaQuestionIds: [Int] = []   // question indices used recently
+    var recentBlitzCardIds: [Int] = []        // card indices used recently
+
+    // MARK: - Comeback / Return Detection
+    var lastAppOpenDate: Date? = nil
+    var totalDaysActive: Int = 0
+
+    // MARK: - Seasonal Event
+    var claimedSeasonalRewards: [String] = []  // event IDs claimed
+
     // MARK: - Computed
 
     var totalSaved: Double {
@@ -362,9 +395,7 @@ final class AppState {
     // MARK: - Companion Lock / Unlock
 
     func isAnimalLocked(_ animal: AnimalType) -> Bool {
-        let vipEmails: Set<String> = ["antonwoody29@gmail.com", "jwoody2597@gmail.com"]
-        let currentEmail = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
-        if vipEmails.contains(currentEmail) { return false }
+        if hasFounderPack { return false }
         if unlockedCompanions.contains(animal.rawValue) { return false }
         switch animal.rarity {
         case .common:    return false
@@ -1199,6 +1230,7 @@ final class AppState {
         earnCoins(100)
         awardGems(50, reason: "Goal completed! 🏆")
         boostHealth(by: 30)
+        boostPetStats(from: .goalComplete, amount: 12)
         checkEvolutionRewards()
         Task {
             try? await Task.sleep(for: .seconds(4))
@@ -1235,6 +1267,7 @@ final class AppState {
         awardGems(gemsEarned, reason: "Monthly savings confirmed! 💰")
         earnXP(xpEarned)
         boostHealth(by: healthBoost)
+        boostPetStats(from: .budgetSuccess, amount: Double(gemsEarned) / 10.0)
         lastSavingsMonth = currentMonth
         savingsStreak += 1
         checkSavingsStreakMilestones()
@@ -1290,6 +1323,7 @@ final class AppState {
         earnCoins(5)
         if !tx.isSaving && tx.amount > 60 {
             drainHealth(by: min(tx.amount / 20, 12))
+            boostPetStats(from: .bigSpend, amount: min(tx.amount / 30, 8))
             let aggressiveMood: AJMood = accountabilityMode == .noCapSavage ? .angry : .sad
             setMood(aggressiveMood, speech: accountabilityMode.bigSpendReaction(amount: tx.amount))
             showToast("AJ noticed that \(String(format: "$%.0f", tx.amount)) spend 👀", icon: "👀", color: .ajOrangeRed)
@@ -1580,10 +1614,10 @@ final class AppState {
 
         if let last = lastGymDate, cal.startOfDay(for: last) == today { return } // already logged today
 
-        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+        guard let yesterday = cal.date(byAdding: .day, value: -1, to: today) else { return }
         if let last = lastGymDate, cal.startOfDay(for: last) == yesterday {
             gymStreak += 1
-        } else if lastGymDate == nil || cal.startOfDay(for: lastGymDate!) < yesterday {
+        } else if lastGymDate == nil || cal.startOfDay(for: lastGymDate ?? Date()) < yesterday {
             gymStreak = 1
         }
         lastGymDate = Date()
@@ -1594,8 +1628,10 @@ final class AppState {
         earnXP(8)
         earnCoins(3)
         awardGems(25, reason: "Workout logged 💪")
+        boostPetStats(from: .workout, amount: 6)
         setMood(.hype, speech: gymWorkoutSpeeches.randomElement() ?? "GYM DAY! LET'S GOOO 💪")
-        showToast("Workout logged! 💪 +3🪙 +2❤️", icon: "🏋️", color: Color(red: 0.4, green: 0.76, blue: 1.0))
+        showToast("Workout logged! 💪 +3🪙 +2❤️ +⚡Energy", icon: "🏋️", color: Color(red: 0.4, green: 0.76, blue: 1.0))
+        checkCombinedGoalBonus()
 
         // Milestone rewards
         checkGymMilestones()
@@ -1760,7 +1796,8 @@ final class AppState {
     func earnXP(_ amount: Int) {
         let prevLevel = level
         xp += amount
-        while xp >= xpForNextLevel { xp -= xpForNextLevel; level += 1 }
+        var guard_itr = 0
+        while xp >= xpForNextLevel && guard_itr < 100 { xp -= xpForNextLevel; level += 1; guard_itr += 1 }
         if level > prevLevel {
             setMood(.hype)
             showToast("⭐ LEVEL UP! You're now Level \(level)!", icon: "⭐", color: .ajGold)
@@ -1799,12 +1836,302 @@ final class AppState {
         if level >= 10 { earnBadge(.level10) }
         if animalHealth >= 90 { earnBadge(.petWhisperer) }
         if animalDeathCount >= 1 && animalIsAlive { earnBadge(.comeback) }
+        // Combined & Bond
+        if combinedGoalStreak >= 1  { earnBadge(.comboWarrior) }
+        if combinedGoalStreak >= 7  { earnBadge(.weekCombo) }
+        if petBondLevel >= 50       { earnBadge(.bondMaster) }
+        let missionsDone = (dailyMissions + weeklyMissions).filter(\.isCompleted).count
+        if missionsDone >= 10       { earnBadge(.missionsPro) }
     }
 
     func earnBadge(_ type: BadgeType) {
         guard !badges.contains(where: { $0.type == type }) else { return }
         badges.append(Badge(type: type))
         showToast("Badge unlocked: \(type.rawValue) \(type.icon)", icon: type.icon, color: .ajGold)
+    }
+
+    // MARK: - Extended Pet Stats
+
+    func boostPetStats(from source: PetStatSource, amount: Double = 5) {
+        switch source {
+        case .workout:
+            petEnergy   = min(petEnergy   + amount * 1.2, 100)
+            petStrength = min(petStrength + amount * 0.8, 100)
+            petStamina  = min(petStamina  + amount * 1.0, 100)
+        case .gymStreak:
+            petStrength = min(petStrength + amount * 1.5, 100)
+            petStamina  = min(petStamina  + amount * 1.0, 100)
+        case .savingsGoal:
+            petHappiness   = min(petHappiness   + amount * 1.2, 100)
+            petConfidence  = min(petConfidence  + amount * 1.0, 100)
+            petMotivation  = min(petMotivation  + amount * 0.8, 100)
+        case .budgetSuccess:
+            petSecurity    = min(petSecurity    + amount * 1.5, 100)
+            petHappiness   = min(petHappiness   + amount * 0.5, 100)
+            petConfidence  = min(petConfidence  + amount * 0.5, 100)
+        case .goalComplete:
+            petConfidence  = min(petConfidence  + amount * 2.0, 100)
+            petMotivation  = min(petMotivation  + amount * 1.5, 100)
+            petHappiness   = min(petHappiness   + amount * 1.0, 100)
+        case .streak:
+            petMotivation  = min(petMotivation  + amount * 1.0, 100)
+            petEnergy      = min(petEnergy      + amount * 0.5, 100)
+        case .dailyInteraction:
+            petBondLevel   = min(petBondLevel   + 1, 100)
+            petHappiness   = min(petHappiness   + amount * 0.3, 100)
+        case .missedGoal:
+            petMotivation  = max(petMotivation  - amount * 0.5, 0)
+            petSecurity    = max(petSecurity    - amount * 0.3, 0)
+        case .bigSpend:
+            petSecurity    = max(petSecurity    - amount * 0.8, 0)
+            petHappiness   = max(petHappiness   - amount * 0.4, 0)
+        }
+        savePetStats()
+    }
+
+    private func savePetStats() {
+        let ud = UserDefaults.standard
+        ud.set(petStrength,    forKey: "aj_petStrength")
+        ud.set(petEnergy,      forKey: "aj_petEnergy")
+        ud.set(petStamina,     forKey: "aj_petStamina")
+        ud.set(petHappiness,   forKey: "aj_petHappiness")
+        ud.set(petConfidence,  forKey: "aj_petConfidence")
+        ud.set(petMotivation,  forKey: "aj_petMotivation")
+        ud.set(petSecurity,    forKey: "aj_petSecurity")
+        ud.set(petBondLevel,   forKey: "aj_petBond")
+        if let d = lastBondDate { ud.set(d, forKey: "aj_lastBond") }
+    }
+
+    func loadPetStats() {
+        let ud = UserDefaults.standard
+        petStrength   = ud.object(forKey: "aj_petStrength")   as? Double ?? 50
+        petEnergy     = ud.object(forKey: "aj_petEnergy")     as? Double ?? 70
+        petStamina    = ud.object(forKey: "aj_petStamina")    as? Double ?? 60
+        petHappiness  = ud.object(forKey: "aj_petHappiness")  as? Double ?? 70
+        petConfidence = ud.object(forKey: "aj_petConfidence") as? Double ?? 60
+        petMotivation = ud.object(forKey: "aj_petMotivation") as? Double ?? 65
+        petSecurity   = ud.object(forKey: "aj_petSecurity")   as? Double ?? 50
+        petBondLevel  = ud.integer(forKey: "aj_petBond")
+        lastBondDate  = ud.object(forKey: "aj_lastBond") as? Date
+    }
+
+    func updateBondLevel() {
+        let cal = Calendar.current
+        guard let last = lastBondDate else {
+            lastBondDate = Date()
+            boostPetStats(from: .dailyInteraction)
+            return
+        }
+        if !cal.isDateInToday(last) {
+            lastBondDate = Date()
+            boostPetStats(from: .dailyInteraction)
+        }
+    }
+
+    var petOverallWellbeing: Double {
+        (animalHealth + petHappiness + petEnergy + petConfidence + petMotivation + petSecurity) / 6.0
+    }
+
+    var petMoodDescription: String {
+        let wb = petOverallWellbeing
+        if !animalIsAlive     { return "Needs Revival 💀" }
+        if wb >= 85           { return "Thriving 🌟" }
+        if wb >= 70           { return "Happy 😊" }
+        if wb >= 55           { return "Content 😌" }
+        if wb >= 40           { return "A bit tired 😔" }
+        if wb >= 25           { return "Struggling 😟" }
+        return "Needs care 🥺"
+    }
+
+    // MARK: - Combined Goal System
+
+    func checkCombinedGoalBonus() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let todayKey = "\(cal.component(.year, from: today))-\(cal.component(.month, from: today))-\(cal.component(.day, from: today))"
+        guard !combinedBonusClaimed.contains(todayKey) else { return }
+
+        let hasFinancialActivity = transactions.contains { cal.isDateInToday($0.date) }
+        let hasFitnessActivity   = lastGymDate.map { cal.isDateInToday($0) } ?? false
+        guard hasFinancialActivity && hasFitnessActivity else { return }
+
+        combinedBonusClaimed.append(todayKey)
+        if let last = lastCombinedGoalDate, cal.isDate(last, equalTo: cal.date(byAdding: .day, value: -1, to: today) ?? today, toGranularity: .day) {
+            combinedGoalStreak += 1
+        } else {
+            combinedGoalStreak = 1
+        }
+        lastCombinedGoalDate = Date()
+
+        let bonusGems = 30 + (combinedGoalStreak >= 7 ? 50 : (combinedGoalStreak >= 3 ? 20 : 0))
+        awardGems(bonusGems, reason: "Combined Goal Bonus! 🏆")
+        earnXP(75)
+        boostPetStats(from: .workout, amount: 8)
+        boostPetStats(from: .savingsGoal, amount: 8)
+
+        let bonusMsg: String
+        if combinedGoalStreak >= 7 {
+            bonusMsg = "7-DAY COMBO STREAK! Body AND bag secured 🏆🔥"
+        } else if combinedGoalStreak >= 3 {
+            bonusMsg = "3-Day combo streak! Fitness + Finance = unstoppable 💪💰"
+        } else {
+            bonusMsg = "COMBO BONUS! You crushed fitness AND finances today 🏆"
+        }
+        setMood(.hype, speech: bonusMsg)
+        NotificationManager.triggerComboBonusEarned(streak: combinedGoalStreak)
+        saveCombinedGoalState()
+        save()
+    }
+
+    private func saveCombinedGoalState() {
+        let ud = UserDefaults.standard
+        ud.set(combinedGoalStreak, forKey: "aj_combinedStreak")
+        if let d = lastCombinedGoalDate { ud.set(d, forKey: "aj_lastCombinedGoal") }
+        ud.set(combinedBonusClaimed, forKey: "aj_combinedBonusClaimed")
+    }
+
+    // MARK: - Daily Missions
+
+    func refreshDailyMissionsIfNeeded() {
+        let cal = Calendar.current
+        let needsRefresh: Bool
+        if let last = lastMissionsDate {
+            needsRefresh = !cal.isDateInToday(last)
+        } else {
+            needsRefresh = true
+        }
+        guard needsRefresh else { return }
+        dailyMissions = DailyMission.generateDailyMissions(for: self)
+        lastMissionsDate = Date()
+        saveMissions()
+    }
+
+    func refreshWeeklyMissionsIfNeeded() {
+        let cal = Calendar.current
+        let needsRefresh: Bool
+        if let last = lastWeeklyMissionsDate {
+            let weeksSince = cal.dateComponents([.weekOfYear], from: last, to: Date()).weekOfYear ?? 0
+            needsRefresh = weeksSince >= 1
+        } else {
+            needsRefresh = true
+        }
+        guard needsRefresh else { return }
+        weeklyMissions = DailyMission.generateWeeklyMissions(for: self)
+        lastWeeklyMissionsDate = Date()
+        saveMissions()
+    }
+
+    func completeMission(id: UUID) {
+        guard let idx = dailyMissions.firstIndex(where: { $0.id == id }) else {
+            if let idx2 = weeklyMissions.firstIndex(where: { $0.id == id }) {
+                guard !weeklyMissions[idx2].isCompleted else { return }
+                weeklyMissions[idx2].completedDate = Date()
+                awardMissionRewards(weeklyMissions[idx2])
+                saveMissions()
+            }
+            return
+        }
+        guard !dailyMissions[idx].isCompleted else { return }
+        dailyMissions[idx].completedDate = Date()
+        awardMissionRewards(dailyMissions[idx])
+        checkCombinedGoalBonus()
+        saveMissions()
+    }
+
+    private func awardMissionRewards(_ mission: DailyMission) {
+        awardGems(mission.gemReward, reason: "\(mission.title) ✅")
+        earnXP(mission.xpReward)
+        boostHealth(by: Double(mission.healthReward))
+        if mission.category == .fitness { boostPetStats(from: .workout, amount: 6) }
+        if mission.category == .financial { boostPetStats(from: .savingsGoal, amount: 6) }
+        if mission.category == .combined {
+            boostPetStats(from: .workout, amount: 4)
+            boostPetStats(from: .savingsGoal, amount: 4)
+        }
+        showToast("Mission Complete! \(mission.title) +\(mission.gemReward)💎", icon: "✅", color: .ajGold)
+        NotificationManager.triggerMissionComplete(missionTitle: mission.title, animalName: selectedAnimal.rawValue)
+        checkBadges()
+    }
+
+    private func saveMissions() {
+        let ud = UserDefaults.standard
+        if let d = try? JSONEncoder().encode(dailyMissions)   { ud.set(d, forKey: "aj_dailyMissions") }
+        if let d = try? JSONEncoder().encode(weeklyMissions)  { ud.set(d, forKey: "aj_weeklyMissions") }
+        if let d = lastMissionsDate       { ud.set(d, forKey: "aj_lastMissionsDate") }
+        if let d = lastWeeklyMissionsDate { ud.set(d, forKey: "aj_lastWeeklyMissionsDate") }
+    }
+
+    func loadMissions() {
+        let ud = UserDefaults.standard
+        if let d = ud.data(forKey: "aj_dailyMissions"),
+           let v = try? JSONDecoder().decode([DailyMission].self, from: d) { dailyMissions = v }
+        if let d = ud.data(forKey: "aj_weeklyMissions"),
+           let v = try? JSONDecoder().decode([DailyMission].self, from: d) { weeklyMissions = v }
+        lastMissionsDate       = ud.object(forKey: "aj_lastMissionsDate")       as? Date
+        lastWeeklyMissionsDate = ud.object(forKey: "aj_lastWeeklyMissionsDate") as? Date
+        combinedGoalStreak  = ud.integer(forKey: "aj_combinedStreak")
+        lastCombinedGoalDate = ud.object(forKey: "aj_lastCombinedGoal") as? Date
+        combinedBonusClaimed = ud.stringArray(forKey: "aj_combinedBonusClaimed") ?? []
+        recentTriviaQuestionIds = ud.array(forKey: "aj_recentTrivia") as? [Int] ?? []
+        recentBlitzCardIds      = ud.array(forKey: "aj_recentBlitz")  as? [Int] ?? []
+        lastAppOpenDate   = ud.object(forKey: "aj_lastAppOpen") as? Date
+        totalDaysActive   = ud.integer(forKey: "aj_totalDays")
+        claimedSeasonalRewards = ud.stringArray(forKey: "aj_seasonalRewards") ?? []
+    }
+
+    // MARK: - Prompt Rotation Tracking
+
+    func trackTriviaQuestion(_ index: Int) {
+        recentTriviaQuestionIds.append(index)
+        if recentTriviaQuestionIds.count > 30 { recentTriviaQuestionIds.removeFirst() }
+        UserDefaults.standard.set(recentTriviaQuestionIds, forKey: "aj_recentTrivia")
+    }
+
+    func trackBlitzCard(_ index: Int) {
+        recentBlitzCardIds.append(index)
+        if recentBlitzCardIds.count > 25 { recentBlitzCardIds.removeFirst() }
+        UserDefaults.standard.set(recentBlitzCardIds, forKey: "aj_recentBlitz")
+    }
+
+    // MARK: - App Open / Return Detection
+
+    func recordAppOpen() {
+        let cal = Calendar.current
+        let now = Date()
+        let isNewDay = lastAppOpenDate.map { !cal.isDateInToday($0) } ?? true
+
+        // Comeback reward: if away 3+ days, give recovery gems
+        if let last = lastAppOpenDate, isNewDay {
+            let daysSince = cal.dateComponents([.day], from: last, to: now).day ?? 0
+            if daysSince >= 3 && daysSince < 30 {
+                let recoveryGems = min(daysSince * 5, 50)
+                awardGems(recoveryGems, reason: "Welcome back! Recovery bonus 🎉")
+                let comebackMsg = daysSince >= 7
+                    ? "BESTIE YOU CAME BACK 😭 \(daysSince) days?? We missed you SO much. +\(recoveryGems)💎 comeback bonus!"
+                    : "You came back! \(daysSince) days away but you're here now 💙 +\(recoveryGems)💎 recovery gems!"
+                setMood(.hype, speech: comebackMsg)
+            }
+        }
+
+        if isNewDay {
+            totalDaysActive += 1
+            UserDefaults.standard.set(totalDaysActive, forKey: "aj_totalDays")
+        }
+        lastAppOpenDate = now
+        UserDefaults.standard.set(lastAppOpenDate!, forKey: "aj_lastAppOpen")
+        updateBondLevel()
+        refreshDailyMissionsIfNeeded()
+        refreshWeeklyMissionsIfNeeded()
+    }
+
+    // MARK: - Seasonal Events
+
+    func claimSeasonalReward(_ eventId: String, gems: Int, xp: Int) {
+        guard !claimedSeasonalRewards.contains(eventId) else { return }
+        claimedSeasonalRewards.append(eventId)
+        awardGems(gems, reason: "Seasonal Event! 🎉")
+        earnXP(xp)
+        UserDefaults.standard.set(claimedSeasonalRewards, forKey: "aj_seasonalRewards")
     }
 
     // MARK: - Mood
@@ -1913,6 +2240,9 @@ final class AppState {
     }
 
     func save() {
+        savePetStats()
+        saveMissions()
+        saveCombinedGoalState()
         // Persist animal name for scene-phase notification handler
         UserDefaults.standard.set(selectedAnimal.rawValue, forKey: "aj_animalName")
         UserDefaults.standard.set(reminderHour, forKey: "aj_reminderHour")
@@ -2058,6 +2388,26 @@ final class AppState {
         lastCheckInDate           = nil
         checkInStreak             = 0
         pendingSpendRoast         = nil
+        petStrength               = 50
+        petEnergy                 = 70
+        petStamina                = 60
+        petHappiness              = 70
+        petConfidence             = 60
+        petMotivation             = 65
+        petSecurity               = 50
+        petBondLevel              = 0
+        lastBondDate              = nil
+        dailyMissions             = []
+        weeklyMissions            = []
+        lastMissionsDate          = nil
+        lastWeeklyMissionsDate    = nil
+        combinedGoalStreak        = 0
+        lastCombinedGoalDate      = nil
+        combinedBonusClaimed      = []
+        recentTriviaQuestionIds   = []
+        recentBlitzCardIds        = []
+        totalDaysActive           = 0
+        claimedSeasonalRewards    = []
     }
 
     // MARK: - Email auth
@@ -2101,6 +2451,8 @@ final class AppState {
     }
 
     func load() {
+        loadPetStats()
+        loadMissions()
         loadStoreState()
         // Load login state
         isLoggedIn    = UserDefaults.standard.bool(forKey: "aj_isLoggedIn")

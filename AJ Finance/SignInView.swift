@@ -202,12 +202,12 @@ struct SignInView: View {
 
                     Text("Your data stays on your device.")
                         .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.30))
+                        .foregroundColor(.white.opacity(0.55))
                         .multilineTextAlignment(.center)
 
                     Text("Must be 18 years of age or older to use this app.")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white.opacity(0.22))
+                        .foregroundColor(.white.opacity(0.50))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                         .padding(.top, 4)

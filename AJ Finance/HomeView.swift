@@ -17,6 +17,7 @@ struct HomeView: View {
     @State private var showShop           = false
     @State private var showStore          = false
     @State private var showDailyFoodCheck = false
+    @State private var showMissions       = false
 
     // Speech
     @State private var showSpeech    = true
@@ -309,8 +310,26 @@ struct HomeView: View {
         .sheet(isPresented: $showDailyFoodCheck) {
             DailyFoodCheckView().environment(appState)
         }
+        .sheet(isPresented: $showMissions) {
+            NavigationStack {
+                ScrollView {
+                    DailyMissionsView()
+                        .padding(20)
+                }
+                .background(Color.ajDark.ignoresSafeArea())
+                .navigationTitle("Missions")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") { showMissions = false }.foregroundColor(.ajOrange)
+                    }
+                }
+            }
+            .environment(appState)
+        }
         .onAppear {
             currentHour = Calendar.current.component(.hour, from: Date())
+            appState.recordAppOpen()
             appState.checkHealthDecay()
             appState.checkGoalDeadlines()
             appState.checkFoodDecay()
@@ -1118,6 +1137,42 @@ struct HomeView: View {
             // Daily check-in banner
             if !appState.todayCheckInComplete {
                 CheckInBanner()
+            }
+
+            // Missions peek
+            if let firstPending = appState.dailyMissions.first(where: { !$0.isCompleted }) {
+                Button { showMissions = true } label: {
+                    HStack(spacing: 10) {
+                        Text(firstPending.icon).font(.system(size: 16))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("MISSION")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundColor(.ajOrange)
+                                .tracking(1.5)
+                            Text(firstPending.title)
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        }
+                        Spacer()
+                        let done = appState.dailyMissions.filter(\.isCompleted).count
+                        let total = appState.dailyMissions.count
+                        Text("\(done)/\(total)")
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundColor(.ajGold)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.35))
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black.opacity(0.50))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
+                    )
+                }
+                .buttonStyle(.plain)
             }
 
             // Hero CTA

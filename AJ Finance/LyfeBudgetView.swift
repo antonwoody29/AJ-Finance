@@ -146,7 +146,7 @@ struct LyfeBudgetView: View {
                                 .foregroundColor(cat.color)
                             Text("\(expenses.count) item\(expenses.count == 1 ? "" : "s")")
                                 .font(.system(size: 10))
-                                .foregroundColor(.white.opacity(0.30))
+                                .foregroundColor(.white.opacity(0.50))
                         }
                         Image(systemName: expanded ? "chevron.up" : "chevron.down")
                             .font(.system(size: 11, weight: .semibold))
@@ -206,7 +206,7 @@ struct LyfeBudgetView: View {
                                             withAnimation { appState.removeBudgetExpense(id: expense.id) }
                                         } label: {
                                             Image(systemName: "xmark.circle.fill")
-                                                .foregroundColor(.white.opacity(0.22))
+                                                .foregroundColor(.white.opacity(0.55))
                                                 .font(.system(size: 17))
                                         }
                                         .buttonStyle(.plain)
@@ -491,10 +491,10 @@ struct LyfeBudgetView: View {
         return HStack(spacing: 8) {
             Image(systemName: claimed ? "checkmark.circle.fill" : (active ? "circle.fill" : "circle"))
                 .font(.system(size: 12))
-                .foregroundColor(claimed ? .ajGreen : (active ? .ajOrange : .white.opacity(0.22)))
+                .foregroundColor(claimed ? .ajGreen : (active ? .ajOrange : .white.opacity(0.40)))
             Text("\(months)mo – \(reward)")
                 .font(.system(size: 11, weight: claimed || active ? .bold : .regular))
-                .foregroundColor(claimed ? .ajGreen : (active ? .white : .white.opacity(0.32)))
+                .foregroundColor(claimed ? .ajGreen : (active ? .white : .white.opacity(0.50)))
         }
     }
 
