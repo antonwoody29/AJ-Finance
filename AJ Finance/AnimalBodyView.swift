@@ -1782,17 +1782,33 @@ struct AnimalBodyView: View {
         let emoji = outfit.emoji
         switch outfit.slot {
         case .hat:
-            ctx.draw(Text(emoji).font(.system(size: u * 0.27)),
-                     at: CGPoint(x: cx, y: headY - u * 0.40), anchor: .center)
+            switch outfit.id {
+            case "hat_top":         drawTopHat(ctx, cx: cx, headY: headY, u: u)
+            case "hat_top_pink":    drawTopHat(ctx, cx: cx, headY: headY, u: u, hatBlack: .init(red:0.88,green:0.28,blue:0.62), goldBand: .init(red:1.00,green:0.80,blue:0.90))
+            case "hat_crown":       drawCrown(ctx, cx: cx, headY: headY, u: u)
+            case "hat_cap":         drawBaseballCap(ctx, cx: cx, headY: headY, u: u)
+            case "hat_cap_pink":    drawBaseballCap(ctx, cx: cx, headY: headY, u: u, capColor: .init(red:0.96,green:0.46,blue:0.72), visorC: .init(red:0.82,green:0.26,blue:0.56), bandC: .init(red:0.72,green:0.16,blue:0.46))
+            case "hat_cowboy":      drawCowboyHat(ctx, cx: cx, headY: headY, u: u)
+            case "hat_cowboy_pink": drawCowboyHat(ctx, cx: cx, headY: headY, u: u, hatColor: .init(red:0.96,green:0.60,blue:0.78), bandC: .init(red:0.84,green:0.38,blue:0.64), outline: .init(red:0.62,green:0.14,blue:0.40))
+            case "hat_party":       drawGradCap(ctx, cx: cx, headY: headY, u: u)
+            case "hat_halo":        drawHalo(ctx, cx: cx, headY: headY, u: u)
+            case "hat_beanie":      drawBeanieHat(ctx, cx: cx, headY: headY, u: u)
+            case "hat_beanie_pink": drawBeanieHat(ctx, cx: cx, headY: headY, u: u, capC: .init(red:0.96,green:0.48,blue:0.72), foldC: .init(red:0.82,green:0.28,blue:0.56))
+            case "hat_bucket":      drawBucketHat(ctx, cx: cx, headY: headY, u: u)
+            case "hat_bucket_pink": drawBucketHat(ctx, cx: cx, headY: headY, u: u, hatC: .init(red:0.96,green:0.60,blue:0.78), hatDark: .init(red:0.84,green:0.40,blue:0.64))
+            case "hat_wizard":      drawWizardHat(ctx, cx: cx, headY: headY, u: u)
+            case "hat_pride_cap":   drawPrideCap(ctx, cx: cx, headY: headY, u: u)
+            case "hat_pride_beanie":drawPrideBeanie(ctx, cx: cx, headY: headY, u: u)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.22)),
+                         at: CGPoint(x: cx, y: headY - u * 0.22), anchor: .center)
+            }
         case .glasses:
             let eyeY   = headY - u * 0.040
             let eyeSep = u * 0.096
             switch outfit.id {
             case "glasses_shades": drawShadesGlasses(ctx, cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
             case "glasses_heart":  drawHeartGlasses(ctx,  cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
-            case "glasses_monocle":
-                ctx.draw(Text("🧐").font(.system(size: u * 0.22)),
-                         at: CGPoint(x: cx + eyeSep * 0.5, y: eyeY + u * 0.005), anchor: .center)
             default:
                 ctx.draw(Text(emoji).font(.system(size: u * 0.20)),
                          at: CGPoint(x: cx, y: eyeY), anchor: .center)
@@ -1800,9 +1816,83 @@ struct AnimalBodyView: View {
         case .collar:
             ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
                      at: CGPoint(x: cx, y: headY + u * 0.28), anchor: .center)
+        case .shirt:
+            switch outfit.id {
+            case "shirt_tee":         drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_tee_red":     drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.90,green:0.14,blue:0.14), darkC: .init(red:0.65,green:0.06,blue:0.06), outlineC: .init(red:0.40,green:0.04,blue:0.04))
+            case "shirt_tee_black":   drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.12,green:0.12,blue:0.14), darkC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_tee_white":   drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.94,green:0.94,blue:0.96), darkC: .init(red:0.76,green:0.76,blue:0.80), outlineC: .init(red:0.40,green:0.40,blue:0.46))
+            case "shirt_tee_green":   drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.10,green:0.62,blue:0.28), darkC: .init(red:0.06,green:0.40,blue:0.16), outlineC: .init(red:0.04,green:0.24,blue:0.10))
+            case "shirt_hoodie":      drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_hoodie_red":  drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.82,green:0.12,blue:0.12), shadC: .init(red:0.58,green:0.06,blue:0.06), pocketC: .init(red:0.70,green:0.10,blue:0.10), outlineC: .init(red:0.36,green:0.04,blue:0.04))
+            case "shirt_hoodie_black": drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.14,green:0.14,blue:0.16), shadC: .init(red:0.08,green:0.08,blue:0.10), pocketC: .init(red:0.10,green:0.10,blue:0.12), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_hoodie_green": drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.12,green:0.44,blue:0.20), shadC: .init(red:0.06,green:0.28,blue:0.12), pocketC: .init(red:0.10,green:0.36,blue:0.16), outlineC: .init(red:0.04,green:0.16,blue:0.06))
+            case "shirt_suit":        drawSuit(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_jersey":      drawJersey(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_jersey_blue": drawJersey(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.10,green:0.26,blue:0.82), accentC: .init(red:0.96,green:0.96,blue:0.96), stripeC: .init(red:0.06,green:0.16,blue:0.60), outlineC: .init(red:0.04,green:0.10,blue:0.44))
+            case "shirt_jersey_black": drawJersey(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.10,green:0.10,blue:0.12), accentC: .init(red:0.96,green:0.96,blue:0.96), stripeC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_jersey_white": drawJersey(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.94,green:0.94,blue:0.96), accentC: .init(red:0.20,green:0.20,blue:0.22), stripeC: .init(red:0.76,green:0.76,blue:0.80), outlineC: .init(red:0.38,green:0.38,blue:0.42))
+            case "shirt_denim":       drawDenimJacket(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_leather":     drawLeatherJacket(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_flannel":     drawFlannel(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_turtleneck":       drawTurtleneck(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_turtleneck_black": drawTurtleneck(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.10,green:0.10,blue:0.12), shadC: .init(red:0.04,green:0.04,blue:0.06), ribC: .init(red:0.20,green:0.20,blue:0.24), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_turtleneck_navy":  drawTurtleneck(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.10,green:0.16,blue:0.50), shadC: .init(red:0.06,green:0.10,blue:0.34), ribC: .init(red:0.18,green:0.26,blue:0.64), outlineC: .init(red:0.04,green:0.08,blue:0.28))
+            case "shirt_turtleneck_green": drawTurtleneck(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.10,green:0.36,blue:0.16), shadC: .init(red:0.06,green:0.22,blue:0.10), ribC: .init(red:0.16,green:0.50,blue:0.24), outlineC: .init(red:0.04,green:0.14,blue:0.06))
+            case "shirt_windbreaker": drawWindbreaker(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_polo":        drawPolo(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_polo_white":  drawPolo(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.94,green:0.95,blue:0.96), shadC: .init(red:0.74,green:0.76,blue:0.80), whiteC: .init(red:0.30,green:0.30,blue:0.34), outlineC: .init(red:0.36,green:0.38,blue:0.44))
+            case "shirt_polo_navy":   drawPolo(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.08,green:0.14,blue:0.48), shadC: .init(red:0.04,green:0.08,blue:0.32), whiteC: .init(red:0.96,green:0.97,blue:0.98), outlineC: .init(red:0.04,green:0.06,blue:0.26))
+            case "shirt_polo_red":    drawPolo(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.82,green:0.10,blue:0.12), shadC: .init(red:0.58,green:0.06,blue:0.08), whiteC: .init(red:0.96,green:0.96,blue:0.96), outlineC: .init(red:0.38,green:0.04,blue:0.06))
+            case "shirt_varsity":     drawVarsityJacket(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_trench":      drawTrenchCoat(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_hawaiian":    drawHawaiianShirt(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_vest":        drawSweaterVest(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_bomber":      drawBomberJacket(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_bomber_black": drawBomberJacket(ctx, cx: cx, bodyY: bodyY, u: u, oliveC: .init(red:0.10,green:0.10,blue:0.12), shadC: .init(red:0.04,green:0.04,blue:0.06), ribC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_bomber_navy":  drawBomberJacket(ctx, cx: cx, bodyY: bodyY, u: u, oliveC: .init(red:0.08,green:0.14,blue:0.48), shadC: .init(red:0.04,green:0.08,blue:0.32), ribC: .init(red:0.04,green:0.08,blue:0.28), outlineC: .init(red:0.02,green:0.06,blue:0.22))
+            case "shirt_bomber_tan":   drawBomberJacket(ctx, cx: cx, bodyY: bodyY, u: u, oliveC: .init(red:0.72,green:0.60,blue:0.40), shadC: .init(red:0.52,green:0.42,blue:0.26), ribC: .init(red:0.44,green:0.34,blue:0.18), outlineC: .init(red:0.28,green:0.20,blue:0.10))
+            // Girl shirt variants
+            case "shirt_tee_pink":      drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.96,green:0.46,blue:0.70), darkC: .init(red:0.78,green:0.26,blue:0.50), outlineC: .init(red:0.52,green:0.12,blue:0.28))
+            case "shirt_tee_purple":    drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.64,green:0.34,blue:0.88), darkC: .init(red:0.44,green:0.18,blue:0.66), outlineC: .init(red:0.26,green:0.08,blue:0.44))
+            case "shirt_tee_coral":     drawTShirt(ctx, cx: cx, bodyY: bodyY, u: u, shirtC: .init(red:0.98,green:0.48,blue:0.36), darkC: .init(red:0.80,green:0.28,blue:0.16), outlineC: .init(red:0.52,green:0.14,blue:0.08))
+            case "shirt_hoodie_pink":   drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.94,green:0.48,blue:0.66), shadC: .init(red:0.78,green:0.30,blue:0.50), pocketC: .init(red:0.88,green:0.40,blue:0.58), outlineC: .init(red:0.52,green:0.14,blue:0.28))
+            case "shirt_hoodie_lilac":  drawHoodie(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.72,green:0.58,blue:0.90), shadC: .init(red:0.54,green:0.38,blue:0.76), pocketC: .init(red:0.64,green:0.48,blue:0.84), outlineC: .init(red:0.32,green:0.18,blue:0.56))
+            case "shirt_polo_pink":     drawPolo(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.96,green:0.46,blue:0.68), shadC: .init(red:0.76,green:0.26,blue:0.48), whiteC: .init(red:0.98,green:0.96,blue:0.98), outlineC: .init(red:0.50,green:0.12,blue:0.26))
+            case "shirt_polo_lavender": drawPolo(ctx, cx: cx, bodyY: bodyY, u: u, baseC: .init(red:0.74,green:0.60,blue:0.92), shadC: .init(red:0.54,green:0.40,blue:0.76), whiteC: .init(red:0.98,green:0.96,blue:0.98), outlineC: .init(red:0.34,green:0.20,blue:0.60))
+            // Dresses
+            case "dress_sundress":    drawSundress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_party":       drawPartyDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_ballet":      drawBalletDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_overalls":    drawCuteOveralls(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_crop_hoodie": drawCropHoodie(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_cardigan":    drawCardigan(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_sparkle":       drawSparkleDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_pink_maxi":     drawPinkMaxiDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_pink_ruffle":   drawPinkRuffleDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_hot_pink_mini": drawHotPinkMiniDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_pink_bow":        drawPinkBowDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "dress_pink_wrap":       drawPinkWrapDress(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "tracksuit_pink":        drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.96,green:0.46,blue:0.72), stripeC: .white, darkC: .init(red:0.76,green:0.26,blue:0.52))
+            case "tracksuit_black":       drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.10,green:0.10,blue:0.12), stripeC: .init(red:0.76,green:0.76,blue:0.80), darkC: .init(red:0.04,green:0.04,blue:0.06))
+            case "tracksuit_navy":        drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.08,green:0.14,blue:0.44), stripeC: .white, darkC: .init(red:0.04,green:0.08,blue:0.28))
+            case "tracksuit_red":         drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.84,green:0.10,blue:0.12), stripeC: .white, darkC: .init(red:0.58,green:0.04,blue:0.06))
+            case "tracksuit_green":       drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.10,green:0.60,blue:0.24), stripeC: .white, darkC: .init(red:0.06,green:0.38,blue:0.14))
+            case "tracksuit_white":       drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.94,green:0.94,blue:0.96), stripeC: .init(red:0.20,green:0.20,blue:0.40), darkC: .init(red:0.76,green:0.76,blue:0.80))
+            case "tracksuit_purple":      drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.52,green:0.14,blue:0.82), stripeC: .white, darkC: .init(red:0.32,green:0.06,blue:0.56))
+            case "tracksuit_orange":      drawTracksuit(ctx, cx: cx, bodyY: bodyY, u: u, mainC: .init(red:0.98,green:0.52,blue:0.10), stripeC: .white, darkC: .init(red:0.76,green:0.32,blue:0.04))
+            case "shirt_pride_tee":       drawPrideTShirt(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_pride_hoodie":    drawPrideHoodie(ctx, cx: cx, bodyY: bodyY, u: u)
+            case "shirt_pride_tracksuit": drawPrideTracksuit(ctx, cx: cx, bodyY: bodyY, u: u)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.22)),
+                         at: CGPoint(x: cx, y: bodyY), anchor: .center)
+            }
         case .cape:
             ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
                      at: CGPoint(x: cx, y: bodyY - u * 0.02), anchor: .center)
+        case .food:
+            break
         }
     }
 
@@ -1895,14 +1985,2188 @@ struct AnimalBodyView: View {
         return p
     }
 
+    // MARK: - Hat Drawing Functions
+
+    func drawTopHat(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat,
+                    hatBlack: Color = Color(red:0.10,green:0.10,blue:0.13),
+                    goldBand: Color = Color(red:0.95,green:0.78,blue:0.12),
+                    outline:  Color = Color.black.opacity(0.90)) {
+        let brimCY  = headY - u * 0.16
+        let crownH  = u * 0.20
+        let crownW  = u * 0.28
+        let brimW   = u * 0.50
+        let brimH   = u * 0.042
+
+        var crown = Path(roundedRect: CGRect(
+            x: cx - crownW/2, y: brimCY - brimH/2 - crownH,
+            width: crownW, height: crownH), cornerRadius: u*0.018)
+        ctx.fill(crown, with: .color(hatBlack))
+
+        var band = Path(CGRect(
+            x: cx - crownW/2, y: brimCY - brimH/2 - u*0.042,
+            width: crownW, height: u*0.036))
+        ctx.fill(band, with: .color(goldBand))
+
+        var brim = Path(roundedRect: CGRect(
+            x: cx - brimW/2, y: brimCY - brimH/2,
+            width: brimW, height: brimH), cornerRadius: brimH * 0.40)
+        ctx.fill(brim, with: .color(hatBlack))
+
+        ctx.stroke(crown, with: .color(outline), lineWidth: u * 0.020)
+        ctx.stroke(brim, with: .color(outline), lineWidth: u * 0.020)
+
+        var shine = Path(roundedRect: CGRect(
+            x: cx - crownW/2 + u*0.022, y: brimCY - brimH/2 - crownH + u*0.02,
+            width: u*0.040, height: crownH * 0.60), cornerRadius: u*0.016)
+        ctx.fill(shine, with: .color(.white.opacity(0.12)))
+    }
+
+    func drawCrown(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let bandBot  = headY - u * 0.12
+        let bandTop  = headY - u * 0.18
+        let bandW    = u * 0.44
+        let goldMain = Color(red: 1.00, green: 0.82, blue: 0.14)
+        let goldDark = Color(red: 0.85, green: 0.55, blue: 0.06)
+        let outline  = Color(red: 0.50, green: 0.32, blue: 0.02)
+
+        let pts: [(CGFloat, CGFloat)] = [
+            (-0.22, 0.07), (-0.11, 0.12), (0.00, 0.16), (0.11, 0.12), (0.22, 0.07)
+        ]
+
+        var crown = Path()
+        crown.move(to: CGPoint(x: cx - bandW/2, y: bandBot))
+        crown.addLine(to: CGPoint(x: cx - bandW/2, y: bandTop))
+        crown.addLine(to: CGPoint(x: cx + pts[0].0 * u, y: bandTop - pts[0].1 * u))
+        for i in 1..<pts.count {
+            let midX = (cx + pts[i-1].0 * u + cx + pts[i].0 * u) / 2
+            crown.addLine(to: CGPoint(x: midX, y: bandTop))
+            crown.addLine(to: CGPoint(x: cx + pts[i].0 * u, y: bandTop - pts[i].1 * u))
+        }
+        crown.addLine(to: CGPoint(x: cx + bandW/2, y: bandTop))
+        crown.addLine(to: CGPoint(x: cx + bandW/2, y: bandBot))
+        crown.closeSubpath()
+
+        ctx.fill(crown, with: .color(goldMain))
+        ctx.stroke(crown, with: .color(outline), lineWidth: u * 0.020)
+
+        var stripe = Path(roundedRect: CGRect(
+            x: cx - bandW/2, y: bandBot - u*0.028, width: bandW, height: u*0.028),
+            cornerRadius: u*0.008)
+        ctx.fill(stripe, with: .color(goldDark))
+
+        let gemColors: [Color] = [
+            Color(red: 0.90, green: 0.10, blue: 0.20), Color(red: 0.10, green: 0.50, blue: 0.90),
+            Color(red: 0.20, green: 0.10, blue: 0.90), Color(red: 0.10, green: 0.50, blue: 0.90),
+            Color(red: 0.90, green: 0.10, blue: 0.20)
+        ]
+        for (i, (xOff, hOff)) in pts.enumerated() {
+            let gx = cx + xOff * u
+            let gy = bandTop - hOff * u + u * 0.030
+            var gem = Path(ellipseIn: CGRect(x: gx - u*0.020, y: gy - u*0.018, width: u*0.040, height: u*0.036))
+            ctx.fill(gem, with: .color(gemColors[i]))
+            ctx.stroke(gem, with: .color(outline.opacity(0.6)), lineWidth: u*0.010)
+        }
+    }
+
+    func drawBaseballCap(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat,
+                         capColor: Color = Color(red:0.10,green:0.28,blue:0.80),
+                         visorC:   Color = Color(red:0.08,green:0.22,blue:0.62),
+                         bandC:    Color = Color(red:0.06,green:0.18,blue:0.50),
+                         outline:  Color = Color.black.opacity(0.88)) {
+        let capBot   = headY - u * 0.10
+        let capR     = u * 0.22
+        let visorW   = u * 0.28
+        let visorH   = u * 0.038
+
+        var dome = Path()
+        dome.addArc(center: CGPoint(x: cx, y: capBot), radius: capR,
+                    startAngle: .degrees(180), endAngle: .degrees(0), clockwise: true)
+        dome.closeSubpath()
+        ctx.fill(dome, with: .color(capColor))
+
+        var band = Path(CGRect(x: cx - capR, y: capBot - u*0.028, width: capR*2, height: u*0.028))
+        ctx.fill(band, with: .color(bandC))
+
+        var visor = Path(roundedRect: CGRect(
+            x: cx + capR * 0.15, y: capBot - visorH/2,
+            width: visorW, height: visorH), cornerRadius: visorH * 0.45)
+        ctx.fill(visor, with: .color(visorC))
+        ctx.stroke(visor, with: .color(outline), lineWidth: u*0.016)
+        ctx.stroke(dome, with: .color(outline), lineWidth: u*0.020)
+
+        var stitch = Path()
+        stitch.addArc(center: CGPoint(x: cx, y: capBot), radius: capR * 0.75,
+                      startAngle: .degrees(160), endAngle: .degrees(20), clockwise: true)
+        ctx.stroke(stitch, with: .color(.white.opacity(0.20)), lineWidth: u*0.014)
+
+        var btn = Path(ellipseIn: CGRect(x: cx - u*0.020, y: capBot - capR - u*0.018,
+                                          width: u*0.040, height: u*0.036))
+        ctx.fill(btn, with: .color(bandC))
+        ctx.stroke(btn, with: .color(outline), lineWidth: u*0.012)
+    }
+
+    func drawCowboyHat(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat,
+                       hatColor: Color = Color(red:0.42,green:0.26,blue:0.10),
+                       bandC:    Color = Color(red:0.60,green:0.36,blue:0.12),
+                       outline:  Color = Color(red:0.22,green:0.12,blue:0.04)) {
+        let brimY    = headY - u * 0.14
+        let brimW    = u * 0.58
+        let crownH   = u * 0.18
+        let crownBW  = u * 0.24
+        let crownTW  = u * 0.28
+        let midH     = crownH * 0.45
+
+        var brim = Path()
+        brim.move(to: CGPoint(x: cx - brimW/2, y: brimY))
+        brim.addCurve(to: CGPoint(x: cx + brimW/2, y: brimY),
+                      control1: CGPoint(x: cx - brimW/3, y: brimY - u*0.022),
+                      control2: CGPoint(x: cx + brimW/3, y: brimY - u*0.022))
+        brim.addCurve(to: CGPoint(x: cx - brimW/2, y: brimY),
+                      control1: CGPoint(x: cx + brimW/3, y: brimY + u*0.018),
+                      control2: CGPoint(x: cx - brimW/3, y: brimY + u*0.018))
+        brim.closeSubpath()
+        ctx.fill(brim, with: .color(hatColor))
+        ctx.stroke(brim, with: .color(outline), lineWidth: u*0.018)
+
+        let crownBase = brimY - u*0.010
+        let crownTop  = brimY - crownH
+        let midY      = brimY - midH
+        var crownPath = Path()
+        crownPath.move(to: CGPoint(x: cx - crownBW/2, y: crownBase))
+        crownPath.addCurve(to: CGPoint(x: cx - crownTW/2, y: crownTop),
+                            control1: CGPoint(x: cx - crownBW/2 - u*0.012, y: midY),
+                            control2: CGPoint(x: cx - crownTW/2 - u*0.008, y: midY))
+        crownPath.addLine(to: CGPoint(x: cx + crownTW/2, y: crownTop))
+        crownPath.addCurve(to: CGPoint(x: cx + crownBW/2, y: crownBase),
+                            control1: CGPoint(x: cx + crownTW/2 + u*0.008, y: midY),
+                            control2: CGPoint(x: cx + crownBW/2 + u*0.012, y: midY))
+        crownPath.closeSubpath()
+        ctx.fill(crownPath, with: .color(hatColor))
+        ctx.stroke(crownPath, with: .color(outline), lineWidth: u*0.018)
+
+        var band = Path(CGRect(x: cx - crownBW/2 - u*0.008, y: crownBase - u*0.038,
+                                width: crownBW + u*0.016, height: u*0.032))
+        ctx.fill(band, with: .color(bandC))
+    }
+
+    func drawGradCap(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let boardY   = headY - u * 0.22
+        let boardW   = u * 0.40
+        let boardH   = u * 0.036
+        let capColor = Color(red: 0.08, green: 0.08, blue: 0.10)
+        let tassel   = Color(red: 0.96, green: 0.78, blue: 0.10)
+        let outline  = Color.black.opacity(0.88)
+
+        var dome = Path()
+        dome.addArc(center: CGPoint(x: cx, y: boardY), radius: u*0.14,
+                    startAngle: .degrees(180), endAngle: .degrees(0), clockwise: true)
+        dome.closeSubpath()
+        ctx.fill(dome, with: .color(capColor))
+        ctx.stroke(dome, with: .color(outline), lineWidth: u*0.018)
+
+        var board = Path()
+        board.move(to: CGPoint(x: cx - boardW/2, y: boardY))
+        board.addLine(to: CGPoint(x: cx + boardW/2, y: boardY))
+        board.addLine(to: CGPoint(x: cx + boardW/2 - u*0.018, y: boardY - boardH))
+        board.addLine(to: CGPoint(x: cx - boardW/2 - u*0.018, y: boardY - boardH))
+        board.closeSubpath()
+        ctx.fill(board, with: .color(capColor))
+        ctx.stroke(board, with: .color(outline), lineWidth: u*0.018)
+
+        var cord = Path()
+        cord.move(to: CGPoint(x: cx + boardW/2 * 0.60, y: boardY - boardH/2))
+        cord.addLine(to: CGPoint(x: cx + boardW/2 * 0.60 + u*0.022, y: boardY + u*0.038))
+        ctx.stroke(cord, with: .color(tassel), lineWidth: u*0.016)
+
+        let tBase = CGPoint(x: cx + boardW/2 * 0.60 + u*0.022, y: boardY + u*0.038)
+        for i: CGFloat in [-1, 0, 1] {
+            var fringe = Path()
+            fringe.move(to: tBase)
+            fringe.addLine(to: CGPoint(x: tBase.x + i*u*0.020, y: tBase.y + u*0.040))
+            ctx.stroke(fringe, with: .color(tassel), lineWidth: u*0.013)
+        }
+
+        var btn = Path(ellipseIn: CGRect(x: cx - u*0.018, y: boardY - boardH - u*0.018,
+                                          width: u*0.036, height: u*0.032))
+        ctx.fill(btn, with: .color(tassel))
+    }
+
+    func drawHalo(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let haloY  = headY - u * 0.22   // float just above head top
+        let haloRX = u * 0.18
+        let haloRY = u * 0.052
+        let ringW  = u * 0.028
+        let goldC  = Color(red: 1.00, green: 0.88, blue: 0.20)
+        let glowC  = Color(red: 1.00, green: 0.96, blue: 0.40)
+
+        var glowPath = Path(ellipseIn: CGRect(
+            x: cx - haloRX - ringW*2, y: haloY - haloRY - ringW*2,
+            width: (haloRX + ringW*2)*2, height: (haloRY + ringW*2)*2))
+        ctx.fill(glowPath, with: .color(glowC.opacity(0.30)))
+
+        var ring = Path(ellipseIn: CGRect(x: cx - haloRX, y: haloY - haloRY,
+                                           width: haloRX*2, height: haloRY*2))
+        ctx.stroke(ring, with: .color(goldC), lineWidth: ringW)
+        ctx.stroke(ring, with: .color(.white.opacity(0.55)), lineWidth: ringW * 0.38)
+    }
+
+    func drawBeanieHat(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat,
+                       capC:    Color = Color(red:0.80,green:0.16,blue:0.16),
+                       foldC:   Color = Color(red:0.60,green:0.10,blue:0.10),
+                       outline: Color = Color.black.opacity(0.86)) {
+        let capBot  = headY - u * 0.08
+        let capTop  = headY - u * 0.24
+        let capW    = u * 0.48
+        let foldH   = u * 0.040
+
+        var cap = Path()
+        cap.move(to: CGPoint(x: cx - capW/2, y: capBot))
+        cap.addLine(to: CGPoint(x: cx - capW/2 + u*0.04, y: capTop + u*0.04))
+        cap.addQuadCurve(to: CGPoint(x: cx + capW/2 - u*0.04, y: capTop + u*0.04),
+                         control: CGPoint(x: cx, y: capTop - u*0.04))
+        cap.addLine(to: CGPoint(x: cx + capW/2, y: capBot))
+        cap.closeSubpath()
+        ctx.fill(cap, with: .color(capC))
+
+        var cuff = Path(roundedRect: CGRect(
+            x: cx - capW/2, y: capBot - foldH, width: capW, height: foldH),
+            cornerRadius: u*0.010)
+        ctx.fill(cuff, with: .color(foldC))
+        ctx.stroke(cap, with: .color(outline), lineWidth: u*0.020)
+        ctx.stroke(cuff, with: .color(outline), lineWidth: u*0.014)
+
+        for i: CGFloat in [0.28, 0.44, 0.60, 0.76] {
+            var rib = Path()
+            let rx = cx - capW/2 + capW * i
+            rib.move(to: CGPoint(x: rx, y: capBot - foldH + u*0.006))
+            rib.addLine(to: CGPoint(x: rx, y: capBot - u*0.004))
+            ctx.stroke(rib, with: .color(outline.opacity(0.30)), lineWidth: u*0.010)
+        }
+
+        var stripe = Path(CGRect(x: cx - capW/2 + u*0.020, y: capTop + u*0.08,
+                                  width: capW - u*0.040, height: u*0.028))
+        ctx.fill(stripe, with: .color(foldC.opacity(0.60)))
+
+        var pom = Path(ellipseIn: CGRect(x: cx - u*0.058, y: capTop - u*0.056,
+                                          width: u*0.116, height: u*0.100))
+        ctx.fill(pom, with: .color(.white))
+        ctx.stroke(pom, with: .color(outline.opacity(0.40)), lineWidth: u*0.012)
+    }
+
+    func drawBucketHat(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat,
+                       hatC:    Color = Color(red:0.22,green:0.44,blue:0.24),
+                       hatDark: Color = Color(red:0.16,green:0.34,blue:0.18),
+                       outline: Color = Color.black.opacity(0.82)) {
+        let crownBot = headY - u * 0.08
+        let crownH   = u * 0.14
+        let crownW   = u * 0.38
+        let brimW    = u * 0.56
+        let brimH    = u * 0.040
+
+        var crown = Path()
+        crown.move(to: CGPoint(x: cx - crownW/2, y: crownBot))
+        crown.addLine(to: CGPoint(x: cx - crownW/2 + u*0.02, y: crownBot - crownH))
+        crown.addLine(to: CGPoint(x: cx + crownW/2 - u*0.02, y: crownBot - crownH))
+        crown.addLine(to: CGPoint(x: cx + crownW/2, y: crownBot))
+        crown.closeSubpath()
+        ctx.fill(crown, with: .color(hatC))
+        ctx.stroke(crown, with: .color(outline), lineWidth: u*0.018)
+
+        var brim = Path()
+        brim.move(to: CGPoint(x: cx - crownW/2, y: crownBot))
+        brim.addCurve(to: CGPoint(x: cx - brimW/2, y: crownBot + brimH),
+                      control1: CGPoint(x: cx - crownW/2 - u*0.02, y: crownBot + brimH*0.20),
+                      control2: CGPoint(x: cx - brimW/2 + u*0.04,  y: crownBot + brimH*0.70))
+        brim.addLine(to: CGPoint(x: cx + brimW/2, y: crownBot + brimH))
+        brim.addCurve(to: CGPoint(x: cx + crownW/2, y: crownBot),
+                      control1: CGPoint(x: cx + brimW/2 - u*0.04,  y: crownBot + brimH*0.70),
+                      control2: CGPoint(x: cx + crownW/2 + u*0.02, y: crownBot + brimH*0.20))
+        brim.closeSubpath()
+        ctx.fill(brim, with: .color(hatDark))
+        ctx.stroke(brim, with: .color(outline), lineWidth: u*0.018)
+
+        var band = Path()
+        band.move(to: CGPoint(x: cx - crownW/2, y: crownBot - u*0.032))
+        band.addLine(to: CGPoint(x: cx + crownW/2, y: crownBot - u*0.032))
+        ctx.stroke(band, with: .color(hatDark.opacity(0.70)), lineWidth: u*0.016)
+    }
+
+    func drawWizardHat(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let brimY  = headY - u * 0.16          // brim sits at upper crown, same as top hat
+        let tipY   = max(u * 0.01, headY - u * 0.46)
+        let hatH   = brimY - tipY
+        let coneHW = u * 0.20                  // fixed width — proportional to head
+        let brimW  = coneHW * 2 + u * 0.10
+        let brimH  = u * 0.040
+        let hatC    = Color(red: 0.62, green: 0.14, blue: 0.96)
+        let hatDark = Color(red: 0.38, green: 0.06, blue: 0.60)
+        let starC   = Color(red: 1.00, green: 0.94, blue: 0.18)
+        let outlineC = Color.white.opacity(0.90)
+
+        // Cone
+        var cone = Path()
+        cone.move(to: CGPoint(x: cx, y: tipY))
+        cone.addLine(to: CGPoint(x: cx - coneHW, y: brimY))
+        cone.addLine(to: CGPoint(x: cx + coneHW, y: brimY))
+        cone.closeSubpath()
+        ctx.fill(cone, with: .color(hatC))
+        ctx.stroke(cone, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Shading stripe (right side darker)
+        var shade = Path()
+        shade.move(to: CGPoint(x: cx + coneHW * 0.10, y: tipY + hatH * 0.10))
+        shade.addLine(to: CGPoint(x: cx + coneHW, y: brimY))
+        shade.addLine(to: CGPoint(x: cx + coneHW * 0.40, y: brimY))
+        shade.closeSubpath()
+        ctx.fill(shade, with: .color(hatDark.opacity(0.45)))
+
+        // Brim
+        var brim = Path(roundedRect: CGRect(
+            x: cx - brimW/2, y: brimY - brimH/2,
+            width: brimW, height: brimH), cornerRadius: brimH * 0.40)
+        ctx.fill(brim, with: .color(hatDark))
+        ctx.stroke(brim, with: .color(outlineC), lineWidth: u * 0.020)
+
+        // Stars — evenly spaced up the cone
+        let starPositions: [(CGFloat, CGFloat, CGFloat)] = [
+            (0.00, 0.32, 0.040),    // lower center
+            (-0.38, 0.62, 0.030),   // mid left
+            (0.30, 0.78, 0.024),    // upper right
+        ]
+        for (fracX, fracY, r) in starPositions {
+            // fracY=0 is brimY, fracY=1 is tipY
+            let sy = brimY - hatH * fracY
+            let maxX = coneHW * (1 - fracY) * 0.72
+            let sx = cx + fracX * maxX
+            var star = Path()
+            star.move(to:    CGPoint(x: sx,            y: sy - r*u))
+            star.addLine(to: CGPoint(x: sx + r*u*0.32, y: sy - r*u*0.30))
+            star.addLine(to: CGPoint(x: sx + r*u,      y: sy))
+            star.addLine(to: CGPoint(x: sx + r*u*0.32, y: sy + r*u*0.30))
+            star.addLine(to: CGPoint(x: sx,            y: sy + r*u))
+            star.addLine(to: CGPoint(x: sx - r*u*0.32, y: sy + r*u*0.30))
+            star.addLine(to: CGPoint(x: sx - r*u,      y: sy))
+            star.addLine(to: CGPoint(x: sx - r*u*0.32, y: sy - r*u*0.30))
+            star.closeSubpath()
+            ctx.fill(star, with: .color(starC))
+        }
+    }
+
+    // MARK: - Shirt Drawing Functions
+
+    // Shared helper: draws the T-shirt silhouette + short sleeves, returns the body path for clipping details
+    private func shirtSilhouette(cx: CGFloat, bodyY: CGFloat, u: CGFloat) -> Path {
+        let top    = bodyY - u * 0.12
+        let bot    = bodyY + u * 0.13
+        let hw     = u * 0.19      // half-width of torso
+        let neckHW = u * 0.085    // half-width of neck opening
+        let slvX   = u * 0.26     // sleeve tip x from center
+        let slvY   = bodyY - u * 0.06  // sleeve height
+
+        var p = Path()
+        p.move(to: CGPoint(x: cx - neckHW, y: top))
+        p.addLine(to: CGPoint(x: cx - hw, y: top))
+        p.addLine(to: CGPoint(x: cx - slvX, y: slvY))
+        p.addLine(to: CGPoint(x: cx - hw, y: slvY + u * 0.04))
+        p.addLine(to: CGPoint(x: cx - hw, y: bot))
+        p.addLine(to: CGPoint(x: cx + hw, y: bot))
+        p.addLine(to: CGPoint(x: cx + hw, y: slvY + u * 0.04))
+        p.addLine(to: CGPoint(x: cx + slvX, y: slvY))
+        p.addLine(to: CGPoint(x: cx + hw, y: top))
+        p.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        p.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top),
+                        control: CGPoint(x: cx, y: top + u * 0.038))
+        p.closeSubpath()
+        return p
+    }
+
+    func drawTShirt(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                    shirtC: Color = Color(red:0.18,green:0.50,blue:0.96),
+                    darkC:  Color = Color(red:0.10,green:0.30,blue:0.72),
+                    outlineC: Color = Color(red:0.06,green:0.18,blue:0.55)) {
+
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(shirtC))
+
+        // Subtle fold shadow on right side
+        var fold = Path()
+        fold.move(to: CGPoint(x: cx + u*0.04, y: bodyY - u*0.11))
+        fold.addLine(to: CGPoint(x: cx + u*0.04, y: bodyY + u*0.12))
+        fold.addLine(to: CGPoint(x: cx + u*0.10, y: bodyY + u*0.12))
+        fold.addLine(to: CGPoint(x: cx + u*0.10, y: bodyY - u*0.11))
+        ctx.fill(fold, with: .color(darkC.opacity(0.22)))
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Crew neck rim
+        let top = bodyY - u * 0.12
+        var collar = Path()
+        collar.addArc(center: CGPoint(x: cx, y: top + u*0.010),
+                      radius: u * 0.085, startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
+        ctx.stroke(collar, with: .color(outlineC), lineWidth: u * 0.016)
+    }
+
+    func drawHoodie(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                    baseC:    Color = Color(red:0.22,green:0.36,blue:0.72),
+                    shadC:    Color = Color(red:0.14,green:0.24,blue:0.54),
+                    pocketC:  Color = Color(red:0.18,green:0.30,blue:0.62),
+                    outlineC: Color = Color(red:0.08,green:0.14,blue:0.36)) {
+        let stringC  = Color(red: 0.86, green: 0.90, blue: 1.00)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        // Main hoodie body
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(baseC))
+
+        // Hood cowl — a curved band at the neckline to imply the hood hanging behind
+        var cowl = Path()
+        cowl.addArc(center: CGPoint(x: cx, y: top + u*0.006),
+                    radius: u * 0.092,
+                    startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
+        ctx.stroke(cowl, with: .color(shadC), lineWidth: u * 0.026)
+
+        // Drawstrings hanging from hood opening
+        for side: CGFloat in [-1, 1] {
+            var str = Path()
+            let sx = cx + side * u * 0.032
+            str.move(to: CGPoint(x: sx, y: top + u * 0.030))
+            str.addQuadCurve(to:     CGPoint(x: sx + side * u*0.018, y: top + u*0.092),
+                             control: CGPoint(x: sx + side * u*0.028, y: top + u*0.060))
+            ctx.stroke(str, with: .color(stringC.opacity(0.90)), lineWidth: u * 0.012)
+            // Tip bead
+            var bead = Path(ellipseIn: CGRect(x: sx + side*u*0.018 - u*0.012,
+                                              y: top + u*0.092 - u*0.012,
+                                              width: u*0.024, height: u*0.024))
+            ctx.fill(bead, with: .color(stringC))
+            ctx.stroke(bead, with: .color(outlineC), lineWidth: u*0.008)
+        }
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Bottom hem rib band
+        var hem = Path(roundedRect: CGRect(x: cx - u*0.19, y: bot - u*0.030,
+                                           width: u*0.38, height: u*0.030),
+                       cornerRadius: u*0.008)
+        ctx.fill(hem, with: .color(shadC))
+
+        // Kangaroo pocket — centred, rounded, subtle
+        var pocket = Path(roundedRect: CGRect(x: cx - u*0.082, y: bodyY + u*0.008,
+                                              width: u*0.164, height: u*0.072),
+                          cornerRadius: u * 0.022)
+        ctx.fill(pocket, with: .color(pocketC))
+        ctx.stroke(pocket, with: .color(outlineC.opacity(0.70)), lineWidth: u * 0.012)
+
+        // Pocket centre divider
+        var div = Path()
+        div.move(to: CGPoint(x: cx, y: bodyY + u*0.010))
+        div.addLine(to: CGPoint(x: cx, y: bodyY + u*0.076))
+        ctx.stroke(div, with: .color(outlineC.opacity(0.50)), lineWidth: u*0.008)
+    }
+
+    func drawSuit(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let jacketC  = Color(red: 0.14, green: 0.14, blue: 0.18)
+        let lapelC   = Color(red: 0.22, green: 0.22, blue: 0.28)
+        let shirtC   = Color(red: 0.96, green: 0.96, blue: 0.98)
+        let tieC     = Color(red: 0.82, green: 0.08, blue: 0.10)
+        let outlineC = Color.black.opacity(0.80)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(jacketC))
+
+        // White shirt showing in V between lapels
+        var shirtV = Path()
+        shirtV.move(to: CGPoint(x: cx - u*0.045, y: top + u*0.020))
+        shirtV.addLine(to: CGPoint(x: cx + u*0.045, y: top + u*0.020))
+        shirtV.addLine(to: CGPoint(x: cx + u*0.022, y: bot - u*0.030))
+        shirtV.addLine(to: CGPoint(x: cx - u*0.022, y: bot - u*0.030))
+        ctx.fill(shirtV, with: .color(shirtC))
+
+        // Tie
+        var tie = Path()
+        tie.move(to: CGPoint(x: cx - u*0.018, y: top + u*0.028))
+        tie.addLine(to: CGPoint(x: cx + u*0.018, y: top + u*0.028))
+        tie.addLine(to: CGPoint(x: cx + u*0.012, y: bodyY))
+        tie.addLine(to: CGPoint(x: cx + u*0.020, y: bodyY + u*0.040))
+        tie.addLine(to: CGPoint(x: cx, y: bodyY + u*0.072))
+        tie.addLine(to: CGPoint(x: cx - u*0.020, y: bodyY + u*0.040))
+        tie.addLine(to: CGPoint(x: cx - u*0.012, y: bodyY))
+        tie.closeSubpath()
+        ctx.fill(tie, with: .color(tieC))
+        ctx.stroke(tie, with: .color(tieC.opacity(0.60)), lineWidth: u*0.008)
+
+        // Left lapel
+        var leftLapel = Path()
+        leftLapel.move(to: CGPoint(x: cx - u*0.045, y: top + u*0.010))
+        leftLapel.addLine(to: CGPoint(x: cx - u*0.190, y: top + u*0.010))
+        leftLapel.addLine(to: CGPoint(x: cx - u*0.100, y: bodyY - u*0.020))
+        leftLapel.addLine(to: CGPoint(x: cx - u*0.022, y: bot - u*0.030))
+        leftLapel.closeSubpath()
+        ctx.fill(leftLapel, with: .color(lapelC))
+
+        // Right lapel
+        var rightLapel = Path()
+        rightLapel.move(to: CGPoint(x: cx + u*0.045, y: top + u*0.010))
+        rightLapel.addLine(to: CGPoint(x: cx + u*0.190, y: top + u*0.010))
+        rightLapel.addLine(to: CGPoint(x: cx + u*0.100, y: bodyY - u*0.020))
+        rightLapel.addLine(to: CGPoint(x: cx + u*0.022, y: bot - u*0.030))
+        rightLapel.closeSubpath()
+        ctx.fill(rightLapel, with: .color(lapelC))
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Button
+        var btn = Path(ellipseIn: CGRect(x: cx - u*0.012, y: bodyY - u*0.048,
+                                          width: u*0.024, height: u*0.024))
+        ctx.fill(btn, with: .color(shirtC))
+        ctx.stroke(btn, with: .color(outlineC), lineWidth: u*0.010)
+    }
+
+    func drawJersey(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                    baseC:    Color = Color(red:0.90,green:0.12,blue:0.12),
+                    accentC:  Color = Color(red:0.96,green:0.96,blue:0.96),
+                    stripeC:  Color = Color(red:0.70,green:0.06,blue:0.06),
+                    outlineC: Color = Color(red:0.45,green:0.04,blue:0.04)) {
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(baseC))
+
+        // Side accent stripes
+        for side: CGFloat in [-1, 1] {
+            var stripe = Path()
+            let sx = cx + side * u * 0.13
+            stripe.move(to: CGPoint(x: sx, y: top + u*0.010))
+            stripe.addLine(to: CGPoint(x: sx + side*u*0.040, y: top + u*0.010))
+            stripe.addLine(to: CGPoint(x: sx + side*u*0.040, y: bot))
+            stripe.addLine(to: CGPoint(x: sx, y: bot))
+            ctx.fill(stripe, with: .color(stripeC))
+        }
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Number "1" on front
+        let numY = bodyY - u*0.028
+        let numX = cx
+        var numPath = Path()
+        // Vertical stroke
+        numPath.move(to: CGPoint(x: numX, y: numY - u*0.048))
+        numPath.addLine(to: CGPoint(x: numX, y: numY + u*0.048))
+        // Serif top-left
+        numPath.move(to: CGPoint(x: numX - u*0.016, y: numY - u*0.030))
+        numPath.addLine(to: CGPoint(x: numX, y: numY - u*0.048))
+        ctx.stroke(numPath, with: .color(accentC), lineWidth: u * 0.022)
+
+        // Collar V-shape in white
+        var collar = Path()
+        collar.move(to: CGPoint(x: cx - u*0.060, y: top + u*0.010))
+        collar.addLine(to: CGPoint(x: cx, y: top + u*0.040))
+        collar.addLine(to: CGPoint(x: cx + u*0.060, y: top + u*0.010))
+        ctx.stroke(collar, with: .color(accentC), lineWidth: u * 0.016)
+    }
+
+    func drawDenimJacket(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let denim    = Color(red: 0.22, green: 0.40, blue: 0.70)
+        let denimDk  = Color(red: 0.14, green: 0.26, blue: 0.52)
+        let stitchC  = Color(red: 0.78, green: 0.88, blue: 1.00)
+        let outlineC = Color(red: 0.08, green: 0.16, blue: 0.38)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(denim))
+
+        // Center front seam
+        var seam = Path()
+        seam.move(to: CGPoint(x: cx, y: top + u*0.020))
+        seam.addLine(to: CGPoint(x: cx, y: bot))
+        ctx.stroke(seam, with: .color(denimDk), lineWidth: u * 0.016)
+
+        // Chest pockets
+        for side: CGFloat in [-1, 1] {
+            let px = cx + side * u*0.090
+            var pocket = Path(roundedRect: CGRect(x: px - u*0.044, y: top + u*0.020,
+                                                   width: u*0.088, height: u*0.058),
+                              cornerRadius: u*0.008)
+            ctx.fill(pocket, with: .color(denimDk.opacity(0.50)))
+            ctx.stroke(pocket, with: .color(stitchC.opacity(0.70)), lineWidth: u*0.010)
+
+            // Pocket flap line
+            var flap = Path()
+            flap.move(to: CGPoint(x: px - u*0.044, y: top + u*0.040))
+            flap.addLine(to: CGPoint(x: px + u*0.044, y: top + u*0.040))
+            ctx.stroke(flap, with: .color(stitchC.opacity(0.70)), lineWidth: u*0.008)
+        }
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Stitch lines along seams
+        ctx.stroke(jacket, with: .color(stitchC.opacity(0.45)),
+                   style: StrokeStyle(lineWidth: u*0.008, dash: [u*0.018, u*0.018]))
+
+        // Collar points
+        var col = Path()
+        col.move(to: CGPoint(x: cx - u*0.085, y: top + u*0.005))
+        col.addLine(to: CGPoint(x: cx - u*0.030, y: top + u*0.048))
+        col.addLine(to: CGPoint(x: cx + u*0.030, y: top + u*0.048))
+        col.addLine(to: CGPoint(x: cx + u*0.085, y: top + u*0.005))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u * 0.016)
+
+        // Buttons along center seam
+        for i: CGFloat in [0, 1, 2] {
+            let by2 = top + u*0.070 + i * u*0.048
+            var btn = Path(ellipseIn: CGRect(x: cx - u*0.010, y: by2 - u*0.010,
+                                              width: u*0.020, height: u*0.020))
+            ctx.fill(btn, with: .color(denimDk))
+            ctx.stroke(btn, with: .color(stitchC.opacity(0.80)), lineWidth: u*0.008)
+        }
+    }
+
+    func drawLeatherJacket(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let leatherC = Color(red: 0.10, green: 0.10, blue: 0.12)
+        let shineC   = Color(red: 0.28, green: 0.28, blue: 0.34)
+        let silverC  = Color(red: 0.72, green: 0.72, blue: 0.78)
+        let outlineC = Color.black.opacity(0.90)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(leatherC))
+
+        // Shine highlight along left shoulder
+        var shine = Path()
+        shine.move(to: CGPoint(x: cx - u*0.18, y: top))
+        shine.addLine(to: CGPoint(x: cx - u*0.10, y: top))
+        shine.addLine(to: CGPoint(x: cx - u*0.14, y: bodyY - u*0.02))
+        shine.addLine(to: CGPoint(x: cx - u*0.19, y: bodyY - u*0.02))
+        shine.closeSubpath()
+        ctx.fill(shine, with: .color(shineC.opacity(0.50)))
+
+        // Asymmetric zip line (offset left)
+        var zip = Path()
+        zip.move(to: CGPoint(x: cx - u*0.028, y: top + u*0.010))
+        zip.addLine(to: CGPoint(x: cx - u*0.018, y: bot - u*0.020))
+        ctx.stroke(zip, with: .color(silverC), lineWidth: u * 0.016)
+
+        // Zip pull tab
+        var pull = Path(roundedRect: CGRect(x: cx - u*0.034, y: bodyY - u*0.038,
+                                             width: u*0.024, height: u*0.030),
+                        cornerRadius: u*0.006)
+        ctx.fill(pull, with: .color(silverC))
+
+        // Left lapel / collar flap
+        var lapel = Path()
+        lapel.move(to: CGPoint(x: cx - u*0.028, y: top + u*0.010))
+        lapel.addLine(to: CGPoint(x: cx - u*0.170, y: top + u*0.010))
+        lapel.addLine(to: CGPoint(x: cx - u*0.090, y: bodyY - u*0.040))
+        lapel.addLine(to: CGPoint(x: cx - u*0.028, y: bodyY - u*0.010))
+        lapel.closeSubpath()
+        ctx.fill(lapel, with: .color(shineC.opacity(0.35)))
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u * 0.022)
+        ctx.stroke(lapel, with: .color(outlineC), lineWidth: u * 0.014)
+
+        // Silver snap buttons on left chest
+        for i: CGFloat in [0, 1] {
+            var snap = Path(ellipseIn: CGRect(x: cx - u*0.080, y: top + u*0.038 + i*u*0.038,
+                                              width: u*0.018, height: u*0.018))
+            ctx.fill(snap, with: .color(silverC))
+        }
+    }
+
+    func drawFlannel(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let redC     = Color(red: 0.78, green: 0.14, blue: 0.14)
+        let darkRedC = Color(red: 0.52, green: 0.08, blue: 0.08)
+        let creamC   = Color(red: 0.96, green: 0.92, blue: 0.86)
+        let outlineC = Color(red: 0.30, green: 0.08, blue: 0.08)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(redC))
+
+        // Plaid horizontal stripes (cream)
+        for yFrac: CGFloat in [0.20, 0.50, 0.80] {
+            let sy = top + (bot - top) * yFrac
+            var stripe = Path()
+            stripe.move(to: CGPoint(x: cx - u*0.26, y: sy))
+            stripe.addLine(to: CGPoint(x: cx + u*0.26, y: sy))
+            ctx.stroke(stripe, with: .color(creamC.opacity(0.55)), lineWidth: u * 0.022)
+        }
+
+        // Plaid vertical stripes (dark red)
+        for xOff: CGFloat in [-0.08, 0.08] {
+            var vstr = Path()
+            vstr.move(to: CGPoint(x: cx + xOff*u, y: top))
+            vstr.addLine(to: CGPoint(x: cx + xOff*u, y: bot))
+            ctx.stroke(vstr, with: .color(darkRedC.opacity(0.60)), lineWidth: u * 0.018)
+        }
+
+        // Center button placket
+        var placket = Path(CGRect(x: cx - u*0.022, y: top + u*0.010, width: u*0.044, height: bot - top - u*0.010))
+        ctx.fill(placket, with: .color(redC.opacity(0.80)))
+        ctx.stroke(placket, with: .color(outlineC.opacity(0.50)), lineWidth: u*0.010)
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Collar points
+        var col = Path()
+        col.move(to: CGPoint(x: cx - u*0.080, y: top + u*0.005))
+        col.addLine(to: CGPoint(x: cx - u*0.024, y: top + u*0.044))
+        col.addLine(to: CGPoint(x: cx + u*0.024, y: top + u*0.044))
+        col.addLine(to: CGPoint(x: cx + u*0.080, y: top + u*0.005))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u * 0.016)
+
+        // Buttons
+        for i: CGFloat in [0, 1, 2] {
+            var btn = Path(ellipseIn: CGRect(x: cx - u*0.010, y: top + u*0.055 + i*u*0.044,
+                                             width: u*0.020, height: u*0.020))
+            ctx.fill(btn, with: .color(creamC))
+            ctx.stroke(btn, with: .color(outlineC), lineWidth: u*0.008)
+        }
+    }
+
+    func drawTurtleneck(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                        baseC:    Color = Color(red:0.52,green:0.08,blue:0.18),
+                        shadC:    Color = Color(red:0.36,green:0.04,blue:0.10),
+                        ribC:     Color = Color(red:0.64,green:0.12,blue:0.24),
+                        outlineC: Color = Color(red:0.20,green:0.02,blue:0.06)) {
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        // Body
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(baseC))
+
+        // Knit rib lines — vertical, like a real knit sweater
+        for i: CGFloat in stride(from: -0.14, through: 0.14, by: 0.040) {
+            var rib = Path()
+            rib.move(to:    CGPoint(x: cx + i*u, y: top))
+            rib.addLine(to: CGPoint(x: cx + i*u, y: bot))
+            ctx.stroke(rib, with: .color(ribC.opacity(0.40)), lineWidth: u*0.008)
+        }
+
+        // Bottom hem rib band
+        var hem = Path(roundedRect: CGRect(x: cx - u*0.19, y: bot - u*0.028,
+                                           width: u*0.38, height: u*0.028),
+                       cornerRadius: u*0.008)
+        ctx.fill(hem, with: .color(shadC))
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Roll-neck collar — prominent double-layer tube
+        // Outer (lower) roll
+        var outerRoll = Path(roundedRect: CGRect(x: cx - u*0.100, y: top - u*0.016,
+                                                  width: u*0.200, height: u*0.048),
+                             cornerRadius: u*0.020)
+        ctx.fill(outerRoll, with: .color(shadC))
+        ctx.stroke(outerRoll, with: .color(outlineC), lineWidth: u*0.016)
+
+        // Inner (upper) roll — slightly narrower, sits on top
+        var innerRoll = Path(roundedRect: CGRect(x: cx - u*0.086, y: top - u*0.048,
+                                                  width: u*0.172, height: u*0.042),
+                             cornerRadius: u*0.018)
+        ctx.fill(innerRoll, with: .color(baseC))
+        ctx.stroke(innerRoll, with: .color(outlineC), lineWidth: u*0.014)
+
+        // Rib lines on collar
+        for i: CGFloat in stride(from: -0.062, through: 0.062, by: 0.028) {
+            var cr = Path()
+            cr.move(to:    CGPoint(x: cx + i*u, y: top - u*0.048))
+            cr.addLine(to: CGPoint(x: cx + i*u, y: top + u*0.032))
+            ctx.stroke(cr, with: .color(ribC.opacity(0.55)), lineWidth: u*0.007)
+        }
+    }
+
+    func drawWindbreaker(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let mainC    = Color(red: 0.94, green: 0.30, blue: 0.10)   // bright orange
+        let accentC  = Color(red: 0.10, green: 0.14, blue: 0.82)   // electric blue panels
+        let whiteC   = Color(red: 0.96, green: 0.97, blue: 1.00)
+        let outlineC = Color(red: 0.36, green: 0.10, blue: 0.04)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(mainC))
+
+        // Blue colour-block side panels
+        for side: CGFloat in [-1, 1] {
+            var panel = Path()
+            let px = cx + side * u * 0.080
+            panel.move(to: CGPoint(x: side > 0 ? px : cx - u*0.190, y: top + u*0.010))
+            panel.addLine(to: CGPoint(x: side > 0 ? cx + u*0.190 : px, y: top + u*0.010))
+            panel.addLine(to: CGPoint(x: side > 0 ? cx + u*0.190 : px, y: bot))
+            panel.addLine(to: CGPoint(x: side > 0 ? px : cx - u*0.190, y: bot))
+            panel.closeSubpath()
+            ctx.fill(panel, with: .color(accentC))
+        }
+
+        // White chest stripe across middle
+        var stripe = Path(CGRect(x: cx - u*0.190, y: bodyY - u*0.022, width: u*0.380, height: u*0.038))
+        ctx.fill(stripe, with: .color(whiteC.opacity(0.90)))
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Center zip
+        var zip = Path()
+        zip.move(to: CGPoint(x: cx, y: top + u*0.010))
+        zip.addLine(to: CGPoint(x: cx, y: bot))
+        ctx.stroke(zip, with: .color(outlineC.opacity(0.60)), lineWidth: u*0.014)
+
+        // Standing collar
+        var col = Path(roundedRect: CGRect(x: cx - u*0.076, y: top - u*0.014,
+                                           width: u*0.152, height: u*0.036),
+                       cornerRadius: u*0.010)
+        ctx.fill(col, with: .color(mainC))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawPolo(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                  baseC:    Color = Color(red:0.10,green:0.56,blue:0.28),
+                  shadC:    Color = Color(red:0.06,green:0.38,blue:0.18),
+                  whiteC:   Color = Color(red:0.97,green:0.98,blue:0.97),
+                  outlineC: Color = Color(red:0.04,green:0.22,blue:0.10)) {
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(baseC))
+
+        // Subtle chest stripe
+        var chestStripe = Path(CGRect(x: cx - u*0.190, y: bodyY - u*0.060, width: u*0.380, height: u*0.028))
+        ctx.fill(chestStripe, with: .color(shadC.opacity(0.30)))
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u * 0.022)
+
+        // Polo collar — folded points
+        var colLeft = Path()
+        colLeft.move(to: CGPoint(x: cx - u*0.016, y: top + u*0.005))
+        colLeft.addLine(to: CGPoint(x: cx - u*0.092, y: top - u*0.004))
+        colLeft.addLine(to: CGPoint(x: cx - u*0.078, y: top + u*0.048))
+        colLeft.addLine(to: CGPoint(x: cx - u*0.016, y: top + u*0.050))
+        colLeft.closeSubpath()
+        ctx.fill(colLeft, with: .color(whiteC))
+        ctx.stroke(colLeft, with: .color(outlineC), lineWidth: u*0.014)
+
+        var colRight = Path()
+        colRight.move(to: CGPoint(x: cx + u*0.016, y: top + u*0.005))
+        colRight.addLine(to: CGPoint(x: cx + u*0.092, y: top - u*0.004))
+        colRight.addLine(to: CGPoint(x: cx + u*0.078, y: top + u*0.048))
+        colRight.addLine(to: CGPoint(x: cx + u*0.016, y: top + u*0.050))
+        colRight.closeSubpath()
+        ctx.fill(colRight, with: .color(whiteC))
+        ctx.stroke(colRight, with: .color(outlineC), lineWidth: u*0.014)
+
+        // Button placket between collar points
+        for i: CGFloat in [0, 1] {
+            var btn = Path(ellipseIn: CGRect(x: cx - u*0.010, y: top + u*0.056 + i*u*0.034,
+                                             width: u*0.020, height: u*0.020))
+            ctx.fill(btn, with: .color(whiteC))
+            ctx.stroke(btn, with: .color(outlineC), lineWidth: u*0.008)
+        }
+    }
+
+    func drawVarsityJacket(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let bodyC    = Color(red: 0.14, green: 0.20, blue: 0.58)   // navy body
+        let sleeveC  = Color(red: 0.92, green: 0.92, blue: 0.92)   // cream/white sleeves
+        let trimC    = Color(red: 0.90, green: 0.72, blue: 0.10)   // gold trim
+        let outlineC = Color(red: 0.06, green: 0.10, blue: 0.30)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        // White sleeve sections (draw first, behind body)
+        let sleeveY = bodyY - u * 0.06
+        for side: CGFloat in [-1, 1] {
+            var slv = Path()
+            slv.move(to: CGPoint(x: cx + side*u*0.190, y: top + u*0.010))
+            slv.addLine(to: CGPoint(x: cx + side*u*0.260, y: sleeveY))
+            slv.addLine(to: CGPoint(x: cx + side*u*0.190, y: sleeveY + u*0.040))
+            slv.closeSubpath()
+            ctx.fill(slv, with: .color(sleeveC))
+            ctx.stroke(slv, with: .color(outlineC), lineWidth: u*0.014)
+        }
+
+        // Main jacket body
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(bodyC))
+
+        // Gold chest stripe
+        var stripe = Path(CGRect(x: cx - u*0.190, y: bodyY - u*0.058, width: u*0.380, height: u*0.024))
+        ctx.fill(stripe, with: .color(trimC))
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u*0.022)
+
+        // Snap collar
+        var col = Path(roundedRect: CGRect(x: cx - u*0.076, y: top - u*0.010,
+                                           width: u*0.152, height: u*0.034),
+                       cornerRadius: u*0.010)
+        ctx.fill(col, with: .color(bodyC))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u*0.016)
+
+        // "A" letter on left chest
+        let lx = cx - u*0.058; let ly = bodyY - u*0.088
+        var letter = Path()
+        letter.move(to: CGPoint(x: lx, y: ly + u*0.052))
+        letter.addLine(to: CGPoint(x: lx + u*0.022, y: ly))
+        letter.addLine(to: CGPoint(x: lx + u*0.044, y: ly + u*0.052))
+        letter.move(to: CGPoint(x: lx + u*0.008, y: ly + u*0.028))
+        letter.addLine(to: CGPoint(x: lx + u*0.036, y: ly + u*0.028))
+        ctx.stroke(letter, with: .color(trimC), lineWidth: u*0.014)
+
+        // Gold trim on hem
+        var hem = Path(CGRect(x: cx - u*0.190, y: bot - u*0.022, width: u*0.380, height: u*0.022))
+        ctx.fill(hem, with: .color(trimC.opacity(0.70)))
+    }
+
+    func drawTrenchCoat(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let coatC    = Color(red: 0.72, green: 0.58, blue: 0.36)   // classic khaki tan
+        let shadC    = Color(red: 0.54, green: 0.42, blue: 0.24)
+        let beltC    = Color(red: 0.40, green: 0.30, blue: 0.16)
+        let outlineC = Color(red: 0.26, green: 0.18, blue: 0.08)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let coat = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(coat, with: .color(coatC))
+
+        // Left lapel
+        var lapL = Path()
+        lapL.move(to: CGPoint(x: cx - u*0.014, y: top + u*0.008))
+        lapL.addLine(to: CGPoint(x: cx - u*0.190, y: top + u*0.008))
+        lapL.addLine(to: CGPoint(x: cx - u*0.100, y: bodyY - u*0.025))
+        lapL.addLine(to: CGPoint(x: cx - u*0.014, y: bodyY))
+        lapL.closeSubpath()
+        ctx.fill(lapL, with: .color(shadC.opacity(0.55)))
+
+        // Right lapel
+        var lapR = Path()
+        lapR.move(to: CGPoint(x: cx + u*0.014, y: top + u*0.008))
+        lapR.addLine(to: CGPoint(x: cx + u*0.190, y: top + u*0.008))
+        lapR.addLine(to: CGPoint(x: cx + u*0.100, y: bodyY - u*0.025))
+        lapR.addLine(to: CGPoint(x: cx + u*0.014, y: bodyY))
+        lapR.closeSubpath()
+        ctx.fill(lapR, with: .color(shadC.opacity(0.40)))
+
+        ctx.stroke(coat, with: .color(outlineC), lineWidth: u*0.022)
+        ctx.stroke(lapL, with: .color(outlineC), lineWidth: u*0.014)
+        ctx.stroke(lapR, with: .color(outlineC), lineWidth: u*0.014)
+
+        // Belt across waist
+        var belt = Path(roundedRect: CGRect(x: cx - u*0.190, y: bodyY - u*0.016,
+                                            width: u*0.380, height: u*0.030),
+                        cornerRadius: u*0.006)
+        ctx.fill(belt, with: .color(beltC))
+        ctx.stroke(belt, with: .color(outlineC), lineWidth: u*0.012)
+
+        // Belt buckle
+        var buckle = Path(roundedRect: CGRect(x: cx - u*0.018, y: bodyY - u*0.014,
+                                              width: u*0.036, height: u*0.026),
+                          cornerRadius: u*0.005)
+        ctx.fill(buckle, with: .color(Color(red: 0.80, green: 0.65, blue: 0.20)))
+        ctx.stroke(buckle, with: .color(outlineC), lineWidth: u*0.010)
+
+        // Epaulette tabs on shoulders
+        for side: CGFloat in [-1, 1] {
+            var ep = Path(roundedRect: CGRect(x: cx + side*u*0.100, y: top + u*0.004,
+                                              width: u*0.072, height: u*0.022),
+                          cornerRadius: u*0.006)
+            ctx.fill(ep, with: .color(shadC))
+            ctx.stroke(ep, with: .color(outlineC), lineWidth: u*0.010)
+        }
+    }
+
+    func drawHawaiianShirt(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let baseC    = Color(red: 0.96, green: 0.82, blue: 0.28)   // sunny yellow
+        let outlineC = Color(red: 0.50, green: 0.28, blue: 0.04)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let shirt = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(shirt, with: .color(baseC))
+
+        // Tropical flower blobs scattered across shirt
+        let flowers: [(CGFloat, CGFloat, Color)] = [
+            (-0.08, -0.06, Color(red:0.92,green:0.22,blue:0.32)),
+            ( 0.06,  0.00, Color(red:0.20,green:0.72,blue:0.36)),
+            (-0.05,  0.06, Color(red:0.22,green:0.52,blue:0.92)),
+            ( 0.08, -0.09, Color(red:0.92,green:0.50,blue:0.12)),
+            (-0.10,  0.04, Color(red:0.86,green:0.20,blue:0.70)),
+            ( 0.04,  0.08, Color(red:0.92,green:0.22,blue:0.32)),
+        ]
+        for (fx, fy, col) in flowers {
+            let px = cx + fx*u; let py = bodyY + fy*u; let r = u*0.026
+            // 5 petals
+            for petal in 0..<5 {
+                let angle = CGFloat(petal) * .pi * 2 / 5
+                let px2 = px + cos(angle)*r*1.6; let py2 = py + sin(angle)*r*1.6
+                var p = Path(ellipseIn: CGRect(x: px2-r*0.8, y: py2-r*0.5, width: r*1.6, height: r))
+                ctx.fill(p, with: .color(col))
+            }
+            // centre
+            var ctr = Path(ellipseIn: CGRect(x: px-r*0.5, y: py-r*0.5, width: r, height: r))
+            ctx.fill(ctr, with: .color(Color(red:1,green:0.95,blue:0.60)))
+        }
+
+        ctx.stroke(shirt, with: .color(outlineC), lineWidth: u*0.022)
+
+        // Open collar V
+        var col = Path()
+        col.move(to: CGPoint(x: cx - u*0.070, y: top + u*0.005))
+        col.addLine(to: CGPoint(x: cx, y: top + u*0.055))
+        col.addLine(to: CGPoint(x: cx + u*0.070, y: top + u*0.005))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u*0.016)
+
+        // Two buttons below collar
+        for i: CGFloat in [0, 1] {
+            var btn = Path(ellipseIn: CGRect(x: cx - u*0.010, y: top + u*0.065 + i*u*0.038,
+                                             width: u*0.020, height: u*0.020))
+            ctx.fill(btn, with: .color(Color.white.opacity(0.80)))
+            ctx.stroke(btn, with: .color(outlineC), lineWidth: u*0.008)
+        }
+    }
+
+    func drawSweaterVest(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let vestC    = Color(red: 0.18, green: 0.42, blue: 0.22)   // deep forest green
+        let argyle1  = Color(red: 0.90, green: 0.82, blue: 0.18)   // gold diamond
+        let argyle2  = Color(red: 0.92, green: 0.92, blue: 0.94)   // cream line
+        let outlineC = Color(red: 0.08, green: 0.20, blue: 0.10)
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+        let hw       = u * 0.185  // vest — slightly narrower than full shirt for vest look
+
+        // Vest body (narrower — no sleeves shown)
+        var vest = Path()
+        vest.move(to: CGPoint(x: cx - u*0.060, y: top + u*0.005))
+        vest.addLine(to: CGPoint(x: cx - hw, y: top + u*0.018))
+        vest.addLine(to: CGPoint(x: cx - hw, y: bot))
+        vest.addLine(to: CGPoint(x: cx + hw, y: bot))
+        vest.addLine(to: CGPoint(x: cx + hw, y: top + u*0.018))
+        vest.addLine(to: CGPoint(x: cx + u*0.060, y: top + u*0.005))
+        vest.addQuadCurve(to: CGPoint(x: cx - u*0.060, y: top + u*0.005),
+                          control: CGPoint(x: cx, y: top + u*0.040))
+        vest.closeSubpath()
+        ctx.fill(vest, with: .color(vestC))
+
+        // Argyle diamonds
+        let diamonds: [(CGFloat, CGFloat)] = [
+            (0, -0.052), (-0.072, 0.010), (0.072, 0.010), (0, 0.068)
+        ]
+        for (dx, dy) in diamonds {
+            let px = cx + dx*u; let py = bodyY + dy*u
+            var d = Path()
+            d.move(to: CGPoint(x: px,          y: py - u*0.038))
+            d.addLine(to: CGPoint(x: px + u*0.032, y: py))
+            d.addLine(to: CGPoint(x: px,          y: py + u*0.038))
+            d.addLine(to: CGPoint(x: px - u*0.032, y: py))
+            d.closeSubpath()
+            ctx.fill(d, with: .color(argyle1))
+            ctx.stroke(d, with: .color(argyle2.opacity(0.60)), lineWidth: u*0.008)
+        }
+
+        // Diagonal argyle lines
+        for i: CGFloat in [-2, -1, 0, 1, 2] {
+            var line = Path()
+            line.move(to: CGPoint(x: cx + i*u*0.072 - u*0.10, y: top + u*0.020))
+            line.addLine(to: CGPoint(x: cx + i*u*0.072 + u*0.10, y: bot))
+            ctx.stroke(line, with: .color(argyle2.opacity(0.25)), lineWidth: u*0.008)
+        }
+
+        ctx.stroke(vest, with: .color(outlineC), lineWidth: u*0.022)
+
+        // V-neck ribbed edge
+        var vLeft = Path()
+        vLeft.move(to: CGPoint(x: cx - u*0.060, y: top + u*0.005))
+        vLeft.addLine(to: CGPoint(x: cx, y: top + u*0.055))
+        ctx.stroke(vLeft, with: .color(argyle1), lineWidth: u*0.018)
+
+        var vRight = Path()
+        vRight.move(to: CGPoint(x: cx + u*0.060, y: top + u*0.005))
+        vRight.addLine(to: CGPoint(x: cx, y: top + u*0.055))
+        ctx.stroke(vRight, with: .color(argyle1), lineWidth: u*0.018)
+
+        // Hem rib band
+        var hem = Path(roundedRect: CGRect(x: cx - hw, y: bot - u*0.026,
+                                           width: hw*2, height: u*0.026),
+                       cornerRadius: u*0.006)
+        ctx.fill(hem, with: .color(argyle1.opacity(0.60)))
+    }
+
+    func drawBomberJacket(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                          oliveC:   Color = Color(red:0.36,green:0.42,blue:0.20),
+                          shadC:    Color = Color(red:0.24,green:0.28,blue:0.12),
+                          ribC:     Color = Color(red:0.18,green:0.22,blue:0.08),
+                          outlineC: Color = Color(red:0.12,green:0.16,blue:0.06)) {
+        let top      = bodyY - u * 0.12
+        let bot      = bodyY + u * 0.13
+
+        let jacket = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(jacket, with: .color(oliveC))
+
+        // Zip line
+        var zip = Path()
+        zip.move(to: CGPoint(x: cx, y: top + u*0.010))
+        zip.addLine(to: CGPoint(x: cx, y: bot - u*0.028))
+        ctx.stroke(zip, with: .color(shadC), lineWidth: u*0.014)
+
+        // Chest star patch (left side)
+        let sx = cx - u*0.080; let sy = bodyY - u*0.068; let sr = u*0.026
+        var star = Path()
+        for i in 0..<5 {
+            let a = CGFloat(i) * .pi * 2 / 5 - .pi/2
+            let a2 = a + .pi / 5
+            let op = CGPoint(x: sx + cos(a)*sr, y: sy + sin(a)*sr)
+            let ip = CGPoint(x: sx + cos(a2)*sr*0.40, y: sy + sin(a2)*sr*0.40)
+            if i == 0 { star.move(to: op) } else { star.addLine(to: op) }
+            star.addLine(to: ip)
+        }
+        star.closeSubpath()
+        ctx.fill(star, with: .color(Color(red:0.92,green:0.78,blue:0.20)))
+        ctx.stroke(star, with: .color(outlineC), lineWidth: u*0.008)
+
+        ctx.stroke(jacket, with: .color(outlineC), lineWidth: u*0.022)
+
+        // Ribbed collar band
+        var col = Path(roundedRect: CGRect(x: cx - u*0.082, y: top - u*0.008,
+                                           width: u*0.164, height: u*0.030),
+                       cornerRadius: u*0.010)
+        ctx.fill(col, with: .color(ribC))
+        ctx.stroke(col, with: .color(outlineC), lineWidth: u*0.014)
+
+        // Rib lines on collar
+        for i: CGFloat in [-0.040, 0, 0.040] {
+            var r = Path()
+            r.move(to:    CGPoint(x: cx + i*u, y: top - u*0.008))
+            r.addLine(to: CGPoint(x: cx + i*u, y: top + u*0.022))
+            ctx.stroke(r, with: .color(shadC.opacity(0.60)), lineWidth: u*0.007)
+        }
+
+        // Ribbed hem band
+        var hem = Path(roundedRect: CGRect(x: cx - u*0.190, y: bot - u*0.030,
+                                           width: u*0.380, height: u*0.030),
+                       cornerRadius: u*0.008)
+        ctx.fill(hem, with: .color(ribC))
+        ctx.stroke(hem, with: .color(outlineC), lineWidth: u*0.012)
+    }
+
+    // MARK: - Girl outfits
+
+    func drawSundress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top   = bodyY - u * 0.13
+        let bot   = bodyY + u * 0.18   // dress hem lower than shirt
+        let hw    = u * 0.20
+        let skirtHW = u * 0.26
+        let neckHW  = u * 0.07
+
+        // Bodice (fitted top)
+        var bodice = Path()
+        bodice.move(to: CGPoint(x: cx - neckHW, y: top))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: bodyY - u*0.02))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: bodyY - u*0.02))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        bodice.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.034))
+        bodice.closeSubpath()
+        let flowerPink = Color(red:0.98,green:0.52,blue:0.72)
+        let petal      = Color(red:0.96,green:0.34,blue:0.60)
+        let outline    = Color(red:0.60,green:0.12,blue:0.28)
+        ctx.fill(bodice, with: .color(flowerPink))
+
+        // Flared skirt
+        var skirt = Path()
+        skirt.move(to: CGPoint(x: cx - hw, y: bodyY - u*0.02))
+        skirt.addLine(to: CGPoint(x: cx - skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + hw, y: bodyY - u*0.02))
+        skirt.closeSubpath()
+        ctx.fill(skirt, with: .color(Color(red:0.99,green:0.76,blue:0.86)))
+
+        // Waist band
+        ctx.fill(Path(CGRect(x: cx - hw, y: bodyY - u*0.03, width: hw*2, height: u*0.030)), with: .color(petal))
+
+        // Tiny flowers on bodice
+        for (fx, fy): (CGFloat, CGFloat) in [(-0.06, -0.04), (0.06, -0.04), (0, -0.08)] {
+            let r = u*0.018
+            ctx.fill(Path(ellipseIn: CGRect(x: cx + fx*u - r, y: bodyY + fy*u - r, width: r*2, height: r*2)), with: .color(.white))
+            ctx.fill(Path(ellipseIn: CGRect(x: cx + fx*u - r*0.4, y: bodyY + fy*u - r*0.4, width: r*0.8, height: r*0.8)), with: .color(petal))
+        }
+
+        // Straps
+        for side: CGFloat in [-1, 1] {
+            var strap = Path()
+            strap.move(to: CGPoint(x: cx + side*neckHW*0.6, y: top))
+            strap.addLine(to: CGPoint(x: cx + side*hw*0.7, y: top + u*0.04))
+            ctx.stroke(strap, with: .color(petal), lineWidth: u*0.018)
+        }
+
+        ctx.stroke(bodice, with: .color(outline), lineWidth: u*0.016)
+        ctx.stroke(skirt, with: .color(outline), lineWidth: u*0.016)
+    }
+
+    func drawPartyDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.18
+        let hw     = u * 0.20
+        let skirtHW = u * 0.28
+        let neckHW  = u * 0.06
+        let sparklePurple = Color(red:0.54,green:0.18,blue:0.80)
+        let shimmer       = Color(red:0.68,green:0.36,blue:0.92)
+        let outlineC      = Color(red:0.28,green:0.06,blue:0.44)
+
+        // Off-shoulder bodice
+        var bodice = Path()
+        bodice.move(to: CGPoint(x: cx - hw - u*0.04, y: top + u*0.02))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: top + u*0.06))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: top + u*0.06))
+        bodice.addLine(to: CGPoint(x: cx + hw + u*0.04, y: top + u*0.02))
+        bodice.addQuadCurve(to: CGPoint(x: cx - hw - u*0.04, y: top + u*0.02),
+                              control: CGPoint(x: cx, y: top + u*0.06))
+        bodice.closeSubpath()
+        ctx.fill(bodice, with: .color(sparklePurple))
+
+        // Flared skirt
+        var skirt = Path()
+        skirt.move(to: CGPoint(x: cx - hw, y: bodyY))
+        skirt.addQuadCurve(to: CGPoint(x: cx + hw, y: bodyY),
+                            control: CGPoint(x: cx, y: bodyY + u*0.04))
+        skirt.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        skirt.addQuadCurve(to: CGPoint(x: cx - skirtHW, y: bot),
+                            control: CGPoint(x: cx, y: bot + u*0.03))
+        skirt.closeSubpath()
+        ctx.fill(skirt, with: .color(shimmer))
+
+        // Sparkle dots
+        for (sx, sy): (CGFloat, CGFloat) in [(-0.10,-0.06),(0.08,-0.02),(0,-0.10),(0.12,-0.09),(-0.05,0.04),(0.06,0.08)] {
+            let r = u*0.012
+            ctx.fill(Path(ellipseIn: CGRect(x: cx+sx*u-r, y: bodyY+sy*u-r, width: r*2, height: r*2)), with: .color(.white))
+        }
+
+        // Ruffle trim at hem
+        for i in 0..<7 {
+            let rx = cx - skirtHW + CGFloat(i) * (skirtHW*2/6)
+            var ruffle = Path()
+            ruffle.addArc(center: CGPoint(x: rx, y: bot), radius: u*0.022,
+                          startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+            ctx.fill(ruffle, with: .color(sparklePurple))
+        }
+
+        ctx.stroke(bodice, with: .color(outlineC), lineWidth: u*0.016)
+        ctx.stroke(skirt, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawBalletDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.16
+        let hw     = u * 0.18
+        let tutuHW = u * 0.30
+        let neckHW = u * 0.07
+        let pink   = Color(red:0.98,green:0.72,blue:0.82)
+        let deepPink = Color(red:0.92,green:0.44,blue:0.62)
+        let outlineC = Color(red:0.56,green:0.14,blue:0.30)
+
+        // Leotard bodice
+        var leo = Path()
+        leo.move(to: CGPoint(x: cx - neckHW, y: top))
+        leo.addLine(to: CGPoint(x: cx - hw, y: top + u*0.04))
+        leo.addLine(to: CGPoint(x: cx - hw, y: bodyY + u*0.01))
+        leo.addLine(to: CGPoint(x: cx + hw, y: bodyY + u*0.01))
+        leo.addLine(to: CGPoint(x: cx + hw, y: top + u*0.04))
+        leo.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        leo.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.032))
+        leo.closeSubpath()
+        ctx.fill(leo, with: .color(deepPink))
+
+        // Tutu layers (3 layers)
+        for layer: CGFloat in [0, 1, 2] {
+            let layerBot = bodyY + u*(0.02 + layer*0.04)
+            let layerHW  = tutuHW * (0.7 + layer*0.15)
+            var tutu = Path()
+            tutu.move(to: CGPoint(x: cx - hw, y: bodyY + u*0.01))
+            tutu.addLine(to: CGPoint(x: cx - layerHW, y: layerBot))
+            tutu.addLine(to: CGPoint(x: cx + layerHW, y: layerBot))
+            tutu.addLine(to: CGPoint(x: cx + hw, y: bodyY + u*0.01))
+            tutu.closeSubpath()
+            let alpha = 0.90 - layer*0.15
+            ctx.fill(tutu, with: .color(pink.opacity(alpha)))
+            ctx.stroke(tutu, with: .color(outlineC.opacity(0.6)), lineWidth: u*0.010)
+        }
+
+        // Thin straps
+        for side: CGFloat in [-1, 1] {
+            var s = Path()
+            s.move(to: CGPoint(x: cx + side*neckHW*0.8, y: top))
+            s.addLine(to: CGPoint(x: cx + side*hw*0.7, y: top + u*0.05))
+            ctx.stroke(s, with: .color(deepPink), lineWidth: u*0.016)
+        }
+
+        // Bow at waist
+        let bx = cx; let by = bodyY + u*0.015
+        for side: CGFloat in [-1, 1] {
+            var bow = Path()
+            bow.move(to: CGPoint(x: bx, y: by))
+            bow.addQuadCurve(to: CGPoint(x: bx + side*u*0.06, y: by - u*0.022),
+                              control: CGPoint(x: bx + side*u*0.04, y: by - u*0.036))
+            bow.addQuadCurve(to: CGPoint(x: bx, y: by),
+                              control: CGPoint(x: bx + side*u*0.04, y: by + u*0.008))
+            ctx.fill(bow, with: .color(deepPink))
+            ctx.stroke(bow, with: .color(outlineC), lineWidth: u*0.010)
+        }
+
+        ctx.stroke(leo, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawCuteOveralls(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.12
+        let bot    = bodyY + u * 0.16
+        let hw     = u * 0.19
+        let denimB = Color(red:0.40,green:0.62,blue:0.84)
+        let denimD = Color(red:0.26,green:0.44,blue:0.68)
+        let pinkT  = Color(red:0.98,green:0.60,blue:0.72)
+        let outlineC = Color(red:0.14,green:0.28,blue:0.52)
+
+        // Pink shirt underneath (sleeves)
+        for side: CGFloat in [-1, 1] {
+            var sleeve = Path()
+            sleeve.move(to: CGPoint(x: cx + side*hw*0.8, y: top + u*0.01))
+            sleeve.addLine(to: CGPoint(x: cx + side*(hw + u*0.07), y: bodyY - u*0.05))
+            sleeve.addLine(to: CGPoint(x: cx + side*hw, y: bodyY - u*0.02))
+            sleeve.closeSubpath()
+            ctx.fill(sleeve, with: .color(pinkT))
+            ctx.stroke(sleeve, with: .color(outlineC), lineWidth: u*0.012)
+        }
+
+        // Denim bib / body
+        let bib = Path(roundedRect: CGRect(x: cx - u*0.10, y: top, width: u*0.20, height: u*0.14), cornerRadius: u*0.020)
+        ctx.fill(bib, with: .color(denimB))
+
+        // Main overalls body
+        var body = Path()
+        body.move(to: CGPoint(x: cx - hw, y: top + u*0.04))
+        body.addLine(to: CGPoint(x: cx - hw, y: bot))
+        body.addLine(to: CGPoint(x: cx + hw, y: bot))
+        body.addLine(to: CGPoint(x: cx + hw, y: top + u*0.04))
+        body.addLine(to: CGPoint(x: cx + u*0.10, y: top))
+        body.addLine(to: CGPoint(x: cx - u*0.10, y: top))
+        body.closeSubpath()
+        ctx.fill(body, with: .color(denimD))
+        ctx.fill(bib, with: .color(denimB))
+
+        // Straps
+        for side: CGFloat in [-1, 1] {
+            var strap = Path(roundedRect: CGRect(x: cx + side*u*0.04, y: top - u*0.01,
+                                                 width: u*0.028, height: u*0.05), cornerRadius: u*0.008)
+            ctx.fill(strap, with: .color(denimB))
+        }
+
+        // Pocket on bib
+        let pkt = Path(roundedRect: CGRect(x: cx - u*0.04, y: top + u*0.04, width: u*0.08, height: u*0.060), cornerRadius: u*0.010)
+        ctx.stroke(pkt, with: .color(outlineC), lineWidth: u*0.010)
+
+        // Button
+        ctx.fill(Path(ellipseIn: CGRect(x: cx - u*0.012, y: top + u*0.003, width: u*0.024, height: u*0.024)), with: .color(.white))
+
+        ctx.stroke(body, with: .color(outlineC), lineWidth: u*0.016)
+        ctx.stroke(bib, with: .color(outlineC), lineWidth: u*0.014)
+    }
+
+    func drawCropHoodie(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        // Crop hoodie — shorter than regular hoodie, more fitted
+        let top     = bodyY - u * 0.12
+        let bot     = bodyY + u * 0.08   // cropped
+        let hw      = u * 0.19
+        let neckHW  = u * 0.085
+        let slvX    = u * 0.26
+        let slvY    = bodyY - u * 0.06
+        let roseC   = Color(red:0.96,green:0.42,blue:0.64)
+        let shadC   = Color(red:0.80,green:0.26,blue:0.48)
+        let pocketC = Color(red:0.88,green:0.36,blue:0.56)
+        let outlineC = Color(red:0.48,green:0.10,blue:0.24)
+
+        // Body
+        var body = Path()
+        body.move(to: CGPoint(x: cx - neckHW, y: top))
+        body.addLine(to: CGPoint(x: cx - hw, y: top))
+        body.addLine(to: CGPoint(x: cx - slvX, y: slvY))
+        body.addLine(to: CGPoint(x: cx - hw, y: slvY + u*0.04))
+        body.addLine(to: CGPoint(x: cx - hw, y: bot))
+        body.addLine(to: CGPoint(x: cx + hw, y: bot))
+        body.addLine(to: CGPoint(x: cx + hw, y: slvY + u*0.04))
+        body.addLine(to: CGPoint(x: cx + slvX, y: slvY))
+        body.addLine(to: CGPoint(x: cx + hw, y: top))
+        body.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        body.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.038))
+        body.closeSubpath()
+        ctx.fill(body, with: .color(roseC))
+
+        // Hood arc
+        var hood = Path()
+        hood.addArc(center: CGPoint(x: cx, y: top + u*0.01),
+                    radius: u*0.095, startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
+        ctx.stroke(hood, with: .color(shadC), lineWidth: u*0.022)
+
+        // Zip
+        var zip = Path()
+        zip.move(to: CGPoint(x: cx, y: top + u*0.01))
+        zip.addLine(to: CGPoint(x: cx, y: bot - u*0.014))
+        ctx.stroke(zip, with: .color(shadC), lineWidth: u*0.012)
+
+        // Small kangaroo pocket
+        let pkt = Path(roundedRect: CGRect(x: cx - u*0.08, y: bodyY - u*0.04,
+                                           width: u*0.16, height: u*0.06), cornerRadius: u*0.014)
+        ctx.fill(pkt, with: .color(pocketC))
+
+        // Drawstring ties (cute bows)
+        for side: CGFloat in [-1, 1] {
+            var tie = Path()
+            tie.move(to: CGPoint(x: cx + side*u*0.04, y: top + u*0.06))
+            tie.addLine(to: CGPoint(x: cx + side*u*0.08, y: top + u*0.10))
+            ctx.stroke(tie, with: .color(shadC), lineWidth: u*0.010)
+        }
+
+        // Hem rib
+        let hem = Path(roundedRect: CGRect(x: cx - hw, y: bot - u*0.018, width: hw*2, height: u*0.018), cornerRadius: u*0.006)
+        ctx.fill(hem, with: .color(shadC))
+
+        ctx.stroke(body, with: .color(outlineC), lineWidth: u*0.020)
+    }
+
+    func drawCardigan(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top = bodyY - u * 0.12
+        let bot = bodyY + u * 0.13
+        let hw  = u * 0.19
+        let slvX = u * 0.26
+        let slvY = bodyY - u * 0.06
+        let creamC   = Color(red:0.98,green:0.96,blue:0.90)
+        let warmC    = Color(red:0.92,green:0.86,blue:0.72)
+        let buttonC  = Color(red:0.60,green:0.36,blue:0.20)
+        let outlineC = Color(red:0.42,green:0.28,blue:0.16)
+
+        let sil = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(sil, with: .color(creamC))
+
+        // Knit rib lines across body
+        for i in stride(from: -0.16, through: 0.16, by: 0.046) {
+            var r = Path()
+            r.move(to:    CGPoint(x: cx + CGFloat(i)*u, y: top + u*0.01))
+            r.addLine(to: CGPoint(x: cx + CGFloat(i)*u, y: bot - u*0.01))
+            ctx.stroke(r, with: .color(warmC.opacity(0.70)), lineWidth: u*0.008)
+        }
+
+        // Open front (V-shape)
+        var vfront = Path()
+        vfront.move(to: CGPoint(x: cx, y: top + u*0.06))
+        vfront.addLine(to: CGPoint(x: cx - u*0.04, y: top))
+        ctx.stroke(vfront, with: .color(warmC), lineWidth: u*0.018)
+        var vfront2 = Path()
+        vfront2.move(to: CGPoint(x: cx, y: top + u*0.06))
+        vfront2.addLine(to: CGPoint(x: cx + u*0.04, y: top))
+        ctx.stroke(vfront2, with: .color(warmC), lineWidth: u*0.018)
+
+        // Buttons
+        for by2: CGFloat in [-0.06, -0.02, 0.02, 0.06] {
+            ctx.fill(Path(ellipseIn: CGRect(x: cx - u*0.014, y: bodyY + by2*u - u*0.014,
+                                            width: u*0.028, height: u*0.028)), with: .color(buttonC))
+        }
+
+        // Ribbed cuffs
+        for side: CGFloat in [-1, 1] {
+            let cuffX = cx + side*(slvX - u*0.02)
+            let cuff = Path(roundedRect: CGRect(x: cuffX - u*0.024, y: slvY - u*0.004,
+                                                width: u*0.050, height: u*0.034), cornerRadius: u*0.008)
+            ctx.fill(cuff, with: .color(warmC))
+        }
+
+        // Hem rib
+        let hem = Path(roundedRect: CGRect(x: cx - hw, y: bot - u*0.024, width: hw*2, height: u*0.024), cornerRadius: u*0.008)
+        ctx.fill(hem, with: .color(warmC))
+
+        ctx.stroke(sil, with: .color(outlineC), lineWidth: u*0.020)
+    }
+
+    func drawSparkleDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.20
+        let hw     = u * 0.20
+        let skirtHW = u * 0.26
+        let neckHW  = u * 0.06
+        let goldC   = Color(red:0.94,green:0.78,blue:0.22)
+        let shimC   = Color(red:0.98,green:0.90,blue:0.50)
+        let darkGold = Color(red:0.66,green:0.50,blue:0.08)
+        let outlineC = Color(red:0.42,green:0.28,blue:0.04)
+
+        // Strapless bodice
+        var bodice = Path()
+        bodice.move(to: CGPoint(x: cx - hw - u*0.02, y: top + u*0.02))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw + u*0.02, y: top + u*0.02))
+        bodice.addQuadCurve(to: CGPoint(x: cx - hw - u*0.02, y: top + u*0.02),
+                             control: CGPoint(x: cx, y: top + u*0.04))
+        bodice.closeSubpath()
+        ctx.fill(bodice, with: .color(goldC))
+
+        // Shimmer sheen on bodice
+        var sheen = Path()
+        sheen.move(to: CGPoint(x: cx - u*0.06, y: top + u*0.02))
+        sheen.addLine(to: CGPoint(x: cx - u*0.02, y: bodyY - u*0.01))
+        sheen.addLine(to: CGPoint(x: cx + u*0.02, y: bodyY - u*0.01))
+        sheen.addLine(to: CGPoint(x: cx + u*0.06, y: top + u*0.02))
+        sheen.closeSubpath()
+        ctx.fill(sheen, with: .color(shimC.opacity(0.55)))
+
+        // Flared glitter skirt
+        var skirt = Path()
+        skirt.move(to: CGPoint(x: cx - hw, y: bodyY))
+        skirt.addLine(to: CGPoint(x: cx - skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        skirt.closeSubpath()
+        ctx.fill(skirt, with: .color(goldC))
+
+        // Sparkle star dots
+        for (sx, sy): (CGFloat, CGFloat) in [(-0.14,0.04),(0.10,0.02),(-0.06,0.10),(0.14,0.10),(0,0.06),(0.08,0.14),(-0.10,0.12)] {
+            let r = u*0.016
+            ctx.fill(Path(ellipseIn: CGRect(x: cx+sx*u-r, y: bodyY+sy*u-r, width: r*2, height: r*2)), with: .color(shimC))
+            ctx.fill(Path(ellipseIn: CGRect(x: cx+sx*u-r*0.4, y: bodyY+sy*u-r*0.4, width: r*0.8, height: r*0.8)), with: .color(.white))
+        }
+
+        // Ruffle hem
+        for i in 0..<9 {
+            let rx = cx - skirtHW + CGFloat(i) * (skirtHW*2/8)
+            var r = Path()
+            r.addArc(center: CGPoint(x: rx, y: bot - u*0.010), radius: u*0.022,
+                     startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+            ctx.fill(r, with: .color(darkGold))
+        }
+
+        ctx.stroke(bodice, with: .color(outlineC), lineWidth: u*0.018)
+        ctx.stroke(skirt, with: .color(outlineC), lineWidth: u*0.018)
+    }
+
+    func drawPinkMaxiDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top     = bodyY - u * 0.13
+        let bot     = bodyY + u * 0.22   // long maxi
+        let hw      = u * 0.18
+        let hemHW   = u * 0.22
+        let neckHW  = u * 0.06
+        let roseC   = Color(red:0.98,green:0.56,blue:0.74)
+        let deepR   = Color(red:0.88,green:0.32,blue:0.56)
+        let lightR  = Color(red:0.99,green:0.82,blue:0.90)
+        let outlineC = Color(red:0.56,green:0.14,blue:0.32)
+
+        // Fitted bodice
+        var bodice = Path()
+        bodice.move(to: CGPoint(x: cx - neckHW, y: top))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        bodice.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.034))
+        bodice.closeSubpath()
+        ctx.fill(bodice, with: .color(deepR))
+
+        // Flowy maxi skirt (2 layers for fullness)
+        var skirt = Path()
+        skirt.move(to: CGPoint(x: cx - hw, y: bodyY))
+        skirt.addLine(to: CGPoint(x: cx - hemHW, y: bot))
+        skirt.addQuadCurve(to: CGPoint(x: cx + hemHW, y: bot), control: CGPoint(x: cx, y: bot + u*0.02))
+        skirt.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        skirt.closeSubpath()
+        ctx.fill(skirt, with: .color(roseC))
+
+        // Inner lighter layer
+        var inner = Path()
+        inner.move(to: CGPoint(x: cx - hw*0.6, y: bodyY + u*0.02))
+        inner.addLine(to: CGPoint(x: cx - hemHW*0.55, y: bot - u*0.01))
+        inner.addLine(to: CGPoint(x: cx + hemHW*0.55, y: bot - u*0.01))
+        inner.addLine(to: CGPoint(x: cx + hw*0.6, y: bodyY + u*0.02))
+        inner.closeSubpath()
+        ctx.fill(inner, with: .color(lightR.opacity(0.70)))
+
+        // Waist ribbon
+        let ribbon = Path(roundedRect: CGRect(x: cx - hw - u*0.01, y: bodyY - u*0.022,
+                                              width: (hw + u*0.01)*2, height: u*0.030), cornerRadius: u*0.006)
+        ctx.fill(ribbon, with: .color(deepR))
+        // Bow
+        for side: CGFloat in [-1, 1] {
+            var bow = Path()
+            bow.move(to: CGPoint(x: cx + side*u*0.01, y: bodyY - u*0.008))
+            bow.addQuadCurve(to: CGPoint(x: cx + side*u*0.068, y: bodyY - u*0.032),
+                              control: CGPoint(x: cx + side*u*0.048, y: bodyY - u*0.042))
+            bow.addQuadCurve(to: CGPoint(x: cx + side*u*0.01, y: bodyY - u*0.008),
+                              control: CGPoint(x: cx + side*u*0.048, y: bodyY + u*0.004))
+            ctx.fill(bow, with: .color(Color(red:0.99,green:0.90,blue:0.94)))
+            ctx.stroke(bow, with: .color(outlineC.opacity(0.7)), lineWidth: u*0.008)
+        }
+
+        // Thin straps
+        for side: CGFloat in [-1, 1] {
+            var strap = Path()
+            strap.move(to: CGPoint(x: cx + side*neckHW*0.7, y: top))
+            strap.addLine(to: CGPoint(x: cx + side*hw*0.7, y: top + u*0.05))
+            ctx.stroke(strap, with: .color(deepR), lineWidth: u*0.016)
+        }
+
+        ctx.stroke(bodice, with: .color(outlineC), lineWidth: u*0.016)
+        ctx.stroke(skirt, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawPinkRuffleDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.12
+        let bot    = bodyY + u * 0.18
+        let hw     = u * 0.19
+        let neckHW = u * 0.07
+        let hotPink = Color(red:0.98,green:0.28,blue:0.60)
+        let palePink = Color(red:0.99,green:0.80,blue:0.90)
+        let midPink  = Color(red:0.98,green:0.54,blue:0.76)
+        let outlineC = Color(red:0.58,green:0.10,blue:0.28)
+
+        // Fitted top
+        var top2 = Path()
+        top2.move(to: CGPoint(x: cx - neckHW, y: top))
+        top2.addLine(to: CGPoint(x: cx - hw, y: top + u*0.03))
+        top2.addLine(to: CGPoint(x: cx - hw, y: bodyY - u*0.01))
+        top2.addLine(to: CGPoint(x: cx + hw, y: bodyY - u*0.01))
+        top2.addLine(to: CGPoint(x: cx + hw, y: top + u*0.03))
+        top2.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        top2.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.030))
+        top2.closeSubpath()
+        ctx.fill(top2, with: .color(hotPink))
+
+        // 4 ruffle tiers
+        let tiers: [(CGFloat, CGFloat, Color)] = [
+            (bodyY - u*0.01, bodyY + u*0.04, palePink),
+            (bodyY + u*0.02, bodyY + u*0.08, midPink),
+            (bodyY + u*0.06, bodyY + u*0.13, palePink),
+            (bodyY + u*0.10, bot,             midPink),
+        ]
+        for (tierTop, tierBot, clr) in tiers {
+            let spread = hw + (tierTop - (bodyY - u*0.01)) * 0.5
+            var tier = Path()
+            tier.move(to: CGPoint(x: cx - spread, y: tierTop))
+            tier.addLine(to: CGPoint(x: cx - (spread + u*0.04), y: tierBot))
+            tier.addLine(to: CGPoint(x: cx + (spread + u*0.04), y: tierBot))
+            tier.addLine(to: CGPoint(x: cx + spread, y: tierTop))
+            tier.closeSubpath()
+            ctx.fill(tier, with: .color(clr))
+            // Ruffle edge
+            let steps = 8
+            for i in 0..<steps {
+                let rx = cx - (spread+u*0.04) + CGFloat(i) * ((spread+u*0.04)*2/CGFloat(steps-1))
+                var ruf = Path()
+                ruf.addArc(center: CGPoint(x: rx, y: tierBot), radius: u*0.018,
+                           startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+                ctx.fill(ruf, with: .color(clr == palePink ? midPink : palePink))
+            }
+            ctx.stroke(tier, with: .color(outlineC.opacity(0.5)), lineWidth: u*0.008)
+        }
+
+        // Shoulder straps
+        for side: CGFloat in [-1, 1] {
+            ctx.stroke(Path { p in
+                p.move(to: CGPoint(x: cx + side*neckHW*0.8, y: top))
+                p.addLine(to: CGPoint(x: cx + side*hw*0.8, y: top + u*0.04))
+            }, with: .color(hotPink), lineWidth: u*0.016)
+        }
+        ctx.stroke(top2, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawHotPinkMiniDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.12   // mini = short
+        let hw     = u * 0.20
+        let skirtHW = u * 0.24
+        let neckHW  = u * 0.05
+        let hotPink = Color(red:0.98,green:0.16,blue:0.54)
+        let neonP   = Color(red:0.99,green:0.44,blue:0.74)
+        let outlineC = Color(red:0.56,green:0.04,blue:0.22)
+
+        // Strapless fitted body
+        var dress = Path()
+        dress.move(to: CGPoint(x: cx - hw - u*0.02, y: top + u*0.01))
+        dress.addLine(to: CGPoint(x: cx - hw, y: bodyY - u*0.02))
+        dress.addLine(to: CGPoint(x: cx - skirtHW, y: bot))
+        dress.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        dress.addLine(to: CGPoint(x: cx + hw, y: bodyY - u*0.02))
+        dress.addLine(to: CGPoint(x: cx + hw + u*0.02, y: top + u*0.01))
+        dress.addQuadCurve(to: CGPoint(x: cx - hw - u*0.02, y: top + u*0.01),
+                            control: CGPoint(x: cx, y: top + u*0.04))
+        dress.closeSubpath()
+        ctx.fill(dress, with: .color(hotPink))
+
+        // Diagonal shimmer stripe
+        var stripe = Path()
+        stripe.move(to: CGPoint(x: cx - hw*0.3, y: top + u*0.01))
+        stripe.addLine(to: CGPoint(x: cx + hw*0.2, y: top + u*0.01))
+        stripe.addLine(to: CGPoint(x: cx - hw*0.1, y: bot))
+        stripe.addLine(to: CGPoint(x: cx - hw*0.5, y: bot))
+        stripe.closeSubpath()
+        ctx.fill(stripe, with: .color(neonP.opacity(0.40)))
+
+        // Ruffle hem
+        for i in 0..<7 {
+            let rx = cx - skirtHW + CGFloat(i) * (skirtHW*2/6)
+            var r = Path()
+            r.addArc(center: CGPoint(x: rx, y: bot - u*0.006), radius: u*0.022,
+                     startAngle: .degrees(180), endAngle: .degrees(0), clockwise: false)
+            ctx.fill(r, with: .color(neonP))
+        }
+
+        // Sparkle dots
+        for (sx, sy): (CGFloat, CGFloat) in [(-0.08,-0.06),(0.06,-0.02),(0.0,-0.09),(0.10,-0.07)] {
+            let r = u*0.010
+            ctx.fill(Path(ellipseIn: CGRect(x: cx+sx*u-r, y: bodyY+sy*u-r, width: r*2, height: r*2)), with: .color(.white))
+        }
+
+        ctx.stroke(dress, with: .color(outlineC), lineWidth: u*0.018)
+    }
+
+    func drawPinkBowDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.17
+        let hw     = u * 0.19
+        let skirtHW = u * 0.25
+        let neckHW  = u * 0.07
+        let blushC  = Color(red:0.99,green:0.74,blue:0.84)
+        let roseC   = Color(red:0.97,green:0.46,blue:0.68)
+        let deepC   = Color(red:0.84,green:0.22,blue:0.48)
+        let outlineC = Color(red:0.52,green:0.10,blue:0.26)
+
+        // Bodice
+        var bodice = Path()
+        bodice.move(to: CGPoint(x: cx - neckHW, y: top))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx - hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        bodice.addLine(to: CGPoint(x: cx + hw, y: top + u*0.04))
+        bodice.addLine(to: CGPoint(x: cx + neckHW, y: top))
+        bodice.addQuadCurve(to: CGPoint(x: cx - neckHW, y: top), control: CGPoint(x: cx, y: top + u*0.032))
+        bodice.closeSubpath()
+        ctx.fill(bodice, with: .color(roseC))
+
+        // A-line skirt
+        var skirt = Path()
+        skirt.move(to: CGPoint(x: cx - hw, y: bodyY))
+        skirt.addLine(to: CGPoint(x: cx - skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        skirt.addLine(to: CGPoint(x: cx + hw, y: bodyY))
+        skirt.closeSubpath()
+        ctx.fill(skirt, with: .color(blushC))
+
+        // Polka dots on skirt
+        for (dx, dy): (CGFloat, CGFloat) in [(-0.12, 0.06),(-0.04, 0.10),(0.06, 0.04),(0.14, 0.09),(0, 0.14),(-0.10, 0.15)] {
+            let r = u*0.014
+            ctx.fill(Path(ellipseIn: CGRect(x: cx+dx*u-r, y: bodyY+dy*u-r, width: r*2, height: r*2)), with: .color(roseC.opacity(0.70)))
+        }
+
+        // Big bow at waist center
+        let bx = cx; let by2 = bodyY - u*0.005
+        for side: CGFloat in [-1, 1] {
+            var bow = Path()
+            bow.move(to: CGPoint(x: bx, y: by2))
+            bow.addQuadCurve(to: CGPoint(x: bx + side*u*0.080, y: by2 - u*0.040),
+                              control: CGPoint(x: bx + side*u*0.060, y: by2 - u*0.060))
+            bow.addQuadCurve(to: CGPoint(x: bx, y: by2),
+                              control: CGPoint(x: bx + side*u*0.060, y: by2 + u*0.012))
+            ctx.fill(bow, with: .color(deepC))
+            ctx.stroke(bow, with: .color(outlineC), lineWidth: u*0.010)
+        }
+        // Bow knot center
+        ctx.fill(Path(ellipseIn: CGRect(x: bx - u*0.018, y: by2 - u*0.018, width: u*0.036, height: u*0.036)), with: .color(deepC))
+
+        // Straps
+        for side: CGFloat in [-1, 1] {
+            ctx.stroke(Path { p in
+                p.move(to: CGPoint(x: cx + side*neckHW*0.7, y: top))
+                p.addLine(to: CGPoint(x: cx + side*hw*0.65, y: top + u*0.05))
+            }, with: .color(deepC), lineWidth: u*0.016)
+        }
+
+        ctx.stroke(bodice, with: .color(outlineC), lineWidth: u*0.016)
+        ctx.stroke(skirt, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    func drawPinkWrapDress(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.13
+        let bot    = bodyY + u * 0.19
+        let hw     = u * 0.19
+        let skirtHW = u * 0.26
+        let coralP  = Color(red:0.99,green:0.60,blue:0.72)
+        let deepCP  = Color(red:0.92,green:0.34,blue:0.56)
+        let lightP  = Color(red:0.99,green:0.88,blue:0.92)
+        let outlineC = Color(red:0.56,green:0.14,blue:0.30)
+
+        // Left wrap panel
+        var left = Path()
+        left.move(to: CGPoint(x: cx - hw, y: top + u*0.01))
+        left.addLine(to: CGPoint(x: cx - hw, y: bot))
+        left.addLine(to: CGPoint(x: cx + u*0.04, y: bot))
+        left.addLine(to: CGPoint(x: cx + u*0.04, y: top + u*0.01))
+        left.closeSubpath()
+        ctx.fill(left, with: .color(coralP))
+
+        // Right wrap panel (overlapping)
+        var right = Path()
+        right.move(to: CGPoint(x: cx - u*0.04, y: top + u*0.01))
+        right.addLine(to: CGPoint(x: cx - u*0.04, y: bot - u*0.04))
+        right.addLine(to: CGPoint(x: cx + skirtHW, y: bot))
+        right.addLine(to: CGPoint(x: cx + hw, y: top + u*0.01))
+        right.closeSubpath()
+        ctx.fill(right, with: .color(lightP))
+
+        // V-neck overlap line
+        var vneck = Path()
+        vneck.move(to: CGPoint(x: cx - u*0.04, y: top + u*0.01))
+        vneck.addLine(to: CGPoint(x: cx, y: top + u*0.08))
+        vneck.addLine(to: CGPoint(x: cx + u*0.04, y: top + u*0.01))
+        ctx.stroke(vneck, with: .color(deepCP), lineWidth: u*0.016)
+
+        // Flowy hem on right panel
+        var hem = Path()
+        hem.move(to: CGPoint(x: cx - u*0.04, y: bot - u*0.04))
+        hem.addQuadCurve(to: CGPoint(x: cx + skirtHW, y: bot),
+                          control: CGPoint(x: cx + skirtHW*0.3, y: bot + u*0.024))
+        ctx.stroke(hem, with: .color(deepCP), lineWidth: u*0.010)
+
+        // Waist tie/sash
+        var sash = Path()
+        sash.move(to: CGPoint(x: cx - hw - u*0.02, y: bodyY - u*0.016))
+        sash.addLine(to: CGPoint(x: cx + hw*0.4, y: bodyY - u*0.016))
+        sash.addLine(to: CGPoint(x: cx + hw*0.4, y: bodyY + u*0.016))
+        sash.addLine(to: CGPoint(x: cx - hw - u*0.02, y: bodyY + u*0.016))
+        sash.closeSubpath()
+        ctx.fill(sash, with: .color(deepCP))
+
+        // Sash bow tail
+        for i in 0..<2 {
+            var tail = Path()
+            let ty: CGFloat = bodyY + u*(0.016 + CGFloat(i)*0.032)
+            tail.move(to: CGPoint(x: cx + hw*0.4, y: bodyY - u*0.016))
+            tail.addLine(to: CGPoint(x: cx + hw*0.4 + u*0.06, y: ty))
+            tail.addLine(to: CGPoint(x: cx + hw*0.4 + u*0.02, y: ty))
+            ctx.stroke(tail, with: .color(deepCP), lineWidth: u*0.014)
+        }
+
+        // Short sleeves
+        for side: CGFloat in [-1, 1] {
+            var slv = Path()
+            slv.move(to: CGPoint(x: cx + side*hw*0.7, y: top + u*0.01))
+            slv.addLine(to: CGPoint(x: cx + side*(hw + u*0.06), y: top + u*0.07))
+            slv.addLine(to: CGPoint(x: cx + side*hw, y: top + u*0.07))
+            slv.closeSubpath()
+            ctx.fill(slv, with: .color(coralP))
+            ctx.stroke(slv, with: .color(outlineC), lineWidth: u*0.012)
+        }
+
+        ctx.stroke(left, with: .color(outlineC), lineWidth: u*0.016)
+        ctx.stroke(right, with: .color(outlineC), lineWidth: u*0.016)
+    }
+
+    private var prideColors: [Color] {[
+        Color(red:0.89,green:0.01,blue:0.01),
+        Color(red:1.00,green:0.55,blue:0.00),
+        Color(red:1.00,green:0.93,blue:0.00),
+        Color(red:0.00,green:0.50,blue:0.15),
+        Color(red:0.00,green:0.30,blue:1.00),
+        Color(red:0.46,green:0.03,blue:0.53),
+    ]}
+
+    func drawPrideTShirt(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let sil = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        let top = bodyY - u * 0.12
+        let bot = bodyY + u * 0.13
+        let stripeH = (bot - top) / 6.0
+        ctx.drawLayer { inner in
+            inner.clip(to: sil)
+            for (i, c) in prideColors.enumerated() {
+                var s = Path(CGRect(x: cx - u*0.70, y: top + CGFloat(i)*stripeH, width: u*1.40, height: stripeH + 1))
+                inner.fill(s, with: .color(c))
+            }
+        }
+        ctx.stroke(sil, with: .color(Color.black.opacity(0.72)), lineWidth: u*0.020)
+        var collar = Path()
+        collar.addArc(center: CGPoint(x: cx, y: top + u*0.010), radius: u*0.085,
+                      startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
+        ctx.stroke(collar, with: .color(Color.black.opacity(0.45)), lineWidth: u*0.015)
+    }
+
+    func drawPrideHoodie(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let sil = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        let top = bodyY - u * 0.12
+        let bot = bodyY + u * 0.13
+        let stripeH = (bot - top) / 6.0
+        let darkC = Color(red:0.08,green:0.08,blue:0.10)
+        ctx.drawLayer { inner in
+            inner.clip(to: sil)
+            for (i, c) in prideColors.enumerated() {
+                var s = Path(CGRect(x: cx - u*0.70, y: top + CGFloat(i)*stripeH, width: u*1.40, height: stripeH + 1))
+                inner.fill(s, with: .color(c))
+            }
+        }
+        // Hood cowl
+        var cowl = Path()
+        cowl.addArc(center: CGPoint(x: cx, y: top + u*0.006), radius: u*0.092,
+                    startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
+        ctx.stroke(cowl, with: .color(darkC), lineWidth: u*0.026)
+        // Drawstrings
+        for side: CGFloat in [-1, 1] {
+            let sx = cx + side * u * 0.032
+            var str = Path()
+            str.move(to: CGPoint(x: sx, y: top + u*0.030))
+            str.addQuadCurve(to: CGPoint(x: sx + side*u*0.018, y: top + u*0.092),
+                             control: CGPoint(x: sx + side*u*0.028, y: top + u*0.060))
+            ctx.stroke(str, with: .color(.white.opacity(0.85)), lineWidth: u*0.012)
+        }
+        ctx.stroke(sil, with: .color(darkC.opacity(0.75)), lineWidth: u*0.022)
+        // Hem rib
+        var hem = Path(roundedRect: CGRect(x: cx - u*0.19, y: bot - u*0.030, width: u*0.38, height: u*0.030), cornerRadius: u*0.008)
+        ctx.fill(hem, with: .color(darkC))
+        // Pocket
+        var pocket = Path(roundedRect: CGRect(x: cx - u*0.082, y: bodyY + u*0.008, width: u*0.164, height: u*0.072), cornerRadius: u*0.022)
+        ctx.fill(pocket, with: .color(darkC.opacity(0.55)))
+        ctx.stroke(pocket, with: .color(darkC), lineWidth: u*0.012)
+    }
+
+    func drawPrideTracksuit(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat) {
+        let top    = bodyY - u * 0.12
+        let bot    = bodyY + u * 0.13
+        let hw     = u * 0.19
+        let slvX   = u * 0.26
+        let slvY   = bodyY - u * 0.06
+        let legTop = bodyY + u * 0.10
+        let legBot = bodyY + u * 0.28
+        let legW   = u * 0.14
+        let lLegX  = cx - u * 0.090
+        let rLegX  = cx + u * 0.090
+        let stripeH = (bot - top) / 6.0
+        let darkC = Color(red:0.10,green:0.10,blue:0.12)
+
+        // Pants — each leg gets 6-color stripes
+        for legCX in [lLegX, rLegX] {
+            var legPath = Path(roundedRect: CGRect(x: legCX - legW/2, y: legTop, width: legW, height: legBot - legTop), cornerRadius: u*0.018)
+            ctx.drawLayer { inner in
+                inner.clip(to: legPath)
+                let legStripeH = (legBot - legTop) / 6.0
+                for (i, c) in prideColors.enumerated() {
+                    var s = Path(CGRect(x: legCX - legW, y: legTop + CGFloat(i)*legStripeH, width: legW*2, height: legStripeH + 1))
+                    inner.fill(s, with: .color(c))
+                }
+            }
+            ctx.stroke(legPath, with: .color(darkC.opacity(0.70)), lineWidth: u*0.015)
+        }
+
+        // Jacket body — rainbow stripes
+        let sil = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.drawLayer { inner in
+            inner.clip(to: sil)
+            for (i, c) in prideColors.enumerated() {
+                var s = Path(CGRect(x: cx - u*0.70, y: top + CGFloat(i)*stripeH, width: u*1.40, height: stripeH + 1))
+                inner.fill(s, with: .color(c))
+            }
+        }
+        ctx.stroke(sil, with: .color(darkC.opacity(0.72)), lineWidth: u*0.020)
+
+        // White sleeve stripes
+        var lSlv = Path(); lSlv.move(to: CGPoint(x: cx-hw+u*0.016, y: top+u*0.01)); lSlv.addLine(to: CGPoint(x: cx-slvX+u*0.012, y: slvY+u*0.01))
+        ctx.stroke(lSlv, with: .color(.white.opacity(0.65)), lineWidth: u*0.013)
+        var rSlv = Path(); rSlv.move(to: CGPoint(x: cx+hw-u*0.016, y: top+u*0.01)); rSlv.addLine(to: CGPoint(x: cx+slvX-u*0.012, y: slvY+u*0.01))
+        ctx.stroke(rSlv, with: .color(.white.opacity(0.65)), lineWidth: u*0.013)
+
+        // Center zip
+        var zip = Path(); zip.move(to: CGPoint(x: cx, y: top+u*0.015)); zip.addLine(to: CGPoint(x: cx, y: bot-u*0.015))
+        ctx.stroke(zip, with: .color(.white.opacity(0.60)), lineWidth: u*0.013)
+
+        // Collar
+        var collar = Path()
+        collar.move(to: CGPoint(x: cx - u*0.065, y: top))
+        collar.addLine(to: CGPoint(x: cx - u*0.040, y: top - u*0.038))
+        collar.addLine(to: CGPoint(x: cx + u*0.040, y: top - u*0.038))
+        collar.addLine(to: CGPoint(x: cx + u*0.065, y: top))
+        collar.closeSubpath()
+        ctx.fill(collar, with: .color(darkC))
+        ctx.stroke(collar, with: .color(darkC.opacity(0.90)), lineWidth: u*0.013)
+    }
+
+    func drawPrideCap(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let capBot = headY - u * 0.10
+        let capR   = u * 0.22
+        let visorW = u * 0.28
+        let visorH = u * 0.038
+        let darkC  = Color(red:0.08,green:0.08,blue:0.10)
+
+        // Dome with 6-stripe clipping
+        var dome = Path()
+        dome.addArc(center: CGPoint(x: cx, y: capBot), radius: capR,
+                    startAngle: .degrees(180), endAngle: .degrees(0), clockwise: true)
+        dome.closeSubpath()
+        let domeTop = capBot - capR
+        let stripeH = capR * 2 / 6.0
+        ctx.drawLayer { inner in
+            inner.clip(to: dome)
+            for (i, c) in prideColors.enumerated() {
+                var s = Path(CGRect(x: cx - capR, y: domeTop + CGFloat(i)*stripeH, width: capR*2, height: stripeH + 1))
+                inner.fill(s, with: .color(c))
+            }
+        }
+
+        // Band + visor (dark)
+        var band = Path(CGRect(x: cx - capR, y: capBot - u*0.028, width: capR*2, height: u*0.028))
+        ctx.fill(band, with: .color(darkC))
+        var visor = Path(roundedRect: CGRect(x: cx + capR*0.15, y: capBot - visorH/2, width: visorW, height: visorH), cornerRadius: visorH*0.45)
+        ctx.fill(visor, with: .color(darkC))
+        ctx.stroke(visor, with: .color(darkC), lineWidth: u*0.015)
+        ctx.stroke(dome, with: .color(darkC.opacity(0.75)), lineWidth: u*0.018)
+
+        // Stitch arc
+        var stitch = Path()
+        stitch.addArc(center: CGPoint(x: cx, y: capBot), radius: capR*0.75,
+                      startAngle: .degrees(160), endAngle: .degrees(20), clockwise: true)
+        ctx.stroke(stitch, with: .color(.white.opacity(0.20)), lineWidth: u*0.013)
+
+        // Button
+        var btn = Path(ellipseIn: CGRect(x: cx - u*0.020, y: capBot - capR - u*0.018, width: u*0.040, height: u*0.036))
+        ctx.fill(btn, with: .color(darkC))
+    }
+
+    func drawPrideBeanie(_ ctx: GraphicsContext, cx: CGFloat, headY: CGFloat, u: CGFloat) {
+        let capBot = headY - u * 0.08
+        let capTop = headY - u * 0.24
+        let capW   = u * 0.48
+        let foldH  = u * 0.040
+        let darkC  = Color(red:0.08,green:0.08,blue:0.10)
+
+        // Main cap shape
+        var cap = Path()
+        cap.move(to: CGPoint(x: cx - capW/2, y: capBot))
+        cap.addLine(to: CGPoint(x: cx - capW/2 + u*0.04, y: capTop + u*0.04))
+        cap.addQuadCurve(to: CGPoint(x: cx + capW/2 - u*0.04, y: capTop + u*0.04),
+                         control: CGPoint(x: cx, y: capTop - u*0.04))
+        cap.addLine(to: CGPoint(x: cx + capW/2, y: capBot))
+        cap.closeSubpath()
+
+        let stripeH = (capBot - foldH - capTop) / 6.0
+        ctx.drawLayer { inner in
+            inner.clip(to: cap)
+            for (i, c) in prideColors.enumerated() {
+                var s = Path(CGRect(x: cx - capW, y: capTop + CGFloat(i)*stripeH, width: capW*2, height: stripeH + 1))
+                inner.fill(s, with: .color(c))
+            }
+        }
+
+        // Dark fold/cuff
+        var cuff = Path(roundedRect: CGRect(x: cx - capW/2, y: capBot - foldH, width: capW, height: foldH), cornerRadius: u*0.010)
+        ctx.fill(cuff, with: .color(darkC))
+        ctx.stroke(cap, with: .color(darkC.opacity(0.75)), lineWidth: u*0.019)
+        ctx.stroke(cuff, with: .color(darkC.opacity(0.60)), lineWidth: u*0.013)
+
+        // White pom-pom
+        var pom = Path(ellipseIn: CGRect(x: cx - u*0.058, y: capTop - u*0.056, width: u*0.116, height: u*0.100))
+        ctx.fill(pom, with: .color(.white))
+        ctx.stroke(pom, with: .color(darkC.opacity(0.30)), lineWidth: u*0.010)
+    }
+
+    func drawTracksuit(_ ctx: GraphicsContext, cx: CGFloat, bodyY: CGFloat, u: CGFloat,
+                       mainC:    Color = Color(red:0.96,green:0.46,blue:0.72),
+                       stripeC:  Color = Color.white,
+                       darkC:    Color = Color(red:0.76,green:0.26,blue:0.52),
+                       outlineC: Color = Color.black.opacity(0.82)) {
+        let top    = bodyY - u * 0.12
+        let bot    = bodyY + u * 0.13
+        let hw     = u * 0.19
+        let slvX   = u * 0.26
+        let slvY   = bodyY - u * 0.06
+        let legTop = bodyY + u * 0.10
+        let legBot = bodyY + u * 0.28
+        let legW   = u * 0.14
+        let lLegX  = cx - u * 0.090
+        let rLegX  = cx + u * 0.090
+
+        // Pants legs (drawn first, behind jacket)
+        var leftLeg = Path(roundedRect: CGRect(x: lLegX - legW/2, y: legTop, width: legW, height: legBot - legTop), cornerRadius: u*0.018)
+        ctx.fill(leftLeg, with: .color(mainC))
+        ctx.stroke(leftLeg, with: .color(outlineC), lineWidth: u*0.016)
+        var lLegStripe = Path(CGRect(x: lLegX + legW/2 - u*0.028, y: legTop + u*0.012, width: u*0.018, height: legBot - legTop - u*0.024))
+        ctx.fill(lLegStripe, with: .color(stripeC.opacity(0.75)))
+
+        var rightLeg = Path(roundedRect: CGRect(x: rLegX - legW/2, y: legTop, width: legW, height: legBot - legTop), cornerRadius: u*0.018)
+        ctx.fill(rightLeg, with: .color(mainC))
+        ctx.stroke(rightLeg, with: .color(outlineC), lineWidth: u*0.016)
+        var rLegStripe = Path(CGRect(x: rLegX - legW/2 + u*0.010, y: legTop + u*0.012, width: u*0.018, height: legBot - legTop - u*0.024))
+        ctx.fill(rLegStripe, with: .color(stripeC.opacity(0.75)))
+
+        // Track jacket body
+        let sil = shirtSilhouette(cx: cx, bodyY: bodyY, u: u)
+        ctx.fill(sil, with: .color(mainC))
+
+        // Side shading on torso
+        var shade = Path(CGRect(x: cx + u*0.04, y: top + u*0.02, width: hw - u*0.04, height: bot - top - u*0.04))
+        ctx.fill(shade, with: .color(darkC.opacity(0.18)))
+
+        ctx.stroke(sil, with: .color(outlineC), lineWidth: u*0.020)
+
+        // Sleeve stripes (diagonal, along outer edge of each sleeve)
+        var lSlvStripe = Path()
+        lSlvStripe.move(to: CGPoint(x: cx - hw + u*0.016, y: top + u*0.01))
+        lSlvStripe.addLine(to: CGPoint(x: cx - slvX + u*0.012, y: slvY + u*0.01))
+        ctx.stroke(lSlvStripe, with: .color(stripeC.opacity(0.70)), lineWidth: u*0.014)
+
+        var rSlvStripe = Path()
+        rSlvStripe.move(to: CGPoint(x: cx + hw - u*0.016, y: top + u*0.01))
+        rSlvStripe.addLine(to: CGPoint(x: cx + slvX - u*0.012, y: slvY + u*0.01))
+        ctx.stroke(rSlvStripe, with: .color(stripeC.opacity(0.70)), lineWidth: u*0.014)
+
+        // Center zip stripe
+        var zip = Path()
+        zip.move(to: CGPoint(x: cx, y: top + u*0.015))
+        zip.addLine(to: CGPoint(x: cx, y: bot - u*0.015))
+        ctx.stroke(zip, with: .color(stripeC.opacity(0.65)), lineWidth: u*0.014)
+
+        // Standing collar
+        var collar = Path()
+        collar.move(to: CGPoint(x: cx - u*0.065, y: top))
+        collar.addLine(to: CGPoint(x: cx - u*0.040, y: top - u*0.038))
+        collar.addLine(to: CGPoint(x: cx + u*0.040, y: top - u*0.038))
+        collar.addLine(to: CGPoint(x: cx + u*0.065, y: top))
+        collar.closeSubpath()
+        ctx.fill(collar, with: .color(darkC))
+        ctx.stroke(collar, with: .color(outlineC), lineWidth: u*0.014)
+    }
+
     func drawEggOutfit(_ ctx: GraphicsContext, outfit: OutfitItem,
                        cx: CGFloat, cy: CGFloat, u: CGFloat) {
         let emoji = outfit.emoji
         let eggTop = cy - u * 0.33
+        // Shift headY so hat brim lines up with egg top
+        let eggHeadY = eggTop + u * 0.14
         switch outfit.slot {
         case .hat:
-            ctx.draw(Text(emoji).font(.system(size: u * 0.25)),
-                     at: CGPoint(x: cx, y: eggTop - u * 0.09), anchor: .center)
+            switch outfit.id {
+            case "hat_top":         drawTopHat(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_top_pink":    drawTopHat(ctx, cx: cx, headY: eggHeadY, u: u, hatBlack: .init(red:0.88,green:0.28,blue:0.62), goldBand: .init(red:1.00,green:0.80,blue:0.90))
+            case "hat_crown":       drawCrown(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_cap":         drawBaseballCap(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_cap_pink":    drawBaseballCap(ctx, cx: cx, headY: eggHeadY, u: u, capColor: .init(red:0.96,green:0.46,blue:0.72), visorC: .init(red:0.82,green:0.26,blue:0.56), bandC: .init(red:0.72,green:0.16,blue:0.46))
+            case "hat_cowboy":      drawCowboyHat(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_cowboy_pink": drawCowboyHat(ctx, cx: cx, headY: eggHeadY, u: u, hatColor: .init(red:0.96,green:0.60,blue:0.78), bandC: .init(red:0.84,green:0.38,blue:0.64), outline: .init(red:0.62,green:0.14,blue:0.40))
+            case "hat_party":       drawGradCap(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_halo":        drawHalo(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_beanie":      drawBeanieHat(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_beanie_pink": drawBeanieHat(ctx, cx: cx, headY: eggHeadY, u: u, capC: .init(red:0.96,green:0.48,blue:0.72), foldC: .init(red:0.82,green:0.28,blue:0.56))
+            case "hat_bucket":      drawBucketHat(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_bucket_pink": drawBucketHat(ctx, cx: cx, headY: eggHeadY, u: u, hatC: .init(red:0.96,green:0.60,blue:0.78), hatDark: .init(red:0.84,green:0.40,blue:0.64))
+            case "hat_wizard":       drawWizardHat(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_pride_cap":    drawPrideCap(ctx, cx: cx, headY: eggHeadY, u: u)
+            case "hat_pride_beanie": drawPrideBeanie(ctx, cx: cx, headY: eggHeadY, u: u)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.22)),
+                         at: CGPoint(x: cx, y: eggTop - u * 0.06), anchor: .center)
+            }
         case .glasses:
             let eggEyeY = cy - u * 0.015
             let eggSep  = u * 0.088
@@ -1916,9 +4180,82 @@ struct AnimalBodyView: View {
         case .collar:
             ctx.draw(Text(emoji).font(.system(size: u * 0.18)),
                      at: CGPoint(x: cx, y: cy + u * 0.18), anchor: .center)
+        case .shirt:
+            let eggBodyY = cy + u * 0.22
+            switch outfit.id {
+            case "shirt_tee":         drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_tee_red":     drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.90,green:0.14,blue:0.14), darkC: .init(red:0.65,green:0.06,blue:0.06), outlineC: .init(red:0.40,green:0.04,blue:0.04))
+            case "shirt_tee_black":   drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.12,green:0.12,blue:0.14), darkC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_tee_white":   drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.94,green:0.94,blue:0.96), darkC: .init(red:0.76,green:0.76,blue:0.80), outlineC: .init(red:0.40,green:0.40,blue:0.46))
+            case "shirt_tee_green":   drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.10,green:0.62,blue:0.28), darkC: .init(red:0.06,green:0.40,blue:0.16), outlineC: .init(red:0.04,green:0.24,blue:0.10))
+            case "shirt_hoodie":      drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_hoodie_red":  drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.82,green:0.12,blue:0.12), shadC: .init(red:0.58,green:0.06,blue:0.06), pocketC: .init(red:0.70,green:0.10,blue:0.10), outlineC: .init(red:0.36,green:0.04,blue:0.04))
+            case "shirt_hoodie_black": drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.14,green:0.14,blue:0.16), shadC: .init(red:0.08,green:0.08,blue:0.10), pocketC: .init(red:0.10,green:0.10,blue:0.12), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_hoodie_green": drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.12,green:0.44,blue:0.20), shadC: .init(red:0.06,green:0.28,blue:0.12), pocketC: .init(red:0.10,green:0.36,blue:0.16), outlineC: .init(red:0.04,green:0.16,blue:0.06))
+            case "shirt_suit":        drawSuit(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_jersey":      drawJersey(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_jersey_blue": drawJersey(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.10,green:0.26,blue:0.82), accentC: .init(red:0.96,green:0.96,blue:0.96), stripeC: .init(red:0.06,green:0.16,blue:0.60), outlineC: .init(red:0.04,green:0.10,blue:0.44))
+            case "shirt_jersey_black": drawJersey(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.10,green:0.10,blue:0.12), accentC: .init(red:0.96,green:0.96,blue:0.96), stripeC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_jersey_white": drawJersey(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.94,green:0.94,blue:0.96), accentC: .init(red:0.20,green:0.20,blue:0.22), stripeC: .init(red:0.76,green:0.76,blue:0.80), outlineC: .init(red:0.38,green:0.38,blue:0.42))
+            case "shirt_denim":       drawDenimJacket(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_leather":     drawLeatherJacket(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_flannel":     drawFlannel(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_turtleneck":       drawTurtleneck(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_turtleneck_black": drawTurtleneck(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.10,green:0.10,blue:0.12), shadC: .init(red:0.04,green:0.04,blue:0.06), ribC: .init(red:0.20,green:0.20,blue:0.24), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_turtleneck_navy":  drawTurtleneck(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.10,green:0.16,blue:0.50), shadC: .init(red:0.06,green:0.10,blue:0.34), ribC: .init(red:0.18,green:0.26,blue:0.64), outlineC: .init(red:0.04,green:0.08,blue:0.28))
+            case "shirt_turtleneck_green": drawTurtleneck(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.10,green:0.36,blue:0.16), shadC: .init(red:0.06,green:0.22,blue:0.10), ribC: .init(red:0.16,green:0.50,blue:0.24), outlineC: .init(red:0.04,green:0.14,blue:0.06))
+            case "shirt_windbreaker": drawWindbreaker(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_polo":        drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_polo_white":  drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.94,green:0.95,blue:0.96), shadC: .init(red:0.74,green:0.76,blue:0.80), whiteC: .init(red:0.30,green:0.30,blue:0.34), outlineC: .init(red:0.36,green:0.38,blue:0.44))
+            case "shirt_polo_navy":   drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.08,green:0.14,blue:0.48), shadC: .init(red:0.04,green:0.08,blue:0.32), whiteC: .init(red:0.96,green:0.97,blue:0.98), outlineC: .init(red:0.04,green:0.06,blue:0.26))
+            case "shirt_polo_red":    drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.82,green:0.10,blue:0.12), shadC: .init(red:0.58,green:0.06,blue:0.08), whiteC: .init(red:0.96,green:0.96,blue:0.96), outlineC: .init(red:0.38,green:0.04,blue:0.06))
+            case "shirt_varsity":     drawVarsityJacket(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_trench":      drawTrenchCoat(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_hawaiian":    drawHawaiianShirt(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_vest":        drawSweaterVest(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_bomber":      drawBomberJacket(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_bomber_black": drawBomberJacket(ctx, cx: cx, bodyY: eggBodyY, u: u, oliveC: .init(red:0.10,green:0.10,blue:0.12), shadC: .init(red:0.04,green:0.04,blue:0.06), ribC: .init(red:0.06,green:0.06,blue:0.08), outlineC: .init(red:0.02,green:0.02,blue:0.04))
+            case "shirt_bomber_navy":  drawBomberJacket(ctx, cx: cx, bodyY: eggBodyY, u: u, oliveC: .init(red:0.08,green:0.14,blue:0.48), shadC: .init(red:0.04,green:0.08,blue:0.32), ribC: .init(red:0.04,green:0.08,blue:0.28), outlineC: .init(red:0.02,green:0.06,blue:0.22))
+            case "shirt_bomber_tan":   drawBomberJacket(ctx, cx: cx, bodyY: eggBodyY, u: u, oliveC: .init(red:0.72,green:0.60,blue:0.40), shadC: .init(red:0.52,green:0.42,blue:0.26), ribC: .init(red:0.44,green:0.34,blue:0.18), outlineC: .init(red:0.28,green:0.20,blue:0.10))
+            case "shirt_tee_pink":      drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.96,green:0.46,blue:0.70), darkC: .init(red:0.78,green:0.26,blue:0.50), outlineC: .init(red:0.52,green:0.12,blue:0.28))
+            case "shirt_tee_purple":    drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.64,green:0.34,blue:0.88), darkC: .init(red:0.44,green:0.18,blue:0.66), outlineC: .init(red:0.26,green:0.08,blue:0.44))
+            case "shirt_tee_coral":     drawTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u, shirtC: .init(red:0.98,green:0.48,blue:0.36), darkC: .init(red:0.80,green:0.28,blue:0.16), outlineC: .init(red:0.52,green:0.14,blue:0.08))
+            case "shirt_hoodie_pink":   drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.94,green:0.48,blue:0.66), shadC: .init(red:0.78,green:0.30,blue:0.50), pocketC: .init(red:0.88,green:0.40,blue:0.58), outlineC: .init(red:0.52,green:0.14,blue:0.28))
+            case "shirt_hoodie_lilac":  drawHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.72,green:0.58,blue:0.90), shadC: .init(red:0.54,green:0.38,blue:0.76), pocketC: .init(red:0.64,green:0.48,blue:0.84), outlineC: .init(red:0.32,green:0.18,blue:0.56))
+            case "shirt_polo_pink":     drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.96,green:0.46,blue:0.68), shadC: .init(red:0.76,green:0.26,blue:0.48), whiteC: .init(red:0.98,green:0.96,blue:0.98), outlineC: .init(red:0.50,green:0.12,blue:0.26))
+            case "shirt_polo_lavender": drawPolo(ctx, cx: cx, bodyY: eggBodyY, u: u, baseC: .init(red:0.74,green:0.60,blue:0.92), shadC: .init(red:0.54,green:0.40,blue:0.76), whiteC: .init(red:0.98,green:0.96,blue:0.98), outlineC: .init(red:0.34,green:0.20,blue:0.60))
+            case "dress_sundress":    drawSundress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_party":       drawPartyDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_ballet":      drawBalletDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_overalls":    drawCuteOveralls(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_crop_hoodie": drawCropHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_cardigan":    drawCardigan(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_sparkle":       drawSparkleDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_pink_maxi":     drawPinkMaxiDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_pink_ruffle":   drawPinkRuffleDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_hot_pink_mini": drawHotPinkMiniDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_pink_bow":        drawPinkBowDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "dress_pink_wrap":       drawPinkWrapDress(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "tracksuit_pink":        drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.96,green:0.46,blue:0.72), stripeC: .white, darkC: .init(red:0.76,green:0.26,blue:0.52))
+            case "tracksuit_black":       drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.10,green:0.10,blue:0.12), stripeC: .init(red:0.76,green:0.76,blue:0.80), darkC: .init(red:0.04,green:0.04,blue:0.06))
+            case "tracksuit_navy":        drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.08,green:0.14,blue:0.44), stripeC: .white, darkC: .init(red:0.04,green:0.08,blue:0.28))
+            case "tracksuit_red":         drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.84,green:0.10,blue:0.12), stripeC: .white, darkC: .init(red:0.58,green:0.04,blue:0.06))
+            case "tracksuit_green":       drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.10,green:0.60,blue:0.24), stripeC: .white, darkC: .init(red:0.06,green:0.38,blue:0.14))
+            case "tracksuit_white":       drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.94,green:0.94,blue:0.96), stripeC: .init(red:0.20,green:0.20,blue:0.40), darkC: .init(red:0.76,green:0.76,blue:0.80))
+            case "tracksuit_purple":      drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.52,green:0.14,blue:0.82), stripeC: .white, darkC: .init(red:0.32,green:0.06,blue:0.56))
+            case "tracksuit_orange":      drawTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u, mainC: .init(red:0.98,green:0.52,blue:0.10), stripeC: .white, darkC: .init(red:0.76,green:0.32,blue:0.04))
+            case "shirt_pride_tee":       drawPrideTShirt(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_pride_hoodie":    drawPrideHoodie(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            case "shirt_pride_tracksuit": drawPrideTracksuit(ctx, cx: cx, bodyY: eggBodyY, u: u)
+            default:
+                ctx.draw(Text(emoji).font(.system(size: u * 0.20)),
+                         at: CGPoint(x: cx, y: eggBodyY), anchor: .center)
+            }
         case .cape:
             ctx.draw(Text(emoji).font(.system(size: u * 0.22)),
                      at: CGPoint(x: cx, y: cy + u * 0.24), anchor: .center)
+        case .food:
+            break
         }
     }
 

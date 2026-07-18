@@ -129,11 +129,19 @@ struct ReceiptScannerView: View {
     @State private var scanProgress: Double = 0
     @State private var capturedFromCamera = false
     @State private var selectedPhoto: PhotosPickerItem?
+    @State private var showDuplicateAlert = false
 
     enum ScanPhase { case pick, scanning, confirm }
 
     var amountValue: Double { Double(amount) ?? 0 }
     var isValid: Bool { amountValue > 0 }
+
+    var isDuplicate: Bool {
+        guard amountValue > 0 else { return false }
+        return appState.transactions
+            .filter { $0.hasReceipt && !$0.isSaving }
+            .contains { abs($0.amount - amountValue) < 0.02 && Date().timeIntervalSince($0.date) < 300 }
+    }
 
     var body: some View {
         NavigationStack {
@@ -400,14 +408,11 @@ struct ReceiptScannerView: View {
                 }
 
                 Button {
-                    let tx = SpendEntry(
-                        amount: amountValue,
-                        category: category,
-                        note: note,
-                        hasReceipt: capturedFromCamera || selectedPhoto != nil
-                    )
-                    appState.addTransaction(tx)
-                    dismiss()
+                    if isDuplicate {
+                        showDuplicateAlert = true
+                    } else {
+                        logReceipt()
+                    }
                 } label: {
                     Text("Log It! 🧾")
                         .font(.system(size: 17, weight: .black))
@@ -423,9 +428,26 @@ struct ReceiptScannerView: View {
                 }
                 .disabled(!isValid)
                 .animation(.easeInOut(duration: 0.2), value: isValid)
+                .alert("Possible Duplicate", isPresented: $showDuplicateAlert) {
+                    Button("Log Anyway") { logReceipt() }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("A receipt for $\(String(format: "%.2f", amountValue)) was already logged in the last 5 minutes. Are you sure this is a different receipt?")
+                }
             }
             .padding(20)
         }
+    }
+
+    private func logReceipt() {
+        let tx = SpendEntry(
+            amount: amountValue,
+            category: category,
+            note: note,
+            hasReceipt: capturedFromCamera || selectedPhoto != nil
+        )
+        appState.addTransaction(tx)
+        dismiss()
     }
 
     // MARK: - OCR flow

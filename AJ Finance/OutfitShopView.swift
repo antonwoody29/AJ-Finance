@@ -155,8 +155,17 @@ struct OutfitItemCard: View {
     private var actionButton: some View {
         Button {
             if isOwned {
-                appState.equippedOutfitId = isEquipped ? nil : item.id
+                let wasEquipped = isEquipped
+                appState.equippedOutfitId = wasEquipped ? nil : item.id
                 appState.save()
+                if !wasEquipped {
+                    if item.slot == .food {
+                        appState.setMood(.hype, speech: "\(item.emoji) Yooo that \(item.name) hits different! Can't wait to eat 🤤")
+                        appState.showToast("\(item.emoji) \(item.name) is now your daily meal!", icon: item.emoji, color: .ajOrange)
+                    } else {
+                        appState.showToast("Equipped: \(item.name) \(item.emoji)", icon: item.emoji, color: .ajGold)
+                    }
+                }
             } else if canAfford {
                 appState.purchaseOutfit(item)
             }

@@ -62,6 +62,16 @@ final class AppState {
     var targetWeight: Double = 0             // user's goal weight
     var weightLossRewardsClaimed: [Int] = [] // lbs lost milestones: 5, 10, 20, 25
 
+    // MARK: - Sobriety
+    var hasSobrietyGoal: Bool = false
+    var sobrietyStartDate: Date? = nil
+    var sobrietyGoalName: String = "My Sobriety Journey"
+
+    var daysClean: Int {
+        guard hasSobrietyGoal, let start = sobrietyStartDate else { return 0 }
+        return max(0, Calendar.current.dateComponents([.day], from: start, to: Date()).day ?? 0)
+    }
+
     // MARK: - AJ State
     var currentMood: AJMood = .neutral
     var currentSpeech: String = "Hey! Welcome to your world 🌍"
@@ -1346,6 +1356,11 @@ final class AppState {
         save()
     }
 
+    func deleteTransaction(id: UUID) {
+        transactions.removeAll { $0.id == id }
+        save()
+    }
+
     func generateSpendRoast(for tx: SpendEntry) -> String? {
         guard !tx.isSaving, tx.amount >= 15 else { return nil }
         let amt = Int(tx.amount)
@@ -2239,10 +2254,18 @@ final class AppState {
         UserDefaults.standard.set(needsDailyFoodCheck, forKey: "aj_needsFood")
     }
 
+    func saveSobrietyState() {
+        let ud = UserDefaults.standard
+        ud.set(hasSobrietyGoal, forKey: "aj_sobrietyEnabled")
+        if let d = sobrietyStartDate { ud.set(d, forKey: "aj_sobrietyStart") }
+        ud.set(sobrietyGoalName, forKey: "aj_sobrietyName")
+    }
+
     func save() {
         savePetStats()
         saveMissions()
         saveCombinedGoalState()
+        saveSobrietyState()
         // Persist animal name for scene-phase notification handler
         UserDefaults.standard.set(selectedAnimal.rawValue, forKey: "aj_animalName")
         UserDefaults.standard.set(reminderHour, forKey: "aj_reminderHour")
@@ -2468,6 +2491,9 @@ final class AppState {
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
         needsDailyFoodCheck = UserDefaults.standard.bool(forKey: "aj_needsFood")
+        hasSobrietyGoal   = UserDefaults.standard.bool(forKey: "aj_sobrietyEnabled")
+        sobrietyStartDate = UserDefaults.standard.object(forKey: "aj_sobrietyStart") as? Date
+        sobrietyGoalName  = UserDefaults.standard.string(forKey: "aj_sobrietyName") ?? "My Sobriety Journey"
         highestStreak       = UserDefaults.standard.integer(forKey: "aj_highStreak")
         goalsCompletedCount = UserDefaults.standard.integer(forKey: "aj_goalsCompleted")
         accountabilityMessages = UserDefaults.standard.stringArray(forKey: "aj_messages") ?? []

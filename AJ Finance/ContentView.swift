@@ -38,11 +38,15 @@ struct ContentView: View {
             }
             .onAppear { appState.load() }
             .task {
+                #if !targetEnvironment(simulator)
                 await storeKit.loadProducts()
                 await storeKit.syncEntitlements(appState: appState)
+                #endif
             }
             .task {
+                #if !targetEnvironment(simulator)
                 await storeKit.listenForUpdates(appState: appState)
+                #endif
             }
 
             // Splash screen — sits on top, fades itself out
@@ -238,21 +242,87 @@ struct HamburgerMenuView: View {
     @State private var showStore       = false
     @State private var showMyPet       = false
     @State private var showPersonality = false
+    @State private var showGoals       = false
+
+    private var monthBudget: Double { appState.dailyBudget * 30 }
+    private var monthSpent:  Double { appState.totalSpent }
+    private var monthPct:    Double { monthBudget > 0 ? min(monthSpent / monthBudget, 1.0) : 0 }
+    private var monthDiff:   Double { appState.lastMonthSpent - monthSpent }
+
+    private var todaySpent: Double {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        return appState.transactions
+            .filter { !$0.isSaving && cal.startOfDay(for: $0.date) == today }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var weekSpent: Double {
+        let cal = Calendar.current
+        let weekAgo = cal.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+        return appState.transactions
+            .filter { !$0.isSaving && $0.date >= weekAgo }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    private var monthName: String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MMMM yyyy"
+        return fmt.string(from: Date())
+    }
+
+    private var monthEncouragement: String {
+        guard monthBudget > 0 else { return "Set a budget to unlock insights 📊" }
+        if monthPct == 0   { return "Fresh start! Make it count ✨" }
+        if monthPct < 0.25 { return "Off to an amazing start! 🌱" }
+        if monthPct < 0.55 { return "You're on track, keep it up 💪" }
+        if monthPct < 0.80 { return "More than halfway, stay steady 🎯" }
+        if monthPct < 1.0  { return "Getting close to the limit 👀" }
+        return "Budget maxed! Time to chill 🛑"
+    }
+
+    private var daysLeftInMonth: Int {
+        let cal = Calendar.current
+        let today = Date()
+        guard let range = cal.range(of: .day, in: .month, for: today) else { return 0 }
+        let day = cal.component(.day, from: today)
+        return range.count - day
+    }
+
+    private var goalsSubtitle: String {
+        let active = appState.activeGoals.count
+        let saved  = appState.totalSaved
+        if active == 0 { return "Set your first savings goal" }
+        let savedStr = saved >= 1000
+            ? "$\(String(format: "%.1fK", saved / 1000)) saved"
+            : "$\(String(format: "%.0f", saved)) saved"
+        return "\(active) active goal\(active == 1 ? "" : "s") · \(savedStr)"
+    }
+
+    private var budgetInsightLine: String {
+        let left = monthBudget - monthSpent
+        let dayLabel = daysLeftInMonth == 1 ? "1 day" : "\(daysLeftInMonth) days"
+        if monthBudget <= 0 { return "\(dayLabel) left this month" }
+        if left >= 0 {
+            return "\(dayLabel) left · $\(String(format: "%.0f", left)) remaining"
+        } else {
+            return "\(dayLabel) left · $\(String(format: "%.0f", abs(left))) over budget"
+        }
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
 
-                // Profile card
+                // Profile card with Life Meter
                 VStack(spacing: 12) {
-                    AnimalCanvas(type: appState.selectedAnimal, mood: appState.animalMood,
-                                 size: 90, isWalking: false, evolutionStage: appState.animalGrowthStage)
+                    LifeMeterView()
 
                     Text(appState.userName.isEmpty ? "AJ Lyfe" : appState.userName)
-                        .font(.system(size: 22, weight: .black))
+                        .font(.system(size: 20, weight: .black))
                         .foregroundColor(.white)
 
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         Label("\(appState.gems) 💎", systemImage: "")
                             .font(.system(size: 13, weight: .bold))
                             .foregroundColor(.ajGold)
@@ -274,14 +344,108 @@ struct HamburgerMenuView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 24)
+                .padding(.vertical, 20)
                 .background(
                     RoundedRectangle(cornerRadius: 20)
                         .fill(Color.white.opacity(0.07))
                 )
 
+                // This Month tracker
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Text("THIS MONTH")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(.white.opacity(0.45))
+                            .tracking(2)
+                        Spacer()
+                        Text(monthName)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.35))
+                    }
+
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("$\(String(format: "%.0f", monthSpent))")
+                            .font(.system(size: 32, weight: .black))
+                            .foregroundColor(.white)
+                        if monthBudget > 0 {
+                            Text("/ $\(String(format: "%.0f", monthBudget))")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white.opacity(0.40))
+                        }
+                        Spacer()
+                        if appState.lastMonthSpent > 0 {
+                            VStack(spacing: 2) {
+                                Text(monthDiff > 0 ? "🎉" : "📈").font(.system(size: 18))
+                                Text(monthDiff > 0 ? "-$\(Int(monthDiff))" : "+$\(Int(abs(monthDiff)))")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundColor(monthDiff > 0 ? Color(red:0.2,green:0.85,blue:0.45) : .ajOrangeRed)
+                                Text("vs last mo.")
+                                    .font(.system(size: 9, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.35))
+                            }
+                        }
+                    }
+
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.10))
+                            Capsule()
+                                .fill(monthBudget > 0
+                                      ? (monthPct > 0.85
+                                         ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
+                                         : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                                      : LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)], startPoint: .leading, endPoint: .trailing))
+                                .frame(width: monthBudget > 0
+                                       ? max(g.size.width * 0.04, g.size.width * CGFloat(monthPct))
+                                       : g.size.width * 0.35)
+                        }
+                    }
+                    .frame(height: 7)
+
+                    HStack {
+                        Text(monthEncouragement)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.60))
+                        Spacer()
+                        if monthBudget > 0 {
+                            Text("\(Int(monthPct * 100))% used")
+                                .font(.system(size: 12, weight: .black))
+                                .foregroundColor(monthPct > 0.85 ? .ajOrangeRed : .ajGold)
+                        }
+                    }
+
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.40))
+                        Text(budgetInsightLine)
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.55))
+                        Spacer()
+                    }
+
+                    // Breakdown tiles
+                    HStack(spacing: 10) {
+                        menuStatTile("☀️", "Today", "$\(String(format: "%.0f", todaySpent))",
+                            color: appState.dailyBudget > 0 && todaySpent <= appState.dailyBudget ? Color(red:0.2,green:0.85,blue:0.45) : .ajOrangeRed)
+                        menuStatTile("📅", "Week", "$\(String(format: "%.0f", weekSpent))", color: .ajGold)
+                        menuStatTile("💰", "Saved", "$\(String(format: "%.0f", appState.totalSaved))",
+                            color: Color(red:0.2,green:0.85,blue:0.45))
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.13), lineWidth: 1))
+                )
+
                 // Menu items
                 VStack(spacing: 0) {
+                    menuRow(icon: "🎯", title: "Goals", subtitle: goalsSubtitle) {
+                        showGoals = true
+                    }
+                    Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
                     menuRow(icon: "💎", title: "Store", subtitle: "Gems, crates, Lucky Wheel") {
                         showStore = true
                     }
@@ -319,6 +483,9 @@ struct HamburgerMenuView: View {
                 Button("Done") { dismiss() }
                     .foregroundColor(.ajOrange)
             }
+        }
+        .navigationDestination(isPresented: $showGoals) {
+            GoalsView()
         }
         .navigationDestination(isPresented: $showStore) {
             StoreView()
@@ -360,6 +527,23 @@ struct HamburgerMenuView: View {
         .buttonStyle(.plain)
     }
 
+    private func menuStatTile(_ icon: String, _ label: String, _ value: String, color: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(icon).font(.system(size: 18))
+            Text(value)
+                .font(.system(size: 13, weight: .black))
+                .foregroundColor(color)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white.opacity(0.40))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 10)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.07)))
+    }
+
     private func statPill(_ value: String, _ label: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
@@ -372,6 +556,214 @@ struct HamburgerMenuView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
         .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07)))
+    }
+}
+
+// MARK: - Life Meter
+
+struct LifeMeterView: View {
+    @Environment(AppState.self) private var appState
+    @State private var showSobrietySetup = false
+
+    private var savingsScore: Double {
+        let goals = appState.activeGoals
+        guard !goals.isEmpty else { return 0 }
+        return min(goals.reduce(0.0) { $0 + $1.progress } / Double(goals.count), 1.0)
+    }
+
+    private var fitnessScore: Double {
+        let streak = appState.gymStreak
+        guard streak > 0 else { return 0 }
+        return min(Double(streak) / 30.0, 1.0)
+    }
+
+    private var sobrietyScore: Double {
+        guard appState.hasSobrietyGoal else { return 0 }
+        return min(Double(appState.daysClean) / 365.0, 1.0)
+    }
+
+    private var overallScore: Double {
+        var scores: [Double] = [savingsScore]
+        if appState.gymStreak > 0 { scores.append(fitnessScore) }
+        if appState.hasSobrietyGoal { scores.append(sobrietyScore) }
+        return scores.reduce(0, +) / Double(scores.count)
+    }
+
+    private var faceEmoji: String {
+        switch overallScore {
+        case 0.9...: return "😁"
+        case 0.7...: return "😊"
+        case 0.5...: return "😐"
+        case 0.3...: return "😕"
+        default: return "😟"
+        }
+    }
+
+    private var ringColor: Color {
+        switch overallScore {
+        case 0.7...: return Color(red: 0.2, green: 0.85, blue: 0.45)
+        case 0.4...: return .ajOrange
+        default: return .ajOrangeRed
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.10), lineWidth: 10)
+                    .frame(width: 100, height: 100)
+                Circle()
+                    .trim(from: 0, to: CGFloat(overallScore))
+                    .stroke(ringColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .frame(width: 100, height: 100)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.spring(response: 0.7), value: overallScore)
+                VStack(spacing: 2) {
+                    Text(faceEmoji).font(.system(size: 36))
+                    Text("\(Int(overallScore * 100))%")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.white.opacity(0.55))
+                }
+            }
+
+            HStack(spacing: 8) {
+                meterPill("🎯", "Savings", Int(savingsScore * 100), color: .ajGold)
+                if appState.gymStreak > 0 {
+                    meterPill("💪", "Fitness", Int(fitnessScore * 100), color: Color(red: 0.2, green: 0.85, blue: 0.45))
+                }
+                if appState.hasSobrietyGoal {
+                    meterPill("✨", "\(appState.daysClean)d", Int(sobrietyScore * 100), color: .ajOrange)
+                }
+            }
+            .padding(.horizontal, 12)
+
+            if !appState.hasSobrietyGoal {
+                Button { showSobrietySetup = true } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "plus.circle")
+                        Text("Track Sobriety")
+                    }
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.40))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .sheet(isPresented: $showSobrietySetup) {
+            SobrietySetupSheet().environment(appState)
+        }
+    }
+
+    private func meterPill(_ icon: String, _ label: String, _ pct: Int, color: Color) -> some View {
+        VStack(spacing: 3) {
+            Text(icon).font(.system(size: 14))
+            Text("\(pct)%")
+                .font(.system(size: 13, weight: .black))
+                .foregroundColor(color)
+            Text(label)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white.opacity(0.40))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 9)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.07)))
+    }
+}
+
+// MARK: - Sobriety Setup Sheet
+
+struct SobrietySetupSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var startDate = Date()
+    @State private var goalName  = ""
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.ajDark.ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 22) {
+                        Text("✨")
+                            .font(.system(size: 64))
+                            .padding(.top, 10)
+
+                        Text("Your Journey Starts Here")
+                            .font(.system(size: 22, weight: .black))
+                            .foregroundColor(.white)
+                            .multilineTextAlignment(.center)
+
+                        Text("This is completely private — only you can see it. It shows up in your Life Meter as a quiet win 💪")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.60))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
+
+                        AJCard {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("GOAL NAME")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .tracking(2)
+                                TextField("My Sobriety Journey", text: $goalName)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.white)
+                                    .tint(.ajOrange)
+                            }
+                        }
+
+                        AJCard {
+                            VStack(alignment: .leading, spacing: 10) {
+                                Text("CLEAN SINCE")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .tracking(2)
+                                DatePicker("", selection: $startDate, in: ...Date(), displayedComponents: .date)
+                                    .datePickerStyle(.wheel)
+                                    .colorScheme(.dark)
+                                    .labelsHidden()
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+
+                        Button {
+                            appState.hasSobrietyGoal   = true
+                            appState.sobrietyStartDate = startDate
+                            appState.sobrietyGoalName  = goalName.isEmpty ? "My Sobriety Journey" : goalName
+                            appState.saveSobrietyState()
+                            dismiss()
+                        } label: {
+                            Text("Start Tracking ✨")
+                                .font(.system(size: 17, weight: .black))
+                                .foregroundColor(.black)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                                        .shadow(color: .ajOrange.opacity(0.45), radius: 10, y: 4)
+                                )
+                        }
+
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 20)
+                }
+            }
+            .navigationTitle("Sobriety Tracker")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.ajOrange)
+                }
+            }
+        }
     }
 }
 

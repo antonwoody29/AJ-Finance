@@ -2,11 +2,13 @@ import SwiftUI
 
 struct SpendView: View {
     @Environment(AppState.self) private var appState
-    @State private var showScanner = false
-    @State private var showTrips   = false
+    @State private var showScanner      = false
+    @State private var showTrips        = false
     @State private var selectedCategory: SpendCategory?
-    @State private var showRoast = false
+    @State private var showRoast        = false
     @State private var showSubGraveyard = false
+    @State private var showQuickAdd     = false
+    @State private var searchText       = ""
 
     var body: some View {
         ZStack {
@@ -43,39 +45,61 @@ struct SpendView: View {
                         transactionHistoryCard
                     }
 
-                    Spacer(minLength: 80)
+                    Spacer(minLength: 130)
                 }
                 .padding(20)
             }
-            // Floating add button
-            VStack {
+            // Floating add buttons
+            VStack(spacing: 10) {
                 Spacer()
-                Button {
-                    showScanner = true
-                } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 18, weight: .bold))
-                        Text("Add Receipt")
-                            .font(.system(size: 16, weight: .black))
+                HStack(spacing: 10) {
+                    Button {
+                        showQuickAdd = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16, weight: .bold))
+                            Text("Manual")
+                                .font(.system(size: 14, weight: .black))
+                        }
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .fill(Color.white.opacity(0.15))
+                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+                        )
                     }
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 16)
-                    .background(
-                        Capsule()
-                            .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
-                                                 startPoint: .leading, endPoint: .trailing))
-                            .shadow(color: .ajOrange.opacity(0.4), radius: 12, y: 4)
-                    )
+                    Button {
+                        showScanner = true
+                    } label: {
+                        HStack(spacing: 10) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 18, weight: .bold))
+                            Text("Snap Receipt")
+                                .font(.system(size: 16, weight: .black))
+                        }
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
+                                                     startPoint: .leading, endPoint: .trailing))
+                                .shadow(color: .ajOrange.opacity(0.4), radius: 12, y: 4)
+                        )
+                    }
                 }
-                .padding(.bottom, 32)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 104)
             }
         }
         .navigationTitle("Spending")
         .navigationBarTitleDisplayMode(.large)
-        .sheet(isPresented: $showScanner) { ReceiptScannerView() }
-        .sheet(isPresented: $showTrips)   { NavigationStack { TripModeView() } }
+        .sheet(isPresented: $showScanner)   { ReceiptScannerView() }
+        .sheet(isPresented: $showTrips)    { NavigationStack { TripModeView() } }
+        .sheet(isPresented: $showQuickAdd) { QuickAddTransactionView() }
         .sheet(isPresented: $showRoast, onDismiss: { appState.pendingSpendRoast = nil }) {
             SpendRoastSheet(roast: appState.pendingSpendRoast ?? "")
         }
@@ -447,6 +471,17 @@ struct SpendView: View {
         }
     }
 
+    private var filteredTransactions: [SpendEntry] {
+        let all = Array(appState.monthlyTransactions.reversed().prefix(50))
+        guard !searchText.isEmpty else { return Array(all.prefix(15)) }
+        let q = searchText.lowercased()
+        return all.filter {
+            $0.note.lowercased().contains(q) ||
+            $0.category.rawValue.lowercased().contains(q) ||
+            String(format: "%.2f", $0.amount).contains(q)
+        }
+    }
+
     private var transactionHistoryCard: some View {
         AJCard {
             VStack(alignment: .leading, spacing: 14) {
@@ -455,13 +490,34 @@ struct SpendView: View {
                     .foregroundColor(.ajOrange)
                     .tracking(2)
 
-                if appState.monthlyTransactions.isEmpty {
+                // Search bar
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.4))
+                    TextField("Search transactions…", text: $searchText)
+                        .font(.system(size: 13))
+                        .foregroundColor(.white)
+                        .tint(.ajOrange)
+                    if !searchText.isEmpty {
+                        Button { searchText = "" } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+                    }
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.07)))
+
+                if filteredTransactions.isEmpty {
                     HStack {
                         Spacer()
                         VStack(spacing: 8) {
-                            Text("🧾")
+                            Text(searchText.isEmpty ? "🧾" : "🔍")
                                 .font(.system(size: 32))
-                            Text("No receipts yet")
+                            Text(searchText.isEmpty ? "No receipts yet" : "No results for \"\(searchText)\"")
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.4))
                         }
@@ -469,11 +525,25 @@ struct SpendView: View {
                     }
                     .padding(.vertical, 12)
                 } else {
-                    ForEach(appState.monthlyTransactions.reversed().prefix(15)) { tx in
+                    ForEach(filteredTransactions) { tx in
                         TransactionRow(tx: tx)
-                        if tx.id != appState.monthlyTransactions.reversed().prefix(15).last?.id {
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    appState.deleteTransaction(id: tx.id)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        if tx.id != filteredTransactions.last?.id {
                             Divider().background(Color.white.opacity(0.08))
                         }
+                    }
+                    if !searchText.isEmpty {
+                        Text("Long-press a transaction to delete")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.3))
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding(.top, 4)
                     }
                 }
             }
@@ -509,6 +579,210 @@ struct TransactionRow: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(tx.isSaving ? Color(red: 0, green: 0.8, blue: 0.27) : .white)
         }
+    }
+}
+
+// MARK: - Quick Add Transaction Sheet
+
+struct QuickAddTransactionView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var amountText      = ""
+    @State private var selectedCategory: SpendCategory = .food
+    @State private var note            = ""
+    @FocusState private var amountFocused: Bool
+
+    var amount: Double { Double(amountText) ?? 0 }
+
+    private let categoryColumns = [GridItem(.adaptive(minimum: 72))]
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color.ajDark.ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 22) {
+
+                        // Amount
+                        AJCard {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("AMOUNT")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .tracking(2)
+                                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                    Text("$")
+                                        .font(.system(size: 40, weight: .black))
+                                        .foregroundColor(.ajOrange)
+                                    TextField("0.00", text: $amountText)
+                                        .font(.system(size: 40, weight: .black))
+                                        .foregroundColor(.white)
+                                        .tint(.ajOrange)
+                                        .keyboardType(.decimalPad)
+                                        .focused($amountFocused)
+                                }
+                            }
+                        }
+
+                        // Quick amounts
+                        HStack(spacing: 8) {
+                            ForEach([5, 10, 25, 50, 100], id: \.self) { preset in
+                                Button { amountText = String(preset) } label: {
+                                    Text("$\(preset)")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(.ajOrange)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 7)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.ajOrange.opacity(0.12))
+                                                .overlay(Capsule().stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
+                                        )
+                                }
+                            }
+                        }
+
+                        // Category picker
+                        AJCard {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("CATEGORY")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .tracking(2)
+                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 72))], spacing: 10) {
+                                    ForEach(SpendCategory.allCases) { cat in
+                                        Button {
+                                            selectedCategory = cat
+                                        } label: {
+                                            VStack(spacing: 4) {
+                                                Text(cat.icon).font(.system(size: 22))
+                                                Text(cat.rawValue)
+                                                    .font(.system(size: 10, weight: .semibold))
+                                                    .foregroundColor(selectedCategory == cat ? cat.color : .white.opacity(0.55))
+                                                    .lineLimit(1)
+                                            }
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 10)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 10)
+                                                    .fill(selectedCategory == cat ? cat.color.opacity(0.18) : Color.white.opacity(0.05))
+                                                    .overlay(
+                                                        RoundedRectangle(cornerRadius: 10)
+                                                            .stroke(selectedCategory == cat ? cat.color.opacity(0.6) : Color.clear, lineWidth: 1.5)
+                                                    )
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
+
+                        // Note
+                        AJCard {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("NOTE (OPTIONAL)")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.white.opacity(0.45))
+                                    .tracking(2)
+                                TextField("What was this for?", text: $note)
+                                    .font(.system(size: 15))
+                                    .foregroundColor(.white)
+                                    .tint(.ajOrange)
+                            }
+                        }
+
+                        // Active Goals mini-view
+                        let activeGoals = appState.activeGoals
+                        if !activeGoals.isEmpty {
+                            AJCard {
+                                VStack(alignment: .leading, spacing: 10) {
+                                    Text("YOUR GOALS")
+                                        .font(.system(size: 10, weight: .black))
+                                        .foregroundColor(.ajGold)
+                                        .tracking(2)
+                                    ForEach(activeGoals.prefix(3)) { goal in
+                                        VStack(alignment: .leading, spacing: 5) {
+                                            HStack {
+                                                Text(goal.emoji).font(.system(size: 15))
+                                                Text(goal.name)
+                                                    .font(.system(size: 13, weight: .semibold))
+                                                    .foregroundColor(.white)
+                                                    .lineLimit(1)
+                                                Spacer()
+                                                Text("\(goal.progressPercentage)%")
+                                                    .font(.system(size: 12, weight: .black))
+                                                    .foregroundColor(.ajGold)
+                                            }
+                                            GeometryReader { g in
+                                                ZStack(alignment: .leading) {
+                                                    Capsule().fill(Color.white.opacity(0.10))
+                                                    Capsule()
+                                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                                                        .frame(width: max(g.size.width * CGFloat(goal.progress), 4))
+                                                }
+                                            }
+                                            .frame(height: 5)
+                                            HStack {
+                                                Text("$\(String(format: "%.0f", goal.currentAmount)) saved")
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.white.opacity(0.45))
+                                                Spacer()
+                                                Text("$\(String(format: "%.0f", goal.remaining)) left")
+                                                    .font(.system(size: 10))
+                                                    .foregroundColor(.white.opacity(0.45))
+                                            }
+                                        }
+                                        if goal.id != activeGoals.prefix(3).last?.id {
+                                            Divider().background(Color.white.opacity(0.08))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Log button
+                        Button {
+                            guard amount > 0 else { return }
+                            let tx = SpendEntry(
+                                amount: amount,
+                                category: selectedCategory,
+                                note: note
+                            )
+                            appState.addTransaction(tx)
+                            dismiss()
+                        } label: {
+                            Text(amount > 0 ? "Log $\(String(format: "%.2f", amount)) \(selectedCategory.icon)" : "Enter an amount")
+                                .font(.system(size: 17, weight: .black))
+                                .foregroundColor(amount > 0 ? .black : .white.opacity(0.4))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 18)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(amount > 0
+                                            ? LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)
+                                            : LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.05)], startPoint: .leading, endPoint: .trailing))
+                                        .shadow(color: amount > 0 ? Color.ajOrange.opacity(0.35) : .clear, radius: 10, y: 4)
+                                )
+                        }
+                        .disabled(amount <= 0)
+                    }
+                    .padding(20)
+                }
+            }
+            .navigationTitle("Quick Add")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.foregroundColor(.ajOrange)
+                }
+                ToolbarItem(placement: .keyboard) {
+                    Button("Done") { amountFocused = false }
+                }
+            }
+        }
+        .onAppear { amountFocused = true }
     }
 }
 

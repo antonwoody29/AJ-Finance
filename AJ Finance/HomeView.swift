@@ -18,6 +18,7 @@ struct HomeView: View {
     @State private var showStore          = false
     @State private var showDailyFoodCheck = false
     @State private var showMissions       = false
+    @State private var showQuickAdd       = false
 
     // Speech
     @State private var showSpeech    = true
@@ -63,6 +64,8 @@ struct HomeView: View {
 
     // Jump (tap reaction)
     @State private var animalJump = false
+
+    @State private var monthCardMinimized = false
 
     // Day / night (computed once per appear, not in body)
     @State private var currentHour: Int = Calendar.current.component(.hour, from: Date())
@@ -230,17 +233,10 @@ struct HomeView: View {
                     isNight: isNight
                 )
 
-                // ── Layer 5: Top HUD + daily snapshot ─────────────────
-                VStack(spacing: 6) {
-                    statusCard
-                    if appState.todayTransactionCount > 0 {
-                        dailySnapshotStrip
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, max(geo.safeAreaInsets.top + 10, 60))
-                .animation(.spring(response: 0.4), value: appState.todayTransactionCount)
+                // ── Layer 5: Top HUD ──────────────────────────────────
+                statusCard
+                    .padding(.horizontal, 16)
+                    .padding(.top, max(geo.safeAreaInsets.top + 10, 60))
 
                 // ── Layer 6: Speech bubble ────────────────────────────
                 if showSpeech {
@@ -282,9 +278,6 @@ struct HomeView: View {
                     Spacer()
                     goalPillsRow
                         .padding(.bottom, 5)
-                    monthlyProgressCard
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 5)
                     bottomActions
                         .padding(.horizontal, 16)
                         .padding(.bottom, 100)
@@ -304,6 +297,7 @@ struct HomeView: View {
         .sheet(isPresented: $showScanner)        { ReceiptScannerView() }
         .sheet(isPresented: $showAddGoal)        { AddGoalView() }
         .sheet(isPresented: $showShop)           { OutfitShopView() }
+        .sheet(isPresented: $showQuickAdd)       { QuickAddTransactionView().environment(appState) }
         .sheet(isPresented: $showStore) {
             NavigationStack { StoreView() }.environment(appState)
         }
@@ -907,6 +901,9 @@ struct HomeView: View {
         )
     }
 
+    // MARK: - Recent Transactions Strip
+
+    @ViewBuilder
     // MARK: - Status Card (replaces scattered HUD pills)
 
     private var statusCard: some View {
@@ -1069,21 +1066,24 @@ struct HomeView: View {
                         .font(.system(size: 9, weight: .black))
                         .foregroundColor(.white.opacity(0.42))
                         .tracking(1.5)
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
-                        Text("$\(String(format: "%.0f", spent))")
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundColor(.white)
-                        if hasBudget {
-                            Text("/ $\(String(format: "%.0f", budget))")
-                                .font(.system(size: 12))
-                                .foregroundColor(.white.opacity(0.42))
+                    if !monthCardMinimized {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text("$\(String(format: "%.0f", spent))")
+                                .font(.system(size: 22, weight: .black))
+                                .foregroundColor(.white)
+                            if hasBudget {
+                                Text("/ $\(String(format: "%.0f", budget))")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white.opacity(0.42))
+                            }
                         }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
 
                 Spacer()
 
-                if appState.lastMonthSpent > 0 {
+                if !monthCardMinimized && appState.lastMonthSpent > 0 {
                     VStack(spacing: 1) {
                         Text(diff > 0 ? "🎉" : "📈").font(.system(size: 16))
                         Text(diff > 0 ? "-$\(Int(diff))" : "+$\(Int(abs(diff)))")
@@ -1095,31 +1095,48 @@ struct HomeView: View {
                             .font(.system(size: 7, weight: .semibold))
                             .foregroundColor(.white.opacity(0.38))
                     }
+                    .transition(.opacity)
+                }
+
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                        monthCardMinimized.toggle()
+                    }
+                } label: {
+                    Image(systemName: monthCardMinimized ? "chevron.down" : "chevron.up")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.white.opacity(0.50))
+                        .frame(width: 24, height: 24)
+                        .background(Circle().fill(Color.white.opacity(0.10)))
                 }
             }
 
-            // Progress bar — always visible
-            GeometryReader { g in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.10))
-                    Capsule()
-                        .fill(hasBudget
-                              ? (pct > 0.85
-                                 ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
-                                 : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
-                              : LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: hasBudget
-                               ? max(g.size.width * 0.04, g.size.width * CGFloat(pct))
-                               : g.size.width * 0.35)
-                        .animation(.spring(response: 0.7), value: pct)
+            if !monthCardMinimized {
+                // Progress bar
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.10))
+                        Capsule()
+                            .fill(hasBudget
+                                  ? (pct > 0.85
+                                     ? LinearGradient(colors: [.ajOrangeRed, .red], startPoint: .leading, endPoint: .trailing)
+                                     : LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
+                                  : LinearGradient(colors: [Color.white.opacity(0.25), Color.white.opacity(0.15)], startPoint: .leading, endPoint: .trailing))
+                            .frame(width: hasBudget
+                                   ? max(g.size.width * 0.04, g.size.width * CGFloat(pct))
+                                   : g.size.width * 0.35)
+                            .animation(.spring(response: 0.7), value: pct)
+                    }
                 }
-            }
-            .frame(height: 5)
+                .frame(height: 5)
+                .transition(.opacity.combined(with: .move(edge: .top)))
 
-            // Encouraging copy
-            Text(monthlyEncouragement)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundColor(.white.opacity(0.58))
+                // Encouraging copy
+                Text(monthlyEncouragement)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.58))
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -1134,6 +1151,32 @@ struct HomeView: View {
 
     private var bottomActions: some View {
         VStack(spacing: 8) {
+            // Budget setup nudge
+            if appState.dailyBudget == 0 {
+                HStack(spacing: 10) {
+                    Text("💡").font(.system(size: 16))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Set a daily budget")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("Track your spending and keep AJ healthy")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.55))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.ajOrange.opacity(0.7))
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color.ajOrange.opacity(0.12))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                )
+            }
+
             // Daily check-in banner
             if !appState.todayCheckInComplete {
                 CheckInBanner()
@@ -1213,6 +1256,24 @@ struct HomeView: View {
             // Secondary row
             HStack(spacing: 8) {
                 Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    showQuickAdd = true
+                } label: {
+                    VStack(spacing: 3) {
+                        Text("✏️").font(.system(size: 18))
+                        Text("LOG").font(.system(size: 11, weight: .black)).foregroundColor(.ajOrange)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.black.opacity(0.48))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.45), lineWidth: 1.5))
+                            .shadow(color: Color.ajOrange.opacity(0.18), radius: 8, y: 3)
+                    )
+                }
+
+                Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showShop = true
                 } label: {
@@ -1248,23 +1309,6 @@ struct HomeView: View {
                     )
                 }
 
-                Button {
-                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                    showAddGoal = true
-                } label: {
-                    VStack(spacing: 3) {
-                        Text("🎯").font(.system(size: 18))
-                        Text("Goals").font(.system(size: 11, weight: .black)).foregroundColor(.white)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.48))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
-                            .shadow(color: .black.opacity(0.25), radius: 8, y: 3)
-                    )
-                }
             }
         }
     }
