@@ -9,7 +9,6 @@ struct SavingsJarsView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
             ScrollView {
                 VStack(spacing: 20) {
                     if appState.savingsJars.isEmpty {
@@ -31,7 +30,7 @@ struct SavingsJarsView: View {
                             }
                         }
                     }
-                    Spacer(minLength: 80)
+                    Spacer(minLength: 100)
                 }
                 .padding(20)
             }
@@ -47,9 +46,10 @@ struct SavingsJarsView: View {
                     .background(Capsule().fill(LinearGradient(colors: [.ajGreen, Color(red: 0, green: 0.6, blue: 0.3)], startPoint: .leading, endPoint: .trailing))
                         .shadow(color: .ajGreen.opacity(0.4), radius: 12, y: 4))
                 }
-                .padding(.bottom, 32)
+                .padding(.bottom, 20)
             }
         }
+        .background(Color.ajDark.ignoresSafeArea())
         .navigationTitle("Savings Jars 🫙")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showCreate) { CreateJarSheet() }

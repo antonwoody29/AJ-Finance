@@ -85,18 +85,19 @@ struct DailyFoodCheckView: View {
                 .padding(.bottom, 24)
 
                 // Animal preview
-                AnimalCanvas(type: appState.selectedAnimal, mood: appState.animalFood < 30 ? .sad : .neutral, size: 120)
+                AnimalCanvas(type: appState.selectedAnimal, mood: appState.animalFood < 30 ? .sad : .neutral, size: 120, outfit: appState.equippedOutfit)
                     .frame(width: 120, height: 120)
                     .scaleEffect(animateFood ? 1.08 : 1.0)
                     .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: animateFood)
 
-                // Food item
-                Text(appState.selectedAnimal.foodEmoji)
+                // Food item (use equipped food if set, else animal default)
+                let activeFood = appState.equippedOutfit?.slot == .food ? appState.equippedOutfit : nil
+                Text(activeFood?.emoji ?? appState.selectedAnimal.foodEmoji)
                     .font(.system(size: 40))
                     .padding(.top, 8)
                     .padding(.bottom, 4)
 
-                Text(appState.selectedAnimal.foodName)
+                Text(activeFood?.name ?? appState.selectedAnimal.foodName)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundColor(.white.opacity(0.55))
                     .padding(.bottom, 24)
@@ -217,8 +218,9 @@ struct DailyFoodCheckView: View {
             showResult = true
         }
         // Mood reaction
+        let activeFoodName = appState.equippedOutfit?.slot == .food ? (appState.equippedOutfit?.name ?? appState.selectedAnimal.foodName) : appState.selectedAnimal.foodName
         if result == .full {
-            appState.setMood(.hype, speech: "YOOO I'M FULL FR! That \(appState.selectedAnimal.foodName) hit different 🔥")
+            appState.setMood(.hype, speech: "YOOO I'M FULL FR! That \(activeFoodName) hit different 🔥")
         } else if result == .half {
             appState.setMood(.neutral, speech: "Half a meal is better than nothing... we do better tomorrow 💙")
         } else {

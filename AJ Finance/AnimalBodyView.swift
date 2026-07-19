@@ -2026,44 +2026,45 @@ struct AnimalBodyView: View {
     // MARK: - Pineapple Shades
 
     func drawPineappleShades(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
-        let lw         = u * 0.082
-        let lh         = u * 0.072
-        let frameColor = Color(red: 0.15, green: 0.52, blue: 0.10)
-        let lensColor  = Color(red: 0.98, green: 0.82, blue: 0.10)
+        let lw         = u * 0.100
+        let lh         = u * 0.090
+        let frameColor = Color(red: 0.10, green: 0.60, blue: 0.10)
+        let lensColor  = Color(red: 1.00, green: 0.88, blue: 0.00)
 
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * eyeSep
-            // Diamond/hexagon lens shape
+            // Bold hexagon lens
             var lens = Path()
-            lens.move(to:    CGPoint(x: ex,      y: eyeY - lh))
-            lens.addLine(to: CGPoint(x: ex + lw, y: eyeY - lh * 0.30))
-            lens.addLine(to: CGPoint(x: ex + lw, y: eyeY + lh * 0.30))
-            lens.addLine(to: CGPoint(x: ex,      y: eyeY + lh))
-            lens.addLine(to: CGPoint(x: ex - lw, y: eyeY + lh * 0.30))
-            lens.addLine(to: CGPoint(x: ex - lw, y: eyeY - lh * 0.30))
+            lens.move(to:    CGPoint(x: ex,        y: eyeY - lh))
+            lens.addLine(to: CGPoint(x: ex + lw,   y: eyeY - lh * 0.35))
+            lens.addLine(to: CGPoint(x: ex + lw,   y: eyeY + lh * 0.35))
+            lens.addLine(to: CGPoint(x: ex,        y: eyeY + lh))
+            lens.addLine(to: CGPoint(x: ex - lw,   y: eyeY + lh * 0.35))
+            lens.addLine(to: CGPoint(x: ex - lw,   y: eyeY - lh * 0.35))
             lens.closeSubpath()
-            ctx.fill(lens, with: .color(lensColor.opacity(0.82)))
-            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.020)
-            // Pineapple top spikes
-            for spike: CGFloat in [-0.5, 0, 0.5] {
+            ctx.fill(lens, with: .color(lensColor.opacity(0.92)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.026)
+            // 3 spikes on top of each lens
+            let spikeOffsets: [CGFloat] = [-lw * 0.55, 0, lw * 0.55]
+            for ox in spikeOffsets {
                 var sp = Path()
-                sp.move(to:    CGPoint(x: ex + spike * lw * 0.7, y: eyeY - lh))
-                sp.addLine(to: CGPoint(x: ex + spike * lw * 0.5, y: eyeY - lh - u * 0.040))
-                ctx.stroke(sp, with: .color(frameColor), lineWidth: u * 0.016)
+                sp.move(to:    CGPoint(x: ex + ox,          y: eyeY - lh))
+                sp.addLine(to: CGPoint(x: ex + ox * 0.70,   y: eyeY - lh - u * 0.055))
+                ctx.stroke(sp, with: .color(frameColor), lineWidth: u * 0.022)
             }
         }
         // Bridge
         var bridge = Path()
-        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.10))
-        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.10))
-        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.016)
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.020)
         // Arms
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * eyeSep
             var arm = Path()
-            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.10))
+            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.15))
             arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.015))
-            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.016)
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.020)
         }
     }
 
@@ -2115,83 +2116,82 @@ struct AnimalBodyView: View {
     // MARK: - Cat-Eye Glasses
 
     func drawCatEyeGlasses(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
-        let lw         = u * 0.092
-        let lh         = u * 0.060
-        let frameColor = Color(red: 0.72, green: 0.08, blue: 0.42)
-        let lensColor  = Color(red: 0.95, green: 0.55, blue: 0.78)
+        let lw         = u * 0.100
+        let lh         = u * 0.072
+        let frameColor = Color(red: 0.85, green: 0.02, blue: 0.50)
+        let lensColor  = Color(red: 1.00, green: 0.45, blue: 0.75)
 
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * eyeSep
-            // Cat-eye: sweeps up on the outer corner
+            // Cat-eye: flat bottom, sweeps up on outer corner
+            // Inner side = closer to nose, outer = away from nose
+            let innerX = ex - side * lw   // nose side
+            let outerX = ex + side * lw   // ear side
             var lens = Path()
-            lens.move(to: CGPoint(x: ex - lw,            y: eyeY + lh * 0.20))         // inner bottom
+            lens.move(to: CGPoint(x: innerX, y: eyeY + lh * 0.30))   // inner bottom
+            lens.addLine(to: CGPoint(x: innerX, y: eyeY - lh * 0.30)) // inner top
+            // Curve across top toward outer flick
             lens.addCurve(
-                to:       CGPoint(x: ex - lw,            y: eyeY - lh * 0.50),          // inner top
-                control1: CGPoint(x: ex - lw - u*0.010,  y: eyeY + lh * 0.10),
-                control2: CGPoint(x: ex - lw - u*0.010,  y: eyeY - lh * 0.40)
+                to:       CGPoint(x: outerX,          y: eyeY - lh * 1.10),  // outer tip flick
+                control1: CGPoint(x: innerX + side * lw * 0.5, y: eyeY - lh * 0.60),
+                control2: CGPoint(x: outerX - side * lw * 0.2, y: eyeY - lh * 0.90)
             )
-            lens.addLine(to: CGPoint(x: ex + lw * 0.65,  y: eyeY - lh * 0.80))         // top sweep toward outer tip
-            lens.addLine(to: CGPoint(x: ex + lw,         y: eyeY - lh * 1.05))          // outer tip (cat flick)
-            lens.addLine(to: CGPoint(x: ex + lw,         y: eyeY + lh * 0.20))          // outer bottom
-            lens.addCurve(
-                to:       CGPoint(x: ex - lw,            y: eyeY + lh * 0.20),
-                control1: CGPoint(x: ex + lw * 0.40,     y: eyeY + lh * 0.70),
-                control2: CGPoint(x: ex - lw * 0.40,     y: eyeY + lh * 0.70)
-            )
+            lens.addLine(to: CGPoint(x: outerX, y: eyeY + lh * 0.30))  // outer bottom
+            // Flat bottom edge back to inner
+            lens.addLine(to: CGPoint(x: innerX, y: eyeY + lh * 0.30))
             lens.closeSubpath()
-            ctx.fill(lens, with: .color(lensColor.opacity(0.60)))
-            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.020)
+            ctx.fill(lens, with: .color(lensColor.opacity(0.80)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.026)
         }
         // Bridge
         var bridge = Path()
-        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.30))
-        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.30))
-        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.016)
+        bridge.move(to:    CGPoint(x: cx - eyeSep + u * 0.096, y: eyeY - lh * 0.10))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - u * 0.096, y: eyeY - lh * 0.10))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.020)
         // Arms
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * eyeSep
+            let outerX = ex + side * lw
             var arm = Path()
-            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.80))
-            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.010))
-            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.016)
+            arm.move(to:    CGPoint(x: outerX,            y: eyeY - lh * 0.30))
+            arm.addLine(to: CGPoint(x: outerX + side * u * 0.14, y: eyeY + u * 0.010))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.020)
         }
     }
 
     // MARK: - Neon Shades
 
     func drawNeonShades(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
-        let lw         = u * 0.095
-        let lh         = u * 0.058
-        let glowColor  = Color(red: 0.10, green: 1.00, blue: 0.55)
-        let lensColor  = Color(red: 0.00, green: 0.90, blue: 0.45)
-        let frameColor = Color(red: 0.05, green: 0.05, blue: 0.10)
+        let lw        = u * 0.100
+        let lh        = u * 0.065
+        let glowColor = Color(red: 0.05, green: 1.00, blue: 0.50)
+        let darkLens  = Color(red: 0.00, green: 0.08, blue: 0.04)
 
         for side: CGFloat in [-1, 1] {
-            let ex = cx + side * eyeSep
+            let ex   = cx + side * eyeSep
             let rect = CGRect(x: ex - lw, y: eyeY - lh, width: lw * 2, height: lh * 2)
-            var lens = Path(roundedRect: rect, cornerRadius: lh * 0.30)
-            // Glow layers (outer → inner)
-            ctx.fill(lens, with: .color(glowColor.opacity(0.18)))
-            ctx.stroke(lens, with: .color(glowColor.opacity(0.35)), lineWidth: u * 0.040)
-            ctx.fill(lens, with: .color(lensColor.opacity(0.70)))
-            ctx.stroke(lens, with: .color(glowColor), lineWidth: u * 0.018)
-            // Inner neon stripe
-            var stripe = Path(roundedRect: CGRect(x: ex - lw * 0.70, y: eyeY - lh * 0.28,
-                                                  width: lw * 1.40, height: lh * 0.22),
-                              cornerRadius: lh * 0.10)
-            ctx.fill(stripe, with: .color(Color.white.opacity(0.30)))
+            var lens = Path(roundedRect: rect, cornerRadius: lh * 0.35)
+            // Dark lens fill
+            ctx.fill(lens, with: .color(darkLens.opacity(0.88)))
+            // Bright neon border only (thin, no outer glow bleed)
+            ctx.stroke(lens, with: .color(glowColor), lineWidth: u * 0.022)
+            // Shine glint inside lens
+            var glint = Path()
+            glint.move(to:    CGPoint(x: ex - lw * 0.55, y: eyeY - lh * 0.55))
+            glint.addLine(to: CGPoint(x: ex - lw * 0.15, y: eyeY - lh * 0.15))
+            ctx.stroke(glint, with: .color(glowColor.opacity(0.70)), lineWidth: u * 0.013)
         }
-        // Bridge
+        // Bridge — short and tight
         var bridge = Path()
-        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.20))
-        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.20))
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY))
         ctx.stroke(bridge, with: .color(glowColor), lineWidth: u * 0.018)
-        // Arms
+        // Arms — short so they don't extend onto body
         for side: CGFloat in [-1, 1] {
             let ex = cx + side * eyeSep
             var arm = Path()
-            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.20))
-            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.018))
+            arm.move(to:    CGPoint(x: ex + side * lw,        y: eyeY))
+            arm.addLine(to: CGPoint(x: ex + side * (lw + u * 0.08), y: eyeY + u * 0.010))
             ctx.stroke(arm, with: .color(glowColor), lineWidth: u * 0.018)
         }
     }
