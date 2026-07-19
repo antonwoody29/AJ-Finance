@@ -2468,6 +2468,18 @@ final class AppState {
         !(UserDefaults.standard.string(forKey: "aj_emailAddr") ?? "").isEmpty
     }
 
+    /// Resets the password if the email matches the stored account. Returns error string or nil on success.
+    func resetPassword(email: String, newPassword: String, confirm: String) -> String? {
+        let trimEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let stored    = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+        guard !stored.isEmpty             else { return "No account found." }
+        guard trimEmail == stored         else { return "No account found with that email." }
+        guard newPassword.count >= 6      else { return "Password must be at least 6 characters." }
+        guard newPassword == confirm      else { return "Passwords don't match." }
+        UserDefaults.standard.set(sha256(newPassword), forKey: "aj_emailHash")
+        return nil
+    }
+
     private func sha256(_ input: String) -> String {
         let digest = SHA256.hash(data: Data(input.utf8))
         return digest.map { String(format: "%02x", $0) }.joined()

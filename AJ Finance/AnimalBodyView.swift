@@ -1807,8 +1807,13 @@ struct AnimalBodyView: View {
             let eyeY   = headY - u * 0.040
             let eyeSep = u * 0.096
             switch outfit.id {
-            case "glasses_shades": drawShadesGlasses(ctx, cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
-            case "glasses_heart":  drawHeartGlasses(ctx,  cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_shades":    drawShadesGlasses(ctx,    cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_heart":     drawHeartGlasses(ctx,     cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_trr":       drawTRRGlasses(ctx,       cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_pineapple": drawPineappleShades(ctx,  cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_aviator":   drawAviatorShades(ctx,    cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_cateye":    drawCatEyeGlasses(ctx,    cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
+            case "glasses_neon":      drawNeonShades(ctx,       cx: cx, eyeY: eyeY, eyeSep: eyeSep, u: u)
             default:
                 ctx.draw(Text(emoji).font(.system(size: u * 0.20)),
                          at: CGPoint(x: cx, y: eyeY), anchor: .center)
@@ -1983,6 +1988,212 @@ struct AnimalBodyView: View {
                    control2: CGPoint(x: cx + r * 0.55, y: topY - r * 0.42))
         p.closeSubpath()
         return p
+    }
+
+    // MARK: - TRR Tortoiseshell Round Glasses
+
+    func drawTRRGlasses(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let r          = u * 0.078
+        let frameColor = Color(red: 0.45, green: 0.25, blue: 0.08)
+        let lensColor  = Color(red: 0.62, green: 0.38, blue: 0.15)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var lens = Path()
+            lens.addEllipse(in: CGRect(x: ex - r, y: eyeY - r * 0.85, width: r * 2, height: r * 1.70))
+            ctx.fill(lens, with: .color(lensColor.opacity(0.60)))
+            // Tortoiseshell fleck detail
+            var fleck = Path()
+            fleck.addEllipse(in: CGRect(x: ex - r * 0.45, y: eyeY - r * 0.55, width: r * 0.30, height: r * 0.45))
+            ctx.fill(fleck, with: .color(Color(red: 0.28, green: 0.13, blue: 0.03).opacity(0.45)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.022)
+        }
+        // Bridge
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + r, y: eyeY - r * 0.20))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - r, y: eyeY - r * 0.20))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.018)
+        // Arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * r,       y: eyeY - r * 0.20))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.015))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.018)
+        }
+    }
+
+    // MARK: - Pineapple Shades
+
+    func drawPineappleShades(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let lw         = u * 0.082
+        let lh         = u * 0.072
+        let frameColor = Color(red: 0.15, green: 0.52, blue: 0.10)
+        let lensColor  = Color(red: 0.98, green: 0.82, blue: 0.10)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            // Diamond/hexagon lens shape
+            var lens = Path()
+            lens.move(to:    CGPoint(x: ex,      y: eyeY - lh))
+            lens.addLine(to: CGPoint(x: ex + lw, y: eyeY - lh * 0.30))
+            lens.addLine(to: CGPoint(x: ex + lw, y: eyeY + lh * 0.30))
+            lens.addLine(to: CGPoint(x: ex,      y: eyeY + lh))
+            lens.addLine(to: CGPoint(x: ex - lw, y: eyeY + lh * 0.30))
+            lens.addLine(to: CGPoint(x: ex - lw, y: eyeY - lh * 0.30))
+            lens.closeSubpath()
+            ctx.fill(lens, with: .color(lensColor.opacity(0.82)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.020)
+            // Pineapple top spikes
+            for spike: CGFloat in [-0.5, 0, 0.5] {
+                var sp = Path()
+                sp.move(to:    CGPoint(x: ex + spike * lw * 0.7, y: eyeY - lh))
+                sp.addLine(to: CGPoint(x: ex + spike * lw * 0.5, y: eyeY - lh - u * 0.040))
+                ctx.stroke(sp, with: .color(frameColor), lineWidth: u * 0.016)
+            }
+        }
+        // Bridge
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.10))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.10))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.016)
+        // Arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.10))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.015))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.016)
+        }
+    }
+
+    // MARK: - Aviator Shades
+
+    func drawAviatorShades(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let lw         = u * 0.088
+        let lh         = u * 0.075
+        let frameColor = Color(red: 0.85, green: 0.70, blue: 0.15)
+        let lensColor  = Color(red: 0.30, green: 0.55, blue: 0.85)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            // Teardrop: straight top edge, rounded bottom
+            var lens = Path()
+            lens.move(to: CGPoint(x: ex - lw, y: eyeY - lh * 0.35))
+            lens.addLine(to: CGPoint(x: ex + lw, y: eyeY - lh * 0.35))
+            lens.addCurve(
+                to:       CGPoint(x: ex - lw, y: eyeY - lh * 0.35),
+                control1: CGPoint(x: ex + lw + u * 0.010, y: eyeY + lh * 0.90),
+                control2: CGPoint(x: ex - lw - u * 0.010, y: eyeY + lh * 0.90)
+            )
+            lens.closeSubpath()
+            ctx.fill(lens, with: .color(lensColor.opacity(0.55)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.020)
+            // Shine glint
+            var glint = Path()
+            glint.move(to:    CGPoint(x: ex - lw * 0.55, y: eyeY - lh * 0.25))
+            glint.addLine(to: CGPoint(x: ex - lw * 0.20, y: eyeY - lh * 0.05))
+            ctx.stroke(glint, with: .color(Color.white.opacity(0.55)), lineWidth: u * 0.012)
+        }
+        // Double bridge (aviator signature)
+        for offset: CGFloat in [-0.12, 0.12] {
+            var bridge = Path()
+            bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.35 + u * offset))
+            bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.35 + u * offset))
+            ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.014)
+        }
+        // Arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.35))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.015))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.018)
+        }
+    }
+
+    // MARK: - Cat-Eye Glasses
+
+    func drawCatEyeGlasses(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let lw         = u * 0.092
+        let lh         = u * 0.060
+        let frameColor = Color(red: 0.72, green: 0.08, blue: 0.42)
+        let lensColor  = Color(red: 0.95, green: 0.55, blue: 0.78)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            // Cat-eye: sweeps up on the outer corner
+            var lens = Path()
+            lens.move(to: CGPoint(x: ex - lw,            y: eyeY + lh * 0.20))         // inner bottom
+            lens.addCurve(
+                to:       CGPoint(x: ex - lw,            y: eyeY - lh * 0.50),          // inner top
+                control1: CGPoint(x: ex - lw - u*0.010,  y: eyeY + lh * 0.10),
+                control2: CGPoint(x: ex - lw - u*0.010,  y: eyeY - lh * 0.40)
+            )
+            lens.addLine(to: CGPoint(x: ex + lw * 0.65,  y: eyeY - lh * 0.80))         // top sweep toward outer tip
+            lens.addLine(to: CGPoint(x: ex + lw,         y: eyeY - lh * 1.05))          // outer tip (cat flick)
+            lens.addLine(to: CGPoint(x: ex + lw,         y: eyeY + lh * 0.20))          // outer bottom
+            lens.addCurve(
+                to:       CGPoint(x: ex - lw,            y: eyeY + lh * 0.20),
+                control1: CGPoint(x: ex + lw * 0.40,     y: eyeY + lh * 0.70),
+                control2: CGPoint(x: ex - lw * 0.40,     y: eyeY + lh * 0.70)
+            )
+            lens.closeSubpath()
+            ctx.fill(lens, with: .color(lensColor.opacity(0.60)))
+            ctx.stroke(lens, with: .color(frameColor), lineWidth: u * 0.020)
+        }
+        // Bridge
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.30))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.30))
+        ctx.stroke(bridge, with: .color(frameColor), lineWidth: u * 0.016)
+        // Arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.80))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.010))
+            ctx.stroke(arm, with: .color(frameColor), lineWidth: u * 0.016)
+        }
+    }
+
+    // MARK: - Neon Shades
+
+    func drawNeonShades(_ ctx: GraphicsContext, cx: CGFloat, eyeY: CGFloat, eyeSep: CGFloat, u: CGFloat) {
+        let lw         = u * 0.095
+        let lh         = u * 0.058
+        let glowColor  = Color(red: 0.10, green: 1.00, blue: 0.55)
+        let lensColor  = Color(red: 0.00, green: 0.90, blue: 0.45)
+        let frameColor = Color(red: 0.05, green: 0.05, blue: 0.10)
+
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            let rect = CGRect(x: ex - lw, y: eyeY - lh, width: lw * 2, height: lh * 2)
+            var lens = Path(roundedRect: rect, cornerRadius: lh * 0.30)
+            // Glow layers (outer → inner)
+            ctx.fill(lens, with: .color(glowColor.opacity(0.18)))
+            ctx.stroke(lens, with: .color(glowColor.opacity(0.35)), lineWidth: u * 0.040)
+            ctx.fill(lens, with: .color(lensColor.opacity(0.70)))
+            ctx.stroke(lens, with: .color(glowColor), lineWidth: u * 0.018)
+            // Inner neon stripe
+            var stripe = Path(roundedRect: CGRect(x: ex - lw * 0.70, y: eyeY - lh * 0.28,
+                                                  width: lw * 1.40, height: lh * 0.22),
+                              cornerRadius: lh * 0.10)
+            ctx.fill(stripe, with: .color(Color.white.opacity(0.30)))
+        }
+        // Bridge
+        var bridge = Path()
+        bridge.move(to:    CGPoint(x: cx - eyeSep + lw, y: eyeY - lh * 0.20))
+        bridge.addLine(to: CGPoint(x: cx + eyeSep - lw, y: eyeY - lh * 0.20))
+        ctx.stroke(bridge, with: .color(glowColor), lineWidth: u * 0.018)
+        // Arms
+        for side: CGFloat in [-1, 1] {
+            let ex = cx + side * eyeSep
+            var arm = Path()
+            arm.move(to:    CGPoint(x: ex + side * lw,       y: eyeY - lh * 0.20))
+            arm.addLine(to: CGPoint(x: ex + side * u * 0.22, y: eyeY + u * 0.018))
+            ctx.stroke(arm, with: .color(glowColor), lineWidth: u * 0.018)
+        }
     }
 
     // MARK: - Hat Drawing Functions
@@ -4171,8 +4382,13 @@ struct AnimalBodyView: View {
             let eggEyeY = cy - u * 0.015
             let eggSep  = u * 0.088
             switch outfit.id {
-            case "glasses_shades": drawShadesGlasses(ctx, cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
-            case "glasses_heart":  drawHeartGlasses(ctx,  cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_shades":    drawShadesGlasses(ctx,    cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_heart":     drawHeartGlasses(ctx,     cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_trr":       drawTRRGlasses(ctx,       cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_pineapple": drawPineappleShades(ctx,  cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_aviator":   drawAviatorShades(ctx,    cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_cateye":    drawCatEyeGlasses(ctx,    cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
+            case "glasses_neon":      drawNeonShades(ctx,       cx: cx, eyeY: eggEyeY, eyeSep: eggSep, u: u)
             default:
                 ctx.draw(Text(emoji).font(.system(size: u * 0.19)),
                          at: CGPoint(x: cx, y: eggEyeY), anchor: .center)

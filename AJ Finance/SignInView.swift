@@ -334,15 +334,20 @@ struct EmailAuthSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
-    @State private var isSignUp:     Bool   = false   // false = Log In, true = Sign Up
-    @State private var name          = ""
-    @State private var email         = ""
-    @State private var password      = ""
-    @State private var confirmPw     = ""
-    @State private var errorMsg:     String? = nil
-    @State private var showPassword  = false
-    @State private var showConfirm   = false
-    @State private var isLoading     = false
+    @State private var isSignUp:        Bool   = false
+    @State private var name             = ""
+    @State private var email            = ""
+    @State private var password         = ""
+    @State private var confirmPw        = ""
+    @State private var errorMsg:        String? = nil
+    @State private var showPassword     = false
+    @State private var showConfirm      = false
+    @State private var isLoading        = false
+    @State private var showForgotPw     = false
+
+    private var savedEmail: String {
+        UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+    }
 
     var body: some View {
         NavigationStack {
@@ -440,6 +445,16 @@ struct EmailAuthSheet: View {
                         .padding(.horizontal, 28)
                         .padding(.top, 24)
 
+                        // Forgot password — login mode only
+                        if !isSignUp {
+                            Button { showForgotPw = true } label: {
+                                Text("Forgot password?")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.ajOrange.opacity(0.80))
+                            }
+                            .padding(.top, 8)
+                        }
+
                         Text("Your data stays on your device and is never shared.")
                             .font(.system(size: 11))
                             .foregroundColor(.white.opacity(0.28))
@@ -467,6 +482,14 @@ struct EmailAuthSheet: View {
                         .foregroundColor(.ajOrange)
                 }
             }
+            .onAppear {
+                if !isSignUp && email.isEmpty && !savedEmail.isEmpty {
+                    email = savedEmail
+                }
+            }
+            .sheet(isPresented: $showForgotPw) {
+                ForgotPasswordSheet().environment(appState)
+            }
         }
     }
 
@@ -486,6 +509,125 @@ struct EmailAuthSheet: View {
                 withAnimation { errorMsg = err }
             } else {
                 dismiss()
+            }
+        }
+    }
+}
+
+// MARK: - Forgot Password Sheet
+
+struct ForgotPasswordSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var email       = ""
+    @State private var newPw       = ""
+    @State private var confirmPw   = ""
+    @State private var showNewPw   = false
+    @State private var showConfirm = false
+    @State private var errorMsg:   String? = nil
+    @State private var success     = false
+
+    private var savedEmail: String {
+        UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(red: 0.06, green: 0.08, blue: 0.16).ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 22) {
+                        Text("🔐")
+                            .font(.system(size: 56))
+                            .padding(.top, 10)
+
+                        if success {
+                            VStack(spacing: 14) {
+                                Text("Password Updated!")
+                                    .font(.system(size: 22, weight: .black))
+                                    .foregroundColor(.white)
+                                Text("You can now log in with your new password.")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.60))
+                                    .multilineTextAlignment(.center)
+                                Button {
+                                    dismiss()
+                                } label: {
+                                    Text("Back to Login")
+                                        .font(.system(size: 17, weight: .black))
+                                        .foregroundColor(.black)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(RoundedRectangle(cornerRadius: 14)
+                                            .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing)))
+                                }
+                                .padding(.top, 8)
+                            }
+                        } else {
+                            Text("Reset Your Password")
+                                .font(.system(size: 22, weight: .black))
+                                .foregroundColor(.white)
+
+                            Text("Enter your account email and choose a new password.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.55))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 8)
+
+                            VStack(spacing: 14) {
+                                AuthField(label: "Account Email", text: $email,
+                                          icon: "envelope.fill", secure: false,
+                                          keyboard: .emailAddress)
+
+                                AuthField(label: "New Password", text: $newPw,
+                                          icon: "lock.fill", secure: !showNewPw,
+                                          toggle: { showNewPw.toggle() })
+
+                                AuthField(label: "Confirm New Password", text: $confirmPw,
+                                          icon: "lock.fill", secure: !showConfirm,
+                                          toggle: { showConfirm.toggle() })
+                            }
+
+                            if let msg = errorMsg {
+                                Text(msg)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color(red: 1.0, green: 0.38, blue: 0.38))
+                                    .multilineTextAlignment(.center)
+                            }
+
+                            Button {
+                                if let err = appState.resetPassword(email: email, newPassword: newPw, confirm: confirmPw) {
+                                    withAnimation { errorMsg = err }
+                                } else {
+                                    withAnimation { success = true }
+                                }
+                            } label: {
+                                Text("Reset Password")
+                                    .font(.system(size: 17, weight: .black))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(RoundedRectangle(cornerRadius: 14)
+                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing)))
+                            }
+                        }
+
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 28)
+                }
+            }
+            .navigationTitle("Forgot Password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }.foregroundColor(.ajOrange)
+                }
+            }
+            .onAppear {
+                if email.isEmpty && !savedEmail.isEmpty { email = savedEmail }
             }
         }
     }

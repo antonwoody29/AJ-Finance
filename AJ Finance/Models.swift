@@ -2300,7 +2300,9 @@ enum OutfitSlot: String, CaseIterable, Codable, Identifiable {
     case hat     = "Hat"
     case glasses = "Glasses"
     case collar  = "Collar"
+    case shirt   = "Shirt"
     case cape    = "Cape"
+    case food    = "Food"
     var id: String { rawValue }
 
     var icon: String {
@@ -2308,7 +2310,9 @@ enum OutfitSlot: String, CaseIterable, Codable, Identifiable {
         case .hat:     return "👒"
         case .glasses: return "🕶️"
         case .collar:  return "📿"
+        case .shirt:   return "👕"
         case .cape:    return "🦸"
+        case .food:    return "🍽️"
         }
     }
 }
@@ -2742,18 +2746,137 @@ let allOutfits: [OutfitItem] = [
     // Hats
     OutfitItem(id: "hat_cap",     name: "Fresh Cap",    emoji: "🧢", slot: .hat, rarity: .common,    cost: 50,  itemDescription: "A clean fitted cap. Simple flex."),
     OutfitItem(id: "hat_top",     name: "Top Hat",      emoji: "🎩", slot: .hat, rarity: .common,    cost: 75,  itemDescription: "Old money energy."),
-    OutfitItem(id: "hat_cowboy",  name: "Cowboy Hat",   emoji: "🤠", slot: .hat, rarity: .common,    cost: 60,  itemDescription: "Yeehaw, we saving!"),
+    OutfitItem(id: "hat_cowboy",  name: "Cowboy Hat",   emoji: "🪖", slot: .hat, rarity: .common,    cost: 60,  itemDescription: "Yeehaw, we saving!"),
     OutfitItem(id: "hat_crown",   name: "Gold Crown",   emoji: "👑", slot: .hat, rarity: .rare,      cost: 200, itemDescription: "For the financially royal."),
-    OutfitItem(id: "hat_party",   name: "Party Hat",    emoji: "🎉", slot: .hat, rarity: .common,    cost: 40,  itemDescription: "Goal complete energy."),
-    OutfitItem(id: "hat_halo",    name: "Angel Halo",   emoji: "😇", slot: .hat, rarity: .legendary, cost: 500, itemDescription: "You've ascended. Financially."),
+    OutfitItem(id: "hat_party",   name: "Grad Cap",     emoji: "🎓", slot: .hat, rarity: .common,    cost: 40,  itemDescription: "Financially graduated. Top of the class."),
+    OutfitItem(id: "hat_halo",    name: "Angel Halo",   emoji: "🌟", slot: .hat, rarity: .legendary, cost: 500, itemDescription: "You've ascended. Financially."),
+    OutfitItem(id: "hat_beanie", name: "Cozy Beanie",  emoji: "🧶", slot: .hat, rarity: .common,    cost: 55,  itemDescription: "Low-key drip. Big savings energy."),
+    OutfitItem(id: "hat_bucket", name: "Bucket Hat",   emoji: "🪣", slot: .hat, rarity: .common,    cost: 65,  itemDescription: "Chill vibes, stacked savings."),
+    OutfitItem(id: "hat_wizard",      name: "Wizard Hat",    emoji: "🔮", slot: .hat, rarity: .rare,   cost: 175, itemDescription: "Manifest that bag."),
+    OutfitItem(id: "hat_top_pink",    name: "Pink Top Hat",  emoji: "🎩", slot: .hat, rarity: .common, cost: 80,  itemDescription: "Old money, new color."),
+    OutfitItem(id: "hat_cap_pink",    name: "Pink Cap",      emoji: "🧢", slot: .hat, rarity: .common, cost: 55,  itemDescription: "Pink and fresh."),
+    OutfitItem(id: "hat_cowboy_pink", name: "Pink Cowboy",   emoji: "🪖", slot: .hat, rarity: .common, cost: 65,  itemDescription: "Yeehaw, in pink."),
+    OutfitItem(id: "hat_beanie_pink", name: "Pink Beanie",   emoji: "🩷", slot: .hat, rarity: .common, cost: 60,  itemDescription: "Cozy and cute."),
+    OutfitItem(id: "hat_bucket_pink",   name: "Pink Bucket",     emoji: "🌸", slot: .hat, rarity: .common, cost: 70,  itemDescription: "Chill vibes, pink edition."),
+    OutfitItem(id: "hat_pride_cap",     name: "Pride Cap",       emoji: "🌈", slot: .hat, rarity: .rare,   cost: 120, itemDescription: "Six colors. One love. Fresh drip."),
+    OutfitItem(id: "hat_pride_beanie",  name: "Pride Beanie",    emoji: "🌈", slot: .hat, rarity: .rare,   cost: 110, itemDescription: "Cozy and colorful. That's the vibe."),
     // Glasses
-    OutfitItem(id: "glasses_shades",  name: "Designer Shades", emoji: "🕶️", slot: .glasses, rarity: .common, cost: 80,  itemDescription: "No cap, these slap."),
-    OutfitItem(id: "glasses_heart",   name: "Heart Glasses",   emoji: "🩷", slot: .glasses, rarity: .rare,   cost: 150, itemDescription: "Love and savings."),
-    OutfitItem(id: "glasses_monocle", name: "Money Monocle",   emoji: "🧐", slot: .glasses, rarity: .rare,   cost: 180, itemDescription: "Inspecting those receipts closely."),
+    OutfitItem(id: "glasses_shades",     name: "Designer Shades",    emoji: "🕶️", slot: .glasses, rarity: .common,    cost: 80,  itemDescription: "No cap, these slap."),
+    OutfitItem(id: "glasses_heart",      name: "Heart Glasses",      emoji: "🩷", slot: .glasses, rarity: .rare,      cost: 150, itemDescription: "Love and savings."),
+    OutfitItem(id: "glasses_trr",        name: "TRR Frames",         emoji: "🟤", slot: .glasses, rarity: .rare,      cost: 175, itemDescription: "Tortoiseshell. Sophisticated fr."),
+    OutfitItem(id: "glasses_pineapple",  name: "Pineapple Shades",   emoji: "🍍", slot: .glasses, rarity: .rare,      cost: 200, itemDescription: "Tropical drip. Budget-proof."),
+    OutfitItem(id: "glasses_aviator",    name: "Aviator Shades",     emoji: "✈️", slot: .glasses, rarity: .common,    cost: 120, itemDescription: "Top Gun energy. Zero debt."),
+    OutfitItem(id: "glasses_cateye",     name: "Cat-Eye Frames",     emoji: "😻", slot: .glasses, rarity: .rare,      cost: 160, itemDescription: "Retro glam. Financially iconic."),
+    OutfitItem(id: "glasses_neon",       name: "Neon Shades",        emoji: "🟢", slot: .glasses, rarity: .legendary, cost: 350, itemDescription: "Electric. They see you saving."),
     // Collars
     OutfitItem(id: "collar_bow",   name: "Bow Tie",      emoji: "🎀", slot: .collar, rarity: .common,    cost: 60,  itemDescription: "Dapper, not spendy."),
     OutfitItem(id: "collar_chain", name: "Gold Chain",   emoji: "📿", slot: .collar, rarity: .rare,      cost: 200, itemDescription: "Iced out. Budget-conscious."),
     OutfitItem(id: "collar_pearl", name: "Pearl Collar", emoji: "💎", slot: .collar, rarity: .legendary, cost: 400, itemDescription: "The real deal. Earned."),
+    // Shirts
+    OutfitItem(id: "shirt_tee",         name: "Graphic Tee",    emoji: "👕", slot: .shirt, rarity: .common,    cost: 45,  itemDescription: "Classic drip. Zero interest."),
+    OutfitItem(id: "shirt_hoodie",      name: "Hoodie",          emoji: "🧥", slot: .shirt, rarity: .common,    cost: 80,  itemDescription: "Cozy savings mode: activated."),
+    OutfitItem(id: "shirt_suit",        name: "Power Suit",      emoji: "🤵", slot: .shirt, rarity: .rare,      cost: 220, itemDescription: "Dress for the bag you want."),
+    OutfitItem(id: "shirt_jersey",      name: "Sports Jersey",   emoji: "🏅", slot: .shirt, rarity: .common,    cost: 60,  itemDescription: "MVP energy. All day."),
+    OutfitItem(id: "shirt_denim",       name: "Denim Jacket",    emoji: "🫙", slot: .shirt, rarity: .rare,      cost: 150, itemDescription: "Vintage fit. Fresh stack."),
+    OutfitItem(id: "shirt_leather",     name: "Leather Jacket",  emoji: "🖤", slot: .shirt, rarity: .rare,      cost: 180, itemDescription: "Bad and building wealth."),
+    OutfitItem(id: "shirt_flannel",     name: "Flannel Shirt",   emoji: "🪵", slot: .shirt, rarity: .common,    cost: 55,  itemDescription: "Lumberjack budget. 0 debt."),
+    OutfitItem(id: "shirt_turtleneck",  name: "Turtleneck",      emoji: "🐢", slot: .shirt, rarity: .common,    cost: 70,  itemDescription: "Intellectual investor energy."),
+    OutfitItem(id: "shirt_windbreaker", name: "Windbreaker",     emoji: "💨", slot: .shirt, rarity: .rare,      cost: 130, itemDescription: "Moves fast. Just like your savings."),
+    OutfitItem(id: "shirt_polo",        name: "Polo Shirt",      emoji: "🎽", slot: .shirt, rarity: .common,    cost: 50,  itemDescription: "Old money, new bag."),
+    // Tee color variants
+    OutfitItem(id: "shirt_tee_red",    name: "Red Tee",         emoji: "👕", slot: .shirt, rarity: .common, cost: 45, itemDescription: "Hot like your credit score."),
+    OutfitItem(id: "shirt_tee_black",  name: "Black Tee",       emoji: "👕", slot: .shirt, rarity: .common, cost: 45, itemDescription: "Stealth wealth activated."),
+    OutfitItem(id: "shirt_tee_white",  name: "White Tee",       emoji: "👕", slot: .shirt, rarity: .common, cost: 40, itemDescription: "Clean slate, clean budget."),
+    OutfitItem(id: "shirt_tee_green",  name: "Green Tee",       emoji: "👕", slot: .shirt, rarity: .common, cost: 45, itemDescription: "Money-colored. Intentional."),
+    // Hoodie color variants
+    OutfitItem(id: "shirt_hoodie_red",   name: "Red Hoodie",    emoji: "🧥", slot: .shirt, rarity: .common, cost: 80, itemDescription: "Bold moves. Bold savings."),
+    OutfitItem(id: "shirt_hoodie_black", name: "Black Hoodie",  emoji: "🧥", slot: .shirt, rarity: .common, cost: 80, itemDescription: "Dark mode. Bright future."),
+    OutfitItem(id: "shirt_hoodie_green", name: "Green Hoodie",  emoji: "🧥", slot: .shirt, rarity: .common, cost: 80, itemDescription: "Forest vibes, compound interest."),
+    // Turtleneck color variants
+    OutfitItem(id: "shirt_turtleneck_black", name: "Black Turtleneck", emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Steve Jobs energy. Budget genius."),
+    OutfitItem(id: "shirt_turtleneck_navy",  name: "Navy Turtleneck",  emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Deep ocean, deep pockets."),
+    OutfitItem(id: "shirt_turtleneck_green", name: "Forest Turtleneck",emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Nature money mindset."),
+    // Jersey color variants
+    OutfitItem(id: "shirt_jersey_blue",  name: "Blue Jersey",   emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blue chip energy."),
+    OutfitItem(id: "shirt_jersey_black", name: "Black Jersey",  emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blackout season. Stack season."),
+    OutfitItem(id: "shirt_jersey_white", name: "White Jersey",  emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Clean kit. Cleaner finances."),
+    // Polo color variants
+    OutfitItem(id: "shirt_polo_white",  name: "White Polo",     emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "Classic clean. No cap."),
+    OutfitItem(id: "shirt_polo_navy",   name: "Navy Polo",      emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "Yacht club budget."),
+    OutfitItem(id: "shirt_polo_red",    name: "Red Polo",       emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "On the course. On the grind."),
+    // Bomber color variants
+    OutfitItem(id: "shirt_bomber_black", name: "Black Bomber",  emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Midnight altitude."),
+    OutfitItem(id: "shirt_bomber_navy",  name: "Navy Bomber",   emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Navy ops. Savings secured."),
+    OutfitItem(id: "shirt_bomber_tan",   name: "Tan Bomber",    emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Desert camo for your bank account."),
+    OutfitItem(id: "shirt_varsity",     name: "Varsity Jacket",  emoji: "🏆", slot: .shirt, rarity: .rare,      cost: 160, itemDescription: "Letter earned. Bag secured."),
+    OutfitItem(id: "shirt_trench",      name: "Trench Coat",     emoji: "🕵️", slot: .shirt, rarity: .rare,      cost: 200, itemDescription: "Undercover rich."),
+    OutfitItem(id: "shirt_hawaiian",    name: "Hawaiian Shirt",  emoji: "🌺", slot: .shirt, rarity: .common,    cost: 45,  itemDescription: "Vacation mode. Budget intact."),
+    OutfitItem(id: "shirt_vest",        name: "Sweater Vest",    emoji: "🧩", slot: .shirt, rarity: .common,    cost: 65,  itemDescription: "Preppy saver energy."),
+    OutfitItem(id: "shirt_bomber",      name: "Bomber Jacket",   emoji: "✈️", slot: .shirt, rarity: .rare,      cost: 175, itemDescription: "High altitude savings."),
+    // Girl shirts - pink/purple color variants
+    OutfitItem(id: "shirt_tee_pink",      name: "Pink Tee",        emoji: "👕", slot: .shirt, rarity: .common, cost: 45,  itemDescription: "Cute in pink."),
+    OutfitItem(id: "shirt_tee_purple",    name: "Purple Tee",      emoji: "👕", slot: .shirt, rarity: .common, cost: 45,  itemDescription: "Lavender money energy."),
+    OutfitItem(id: "shirt_tee_coral",     name: "Coral Tee",       emoji: "👕", slot: .shirt, rarity: .common, cost: 45,  itemDescription: "Warm and vibrant."),
+    OutfitItem(id: "shirt_hoodie_pink",   name: "Pink Hoodie",     emoji: "🩷", slot: .shirt, rarity: .common, cost: 80,  itemDescription: "Cozy pink vibes."),
+    OutfitItem(id: "shirt_hoodie_lilac",  name: "Lilac Hoodie",    emoji: "🩷", slot: .shirt, rarity: .common, cost: 80,  itemDescription: "Soft purple hustle."),
+    OutfitItem(id: "shirt_polo_pink",     name: "Pink Polo",       emoji: "👚", slot: .shirt, rarity: .common, cost: 50,  itemDescription: "Preppy in pink."),
+    OutfitItem(id: "shirt_polo_lavender", name: "Lavender Polo",   emoji: "👚", slot: .shirt, rarity: .common, cost: 50,  itemDescription: "Soft lavender flex."),
+    // Dresses
+    OutfitItem(id: "dress_sundress",      name: "Floral Sundress", emoji: "👗", slot: .shirt, rarity: .common,    cost: 65,  itemDescription: "Sunny day savings."),
+    OutfitItem(id: "dress_party",         name: "Party Dress",     emoji: "👗", slot: .shirt, rarity: .rare,      cost: 140, itemDescription: "Celebrate every deposit."),
+    OutfitItem(id: "dress_ballet",        name: "Ballet Dress",    emoji: "🩰", slot: .shirt, rarity: .rare,      cost: 120, itemDescription: "Graceful with the budget."),
+    OutfitItem(id: "dress_overalls",      name: "Cute Overalls",   emoji: "👗", slot: .shirt, rarity: .common,    cost: 55,  itemDescription: "Casual money moves."),
+    OutfitItem(id: "dress_crop_hoodie",   name: "Crop Hoodie",     emoji: "🩷", slot: .shirt, rarity: .common,    cost: 75,  itemDescription: "Trendy and warm."),
+    OutfitItem(id: "dress_cardigan",      name: "Cardigan",        emoji: "🧶", slot: .shirt, rarity: .common,    cost: 70,  itemDescription: "Cozy knit energy."),
+    OutfitItem(id: "dress_sparkle",       name: "Sparkle Dress",   emoji: "✨", slot: .shirt, rarity: .legendary, cost: 350, itemDescription: "You're glowing. Literally."),
+    OutfitItem(id: "dress_pink_maxi",     name: "Pink Maxi Dress", emoji: "👗", slot: .shirt, rarity: .rare,      cost: 160, itemDescription: "Long, flowy, and flush."),
+    OutfitItem(id: "dress_pink_ruffle",   name: "Pink Ruffle Dress",emoji: "👗", slot: .shirt, rarity: .rare,      cost: 130, itemDescription: "Tiered ruffles = stacked savings."),
+    OutfitItem(id: "dress_hot_pink_mini", name: "Hot Pink Mini",   emoji: "💗", slot: .shirt, rarity: .rare,      cost: 110, itemDescription: "Short, fierce, and saving."),
+    OutfitItem(id: "dress_pink_bow",      name: "Pink Bow Dress",  emoji: "🎀", slot: .shirt, rarity: .common,    cost: 85,  itemDescription: "Bow down to the budget queen."),
+    OutfitItem(id: "dress_pink_wrap",     name: "Pink Wrap Dress",   emoji: "🌸", slot: .shirt, rarity: .common,    cost: 90,  itemDescription: "Wrapped up in savings."),
+    // Tracksuits
+    OutfitItem(id: "tracksuit_pink",   name: "Pink Tracksuit",   emoji: "🩷", slot: .shirt, rarity: .common, cost: 95,  itemDescription: "Stay fly while you save."),
+    OutfitItem(id: "tracksuit_black",  name: "Black Tracksuit",  emoji: "🖤", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "All black everything."),
+    OutfitItem(id: "tracksuit_navy",   name: "Navy Tracksuit",   emoji: "👟", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Classic navy drip."),
+    OutfitItem(id: "tracksuit_red",    name: "Red Tracksuit",    emoji: "❤️", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Hot like your savings rate."),
+    OutfitItem(id: "tracksuit_green",  name: "Green Tracksuit",  emoji: "💚", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Money-colored fit."),
+    OutfitItem(id: "tracksuit_white",  name: "White Tracksuit",  emoji: "🤍", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Clean like your budget."),
+    OutfitItem(id: "tracksuit_purple", name: "Purple Tracksuit", emoji: "💜", slot: .shirt, rarity: .common, cost: 95,  itemDescription: "Royalty vibes."),
+    OutfitItem(id: "tracksuit_orange",       name: "Orange Tracksuit",   emoji: "🧡", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Bold moves only."),
+    // Pride outfits
+    OutfitItem(id: "shirt_pride_tee",        name: "Pride Tee",          emoji: "🌈", slot: .shirt, rarity: .rare,   cost: 150, itemDescription: "Six stripes, infinite drip."),
+    OutfitItem(id: "shirt_pride_hoodie",     name: "Pride Hoodie",       emoji: "🌈", slot: .shirt, rarity: .rare,   cost: 180, itemDescription: "Cozy, colorful, and unapologetically you."),
+    OutfitItem(id: "shirt_pride_tracksuit",  name: "Pride Tracksuit",    emoji: "🌈", slot: .shirt, rarity: .rare,   cost: 280, itemDescription: "Run your truth. All six lanes."),
+    // Food items
+    OutfitItem(id: "food_ramen",      name: "Cup Ramen",         emoji: "🍜", slot: .food, rarity: .common,    cost: 30,  itemDescription: "The OG budget meal. Still hits."),
+    OutfitItem(id: "food_taco",       name: "Street Tacos",      emoji: "🌮", slot: .food, rarity: .common,    cost: 35,  itemDescription: "Late night fuel. Budget friendly."),
+    OutfitItem(id: "food_pizza",      name: "Pizza Slice",       emoji: "🍕", slot: .food, rarity: .common,    cost: 40,  itemDescription: "Dollar slice energy. Always slaps."),
+    OutfitItem(id: "food_bento",      name: "Bento Box",         emoji: "🍱", slot: .food, rarity: .common,    cost: 50,  itemDescription: "Balanced and budget. Big brain meal."),
+    OutfitItem(id: "food_burger",     name: "Smash Burger",      emoji: "🍔", slot: .food, rarity: .common,    cost: 65,  itemDescription: "Classic comfort. Solid value."),
+    OutfitItem(id: "food_pasta",      name: "Pasta Bowl",        emoji: "🍝", slot: .food, rarity: .rare,      cost: 85,  itemDescription: "Carb load. Savings load."),
+    OutfitItem(id: "food_ribs",       name: "BBQ Ribs",          emoji: "🍖", slot: .food, rarity: .rare,      cost: 100, itemDescription: "Earned these with that discipline."),
+    OutfitItem(id: "food_sushi",      name: "Sushi Rolls",       emoji: "🍣", slot: .food, rarity: .rare,      cost: 130, itemDescription: "Treating yourself — classy edition."),
+    OutfitItem(id: "food_shrimp",     name: "Tempura Shrimp",    emoji: "🍤", slot: .food, rarity: .rare,      cost: 150, itemDescription: "Crispy on the outside, stacked inside."),
+    OutfitItem(id: "food_lobster",    name: "Lobster Dinner",    emoji: "🦞", slot: .food, rarity: .rare,      cost: 220, itemDescription: "Big saver energy. Big meal energy."),
+    OutfitItem(id: "food_wagyu",      name: "Wagyu Steak",       emoji: "🥩", slot: .food, rarity: .legendary, cost: 400, itemDescription: "Marbled like your investment portfolio."),
+    OutfitItem(id: "food_caviar",     name: "Diamond Caviar",    emoji: "🫧", slot: .food, rarity: .legendary, cost: 500, itemDescription: "The flex. The pinnacle. The bag."),
+    OutfitItem(id: "food_goldtruffle",  name: "Gold Truffle Feast", emoji: "✨", slot: .food, rarity: .legendary, cost: 600, itemDescription: "A meal worthy of a financial legend."),
+    OutfitItem(id: "food_jerk_chicken", name: "Jerk Chicken",       emoji: "🍗", slot: .food, rarity: .rare,      cost: 110, itemDescription: "Smoky, spicy, and well-seasoned. Like your budget."),
+    OutfitItem(id: "food_mac_cheese",   name: "Mac & Cheese",       emoji: "🧀", slot: .food, rarity: .common,    cost: 55,  itemDescription: "Comfort food. Comfort savings. Stay home and stack."),
+    OutfitItem(id: "food_lollipop",     name: "Lollipop",           emoji: "🍭", slot: .food, rarity: .common,    cost: 25,  itemDescription: "Sweetest budget meal around. Treat yourself (cheaply)."),
+    OutfitItem(id: "food_popcorn",      name: "Popcorn",            emoji: "🍿", slot: .food, rarity: .common,    cost: 28,  itemDescription: "Movie night fuel. Budget-friendly snack."),
+    OutfitItem(id: "food_hotdog",       name: "Hot Dog",            emoji: "🌭", slot: .food, rarity: .common,    cost: 32,  itemDescription: "Classic street food. No complaints."),
+    OutfitItem(id: "food_donut",        name: "Glazed Donut",       emoji: "🍩", slot: .food, rarity: .common,    cost: 38,  itemDescription: "A circle of joy. Fiscally responsible dessert."),
+    OutfitItem(id: "food_pancakes",     name: "Pancake Stack",      emoji: "🥞", slot: .food, rarity: .common,    cost: 55,  itemDescription: "Stack your pancakes. Stack your coins."),
+    OutfitItem(id: "food_waffle",       name: "Waffle Stack",       emoji: "🧇", slot: .food, rarity: .common,    cost: 60,  itemDescription: "Crispy outside, soft inside. Like your financial strategy."),
+    OutfitItem(id: "food_sandwich",     name: "Deli Sandwich",      emoji: "🥪", slot: .food, rarity: .common,    cost: 50,  itemDescription: "Packed with value, just like your portfolio."),
+    OutfitItem(id: "food_fried_rice",   name: "Fried Rice",         emoji: "🍚", slot: .food, rarity: .rare,      cost: 80,  itemDescription: "Budget meal turned flex meal. Respect the wok."),
+    OutfitItem(id: "food_dumplings",    name: "Gyoza Dumplings",    emoji: "🥟", slot: .food, rarity: .rare,      cost: 95,  itemDescription: "Folded with love, priced with sense."),
+    OutfitItem(id: "food_curry",        name: "Curry Bowl",         emoji: "🍛", slot: .food, rarity: .rare,      cost: 100, itemDescription: "Rich in flavor. Rich in savings. Spice game on point."),
+    OutfitItem(id: "food_kebab",        name: "Kebab Wrap",         emoji: "🥙", slot: .food, rarity: .rare,      cost: 95,  itemDescription: "Wrapped up tight, just like your budget."),
+    OutfitItem(id: "food_falafel",      name: "Crispy Falafel",     emoji: "🧆", slot: .food, rarity: .rare,      cost: 90,  itemDescription: "Plant-based power move. Crunchy savings."),
+    OutfitItem(id: "food_hot_pot",      name: "Spicy Hot Pot",      emoji: "🫕", slot: .food, rarity: .rare,      cost: 175, itemDescription: "Turn up the heat on your savings goals."),
+    OutfitItem(id: "food_oysters",      name: "Oysters & Champagne",emoji: "🦪", slot: .food, rarity: .legendary, cost: 650, itemDescription: "Bubbles and bivalves. Peak financial confidence."),
     // Capes
     OutfitItem(id: "cape_cozy", name: "Cozy Hoodie",  emoji: "🧥", slot: .cape, rarity: .common,    cost: 70,  itemDescription: "Comfy and cute."),
     OutfitItem(id: "cape_hero", name: "Hero Cape",    emoji: "🦸", slot: .cape, rarity: .rare,      cost: 250, itemDescription: "Savings superhero unlocked."),
