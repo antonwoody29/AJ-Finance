@@ -2475,7 +2475,7 @@ final class AppState {
         let stored  = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
         guard !stored.isEmpty, trimmed == stored else { return nil }
         let token  = UUID().uuidString
-        let expiry = Date().addingTimeInterval(15 * 60)
+        let expiry = Date().addingTimeInterval(10 * 60)
         UserDefaults.standard.set(token,  forKey: "aj_resetToken")
         UserDefaults.standard.set(expiry, forKey: "aj_resetTokenExpiry")
         return token

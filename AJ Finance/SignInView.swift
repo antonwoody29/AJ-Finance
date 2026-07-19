@@ -548,7 +548,7 @@ struct ForgotPasswordSheet: View {
                                     .font(.system(size: 14))
                                     .foregroundColor(.white.opacity(0.60))
                                     .multilineTextAlignment(.center)
-                                Text("⏱ Link expires in 15 minutes")
+                                Text("⏱ Link expires in 10 minutes")
                                     .font(.system(size: 12, weight: .semibold))
                                     .foregroundColor(.ajOrange.opacity(0.85))
                                 Button { dismiss() } label: {
@@ -624,7 +624,7 @@ struct ForgotPasswordSheet: View {
         }
         let link    = "ajlyfe://reset?token=\(token)"
         let subject = "Reset Your AJ Lyfe Password"
-        let body    = "Hi!\n\nTap the link below to reset your AJ Lyfe password:\n\n\(link)\n\nThis link expires in 15 minutes.\n\nIf you didn't request this, you can ignore this email."
+        let body    = "Hi!\n\nTap the link below to reset your AJ Lyfe password:\n\n\(link)\n\nThis link expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email."
         var comps   = URLComponents()
         comps.scheme     = "mailto"
         comps.path       = email
