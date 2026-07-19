@@ -18,11 +18,12 @@ extension Color {
 
 
 struct ContentView: View {
-    @State private var appState   = AppState()
-    @State private var storeKit   = StoreKitManager()
-    @State private var tab: Int   = 0
-    @State private var showMenu   = false
-    @State private var showSplash = true
+    @State private var appState        = AppState()
+    @State private var storeKit        = StoreKitManager()
+    @State private var tab: Int        = 0
+    @State private var showMenu        = false
+    @State private var showSplash      = true
+    @State private var pendingResetToken: String? = nil
 
     var body: some View {
         ZStack {
@@ -59,6 +60,22 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSplash)
+        .onOpenURL { url in
+            guard url.scheme == "ajlyfe", url.host == "reset" else { return }
+            if let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "token" })?.value {
+                pendingResetToken = token
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { pendingResetToken != nil },
+            set: { if !$0 { pendingResetToken = nil } }
+        )) {
+            if let token = pendingResetToken {
+                SetNewPasswordView(token: token)
+                    .environment(appState)
+            }
+        }
     }
 
     // MARK: - Main Tabbed Layout

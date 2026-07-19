@@ -514,19 +514,16 @@ struct EmailAuthSheet: View {
     }
 }
 
-// MARK: - Forgot Password Sheet
+// MARK: - Forgot Password Sheet (sends email link)
 
 struct ForgotPasswordSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
-    @State private var email       = ""
-    @State private var newPw       = ""
-    @State private var confirmPw   = ""
-    @State private var showNewPw   = false
-    @State private var showConfirm = false
-    @State private var errorMsg:   String? = nil
-    @State private var success     = false
+    @State private var email    = ""
+    @State private var errorMsg: String? = nil
+    @State private var sent     = false
 
     private var savedEmail: String {
         UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
@@ -538,56 +535,48 @@ struct ForgotPasswordSheet: View {
                 Color(red: 0.06, green: 0.08, blue: 0.16).ignoresSafeArea()
                 ScrollView {
                     VStack(spacing: 22) {
-                        Text("🔐")
+                        Text(sent ? "📧" : "🔐")
                             .font(.system(size: 56))
                             .padding(.top, 10)
 
-                        if success {
-                            VStack(spacing: 14) {
-                                Text("Password Updated!")
+                        if sent {
+                            VStack(spacing: 16) {
+                                Text("Check Your Email")
                                     .font(.system(size: 22, weight: .black))
                                     .foregroundColor(.white)
-                                Text("You can now log in with your new password.")
+                                Text("We opened your Mail app with a reset link. Send the email to yourself, then tap the link to set a new password.")
                                     .font(.system(size: 14))
                                     .foregroundColor(.white.opacity(0.60))
                                     .multilineTextAlignment(.center)
-                                Button {
-                                    dismiss()
-                                } label: {
-                                    Text("Back to Login")
+                                Text("⏱ Link expires in 15 minutes")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.ajOrange.opacity(0.85))
+                                Button { dismiss() } label: {
+                                    Text("Got It")
                                         .font(.system(size: 17, weight: .black))
                                         .foregroundColor(.black)
                                         .frame(maxWidth: .infinity)
                                         .padding(.vertical, 16)
                                         .background(RoundedRectangle(cornerRadius: 14)
-                                            .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing)))
+                                            .fill(LinearGradient(colors: [.ajOrange, .ajGold],
+                                                                 startPoint: .leading, endPoint: .trailing)))
                                 }
-                                .padding(.top, 8)
+                                .padding(.top, 6)
                             }
                         } else {
-                            Text("Reset Your Password")
+                            Text("Forgot Password?")
                                 .font(.system(size: 22, weight: .black))
                                 .foregroundColor(.white)
 
-                            Text("Enter your account email and choose a new password.")
+                            Text("Enter the email linked to your account. We'll open your Mail app with a secure reset link.")
                                 .font(.system(size: 14))
                                 .foregroundColor(.white.opacity(0.55))
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 8)
 
-                            VStack(spacing: 14) {
-                                AuthField(label: "Account Email", text: $email,
-                                          icon: "envelope.fill", secure: false,
-                                          keyboard: .emailAddress)
-
-                                AuthField(label: "New Password", text: $newPw,
-                                          icon: "lock.fill", secure: !showNewPw,
-                                          toggle: { showNewPw.toggle() })
-
-                                AuthField(label: "Confirm New Password", text: $confirmPw,
-                                          icon: "lock.fill", secure: !showConfirm,
-                                          toggle: { showConfirm.toggle() })
-                            }
+                            AuthField(label: "Account Email", text: $email,
+                                      icon: "envelope.fill", secure: false,
+                                      keyboard: .emailAddress)
 
                             if let msg = errorMsg {
                                 Text(msg)
@@ -596,20 +585,15 @@ struct ForgotPasswordSheet: View {
                                     .multilineTextAlignment(.center)
                             }
 
-                            Button {
-                                if let err = appState.resetPassword(email: email, newPassword: newPw, confirm: confirmPw) {
-                                    withAnimation { errorMsg = err }
-                                } else {
-                                    withAnimation { success = true }
-                                }
-                            } label: {
-                                Text("Reset Password")
+                            Button { sendReset() } label: {
+                                Text("Send Reset Link")
                                     .font(.system(size: 17, weight: .black))
                                     .foregroundColor(.black)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 16)
                                     .background(RoundedRectangle(cornerRadius: 14)
-                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing)))
+                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold],
+                                                             startPoint: .leading, endPoint: .trailing)))
                             }
                         }
 
@@ -628,6 +612,135 @@ struct ForgotPasswordSheet: View {
             }
             .onAppear {
                 if email.isEmpty && !savedEmail.isEmpty { email = savedEmail }
+            }
+        }
+    }
+
+    private func sendReset() {
+        withAnimation { errorMsg = nil }
+        guard let token = appState.generateResetToken(email: email) else {
+            withAnimation { errorMsg = "No account found with that email." }
+            return
+        }
+        let link    = "ajlyfe://reset?token=\(token)"
+        let subject = "Reset Your AJ Lyfe Password"
+        let body    = "Hi!\n\nTap the link below to reset your AJ Lyfe password:\n\n\(link)\n\nThis link expires in 15 minutes.\n\nIf you didn't request this, you can ignore this email."
+        var comps   = URLComponents()
+        comps.scheme     = "mailto"
+        comps.path       = email
+        comps.queryItems = [
+            URLQueryItem(name: "subject", value: subject),
+            URLQueryItem(name: "body",    value: body)
+        ]
+        if let url = comps.url { openURL(url) }
+        withAnimation { sent = true }
+    }
+}
+
+// MARK: - Set New Password (opened via deep link)
+
+struct SetNewPasswordView: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    let token: String
+
+    @State private var newPw     = ""
+    @State private var confirmPw = ""
+    @State private var showNew   = false
+    @State private var showCon   = false
+    @State private var errorMsg: String? = nil
+    @State private var success   = false
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(red: 0.06, green: 0.08, blue: 0.16).ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 22) {
+                        Text(success ? "✅" : "🔑")
+                            .font(.system(size: 56))
+                            .padding(.top, 20)
+
+                        if success {
+                            VStack(spacing: 14) {
+                                Text("Password Updated!")
+                                    .font(.system(size: 22, weight: .black))
+                                    .foregroundColor(.white)
+                                Text("You can now log in with your new password.")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.60))
+                                    .multilineTextAlignment(.center)
+                                Button { dismiss() } label: {
+                                    Text("Back to Login")
+                                        .font(.system(size: 17, weight: .black))
+                                        .foregroundColor(.black)
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 16)
+                                        .background(RoundedRectangle(cornerRadius: 14)
+                                            .fill(LinearGradient(colors: [.ajOrange, .ajGold],
+                                                                 startPoint: .leading, endPoint: .trailing)))
+                                }
+                                .padding(.top, 8)
+                            }
+                        } else {
+                            Text("Set New Password")
+                                .font(.system(size: 22, weight: .black))
+                                .foregroundColor(.white)
+
+                            Text("Choose a strong new password for your AJ Lyfe account.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.55))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 8)
+
+                            VStack(spacing: 14) {
+                                AuthField(label: "New Password", text: $newPw,
+                                          icon: "lock.fill", secure: !showNew,
+                                          toggle: { showNew.toggle() })
+                                AuthField(label: "Confirm New Password", text: $confirmPw,
+                                          icon: "lock.fill", secure: !showCon,
+                                          toggle: { showCon.toggle() })
+                            }
+
+                            if let msg = errorMsg {
+                                Text(msg)
+                                    .font(.system(size: 13))
+                                    .foregroundColor(Color(red: 1.0, green: 0.38, blue: 0.38))
+                                    .multilineTextAlignment(.center)
+                            }
+
+                            Button {
+                                if let err = appState.resetPasswordWithToken(token, newPassword: newPw, confirm: confirmPw) {
+                                    withAnimation { errorMsg = err }
+                                } else {
+                                    withAnimation { success = true }
+                                }
+                            } label: {
+                                Text("Save New Password")
+                                    .font(.system(size: 17, weight: .black))
+                                    .foregroundColor(.black)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 16)
+                                    .background(RoundedRectangle(cornerRadius: 14)
+                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold],
+                                                             startPoint: .leading, endPoint: .trailing)))
+                            }
+                        }
+
+                        Spacer(minLength: 40)
+                    }
+                    .padding(.horizontal, 28)
+                }
+            }
+            .navigationTitle("Reset Password")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbar {
+                if !success {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }.foregroundColor(.ajOrange)
+                    }
+                }
             }
         }
     }

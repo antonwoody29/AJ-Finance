@@ -2468,15 +2468,29 @@ final class AppState {
         !(UserDefaults.standard.string(forKey: "aj_emailAddr") ?? "").isEmpty
     }
 
-    /// Resets the password if the email matches the stored account. Returns error string or nil on success.
-    func resetPassword(email: String, newPassword: String, confirm: String) -> String? {
-        let trimEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        let stored    = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
-        guard !stored.isEmpty             else { return "No account found." }
-        guard trimEmail == stored         else { return "No account found with that email." }
-        guard newPassword.count >= 6      else { return "Password must be at least 6 characters." }
-        guard newPassword == confirm      else { return "Passwords don't match." }
+    // MARK: - Password Reset (email link flow)
+
+    func generateResetToken(email: String) -> String? {
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let stored  = UserDefaults.standard.string(forKey: "aj_emailAddr") ?? ""
+        guard !stored.isEmpty, trimmed == stored else { return nil }
+        let token  = UUID().uuidString
+        let expiry = Date().addingTimeInterval(15 * 60)
+        UserDefaults.standard.set(token,  forKey: "aj_resetToken")
+        UserDefaults.standard.set(expiry, forKey: "aj_resetTokenExpiry")
+        return token
+    }
+
+    func resetPasswordWithToken(_ token: String, newPassword: String, confirm: String) -> String? {
+        guard let stored = UserDefaults.standard.string(forKey: "aj_resetToken"),
+              let expiry = UserDefaults.standard.object(forKey: "aj_resetTokenExpiry") as? Date,
+              token == stored, Date() < expiry
+        else { return "Reset link has expired. Please request a new one." }
+        guard newPassword.count >= 6 else { return "Password must be at least 6 characters." }
+        guard newPassword == confirm  else { return "Passwords don't match." }
         UserDefaults.standard.set(sha256(newPassword), forKey: "aj_emailHash")
+        UserDefaults.standard.removeObject(forKey: "aj_resetToken")
+        UserDefaults.standard.removeObject(forKey: "aj_resetTokenExpiry")
         return nil
     }
 

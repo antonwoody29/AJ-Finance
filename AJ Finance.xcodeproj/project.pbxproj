@@ -62,6 +62,7 @@
 				E53C1E0B2FDD8FB4004F8046 /* Sources */,
 				E53C1E0C2FDD8FB4004F8046 /* Frameworks */,
 				E53C1E0D2FDD8FB4004F8046 /* Resources */,
+				AJ000001AAAA0001000F8046 /* Inject URL Scheme */,
 			);
 			buildRules = (
 			);
@@ -125,6 +126,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		AJ000001AAAA0001000F8046 /* Inject URL Scheme */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Inject URL Scheme";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+				"$(DERIVED_FILE_DIR)/url_scheme.stamp",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "PLIST=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nSTAMP=\"${DERIVED_FILE_DIR}/url_scheme.stamp\"\nif /usr/libexec/PlistBuddy -c 'Print :CFBundleURLTypes' \"$PLIST\" &>/dev/null; then\n  touch \"$STAMP\"; exit 0\nfi\n/usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes array' \"$PLIST\"\n/usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes:0 dict' \"$PLIST\"\n/usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes:0:CFBundleURLName string com.aj.AJ-Finance' \"$PLIST\"\n/usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes:0:CFBundleURLSchemes array' \"$PLIST\"\n/usr/libexec/PlistBuddy -c 'Add :CFBundleURLTypes:0:CFBundleURLSchemes:0 string ajlyfe' \"$PLIST\"\ntouch \"$STAMP\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E53C1E0B2FDD8FB4004F8046 /* Sources */ = {
@@ -264,6 +289,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_ADDITIONAL_CONTENT = "$(SRCROOT)/URLScheme.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
 				INFOPLIST_KEY_NSCameraUsageDescription = "AJ Finance uses your camera to scan receipts.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AJ Finance reads your Apple Health and Apple Watch data to show your activity rings, workouts, heart rate, and weight in the Life & Health tab.";
@@ -312,6 +338,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_ADDITIONAL_CONTENT = "$(SRCROOT)/URLScheme.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
 				INFOPLIST_KEY_NSCameraUsageDescription = "AJ Finance uses your camera to scan receipts.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "AJ Finance reads your Apple Health and Apple Watch data to show your activity rings, workouts, heart rate, and weight in the Life & Health tab.";
