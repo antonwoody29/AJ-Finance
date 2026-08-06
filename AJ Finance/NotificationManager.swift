@@ -196,6 +196,204 @@ private enum AJCopy {
         "The #1 wealth-building secret? Don't try to keep up with anyone else 💡",
     ]
 
+    // MARK: Money Facts (large rotating pool)
+
+    static let moneyFacts: [String] = [
+        // History
+        "The word 'salary' comes from Latin 'salarium' — Roman soldiers were sometimes paid in salt 🧂",
+        "Credit cards were invented in 1950 by Diners Club — originally just for restaurants 🍽️",
+        "The first ATM was installed in London in 1967. The PIN was originally 6 digits but cut to 4 🏧",
+        "The US penny costs about 3 cents to produce — we literally lose money making pennies 😂",
+        "Ancient Egyptians used grain and cattle as currency 4,000 years before coins existed 🌾",
+        "The word 'bank' comes from 'banco' (Italian for bench) — where medieval money changers worked 🪑",
+        "Gold has been used as money for over 6,000 years — the original store of value 🪙",
+        "The average $1 bill lasts about 6.6 years before it's too worn to use 💵",
+        "There are more $100 bills in circulation than $1 bills in the US 💯",
+        "The S&P 500 has never had a negative 20-year return in its entire history 📈",
+        "The first paper money was created in China around 600 AD 🇨🇳",
+        "In ancient Rome, being 'worth your salt' meant being valuable enough to earn your pay 🧂",
+        "The 1933 Double Eagle gold coin sold at auction for $18.9 million — most expensive ever 🪙",
+        "Monopoly has printed more fake money than the US Federal Reserve prints in a given year 🎲",
+        "The US has never defaulted on its debt in its 250-year history 📊",
+        "Switzerland has the most ATMs per capita of any country in the world 🏧",
+        "Medieval goldsmiths invented banking — they stored people's gold and issued receipts used as money 🏦",
+        "The Rothschild family's 19th-century fortune would be worth roughly $350 billion in today's dollars 💰",
+        "The first stock exchange opened in Amsterdam in 1602 for the Dutch East India Company 📊",
+        "Paper money was so distrusted in early America that states banned it — then used it anyway 📜",
+        // Psychology of money
+        "People spend 12–18% more when paying by card vs cash — the 'pain of paying' effect is real 💳",
+        "Seeing larger bills makes you less likely to spend — psychologists call it the denomination effect 💵",
+        "Lottery winners are often no happier 1 year after winning than they were before 🎰",
+        "Having a name for your savings goal makes you 42% more likely to achieve it 🏷️",
+        "People work harder to avoid a $10 loss than to earn a $10 gain — that's loss aversion 🧠",
+        "Decision fatigue makes you more likely to make impulse purchases later in the day ⏰",
+        "The 'anchoring effect' makes a $50 item seem like a deal after you see a $200 item 🏷️",
+        "Couples who talk about money weekly are significantly happier with their finances 💑",
+        "Writing down your financial goals makes you 42% more likely to hit them ✍️",
+        "Just thinking about your savings account can reduce the urge to spend 🧘",
+        "Sleep-deprived people consistently make riskier financial decisions 💤",
+        "Social media increases financial FOMO — people spend up to 20% more after scrolling 📱",
+        "The average return window for impulse purchases is 3 days — waiting 72 hours saves money 🛒",
+        "Budgeting apps increase savings by an average of $600–$1,000 in their first year 📱",
+        "Telling a friend about your financial goal increases your chance of hitting it by 65% 💬",
+        "The 'fresh start effect' means Mondays and Jan 1st are the best days to reset financial habits 📅",
+        "Shopping malls are designed with no clocks and winding paths to keep you spending longer 🏬",
+        "Casinos pump oxygen into the air and remove windows to keep you gambling longer 🎰",
+        "The human brain processes financial losses the same way it processes physical pain 🧠",
+        "Visual savings trackers (like progress bars) make you 33% more likely to reach your goal 📊",
+        // Compound interest & investing
+        "Warren Buffett made 99% of his net worth after his 50th birthday — compound interest is wild ⏳",
+        "$100/month at 7% interest for 30 years grows to over $120,000 💰",
+        "The Rule of 72: divide 72 by your annual return to see how many years to double your money 🔢",
+        "Starting to invest at 25 vs 35 can result in 2–3x more money at retirement ⏳",
+        "Albert Einstein allegedly called compound interest the 'eighth wonder of the world' 🌍",
+        "Investing $500/month from age 25 at 8% grows to ~$1.7 million by 65 📊",
+        "A 1% fee difference in investments can cost you $100,000+ over 30 years 📉",
+        "Index funds beat ~90% of actively managed funds over any 15-year period 📈",
+        "The S&P 500 has averaged roughly 10% annual returns historically 📊",
+        "Time in the market always beats timing the market — consistency is the real edge 🎯",
+        "A dollar invested at age 20 is worth roughly $21 at age 65 at 7% growth 📈",
+        "$1 saved at age 30 is worth about $7 at age 65 at 7% interest 💰",
+        "The best time to invest was 20 years ago. The second best time is right now 📆",
+        "Dollar-cost averaging (investing the same amount monthly) removes the stress of market timing 📅",
+        "401(k) matching is a 50–100% instant return — always get the full employer match first 🏆",
+        "Roth IRA contributions grow tax-free and can be withdrawn tax-free in retirement 💎",
+        "HSA accounts offer a triple tax benefit — the most advantaged account type available 🏥",
+        "REITs let you invest in real estate without buying property or being a landlord 🏢",
+        "Rebalancing your portfolio once a year keeps your risk level aligned with your goals 🎯",
+        "Bonds reduce portfolio volatility — especially useful as you get closer to retirement 📊",
+        // Spending stats
+        "The average American spends $1,200/year on coffee — $100/month just on drinks ☕",
+        "Subscriptions you forget about cost the average person $348/year 📱",
+        "The average car payment in the US is over $700/month — one of the biggest budget killers 🚗",
+        "Americans spend $111 billion on fast food annually 🍔",
+        "The average American household carries $6,000–$10,000 in credit card debt 💳",
+        "Paying only the minimum on a $5,000 credit card can take 18+ years to pay off 😬",
+        "The average US wedding costs over $30,000 — same as a car or year of college 💍",
+        "Americans spend about $5,400/year dining out 🍽️",
+        "The average American spends $1,200/year on lottery tickets — one of the worst ROIs possible 🎟️",
+        "Impulse purchases account for roughly 40% of all consumer spending 🛒",
+        "The average household owns 300,000 things — most of it unused 🏠",
+        "Americans throw away 40% of food they buy — roughly $1,500/year per household 🍎",
+        "The average person owns 80 clothing items but wears only 20% of them regularly 👕",
+        "US households spend an average of $5,000/year on entertainment 🎭",
+        "The average person spends 3 hours/day on their phone — much of that time triggered by ads 📱",
+        // Saving stats
+        "56% of Americans can't cover a $1,000 emergency from savings 😬",
+        "The average American saves only 5–7% of their income 📊",
+        "People who automate savings save 73% more on average than those who transfer manually 🤖",
+        "Having even a $1,000 emergency fund dramatically reduces financial stress 🛡️",
+        "High-yield savings accounts earn 10x or more interest than traditional savings 💰",
+        "Only 34% of Americans have a budget — but those who do feel 20% more confident about money 📋",
+        "People who track their spending save an average of $1,800 more per year 📊",
+        "Saving just $5 a day for 10 years at 5% interest adds up to over $23,000 💵",
+        "68% of financial advisors say the #1 mistake is not having an emergency fund 🆘",
+        "Meal planning saves the average household $1,500/year on groceries and takeout 🍳",
+        "Setting up automatic transfers increases your odds of hitting savings goals by 3x 🔄",
+        "People who keep savings in a separate account (not checking) spend less overall 🏦",
+        "The 52-week saving challenge (save $1 in week 1, $2 in week 2…) adds up to $1,378 in a year 📅",
+        "Zero-based budgeting (every dollar gets a job) is one of the most effective systems 📋",
+        "The average person who starts an emergency fund feels financially safer within 3 months 🛡️",
+        // Wealth & millionaires
+        "80% of millionaires are first-generation rich — they built it themselves, didn't inherit it 💪",
+        "The average millionaire has 7 streams of income 📊",
+        "Most millionaires drive Toyotas or Fords — not luxury cars 🚗",
+        "74% of millionaires live on a detailed budget every month 📋",
+        "The average age when Americans hit their first million is 49 📅",
+        "Living below your means is the single most common trait among self-made millionaires 📉",
+        "88% of millionaires are college grads but many say it wasn't the key — habits were 🎓",
+        "Most millionaires built wealth through real estate or small business, not just stocks 🏡",
+        "Millionaires read an average of 2 books per month on finance or personal development 📚",
+        "The median net worth of a US millionaire is $2.5 million — not billions 💰",
+        // Credit & debt
+        "A 30-day late payment can drop your credit score by 90–110 points overnight 😬",
+        "Your credit score affects mortgage rates, insurance premiums, and even job applications 📋",
+        "The highest possible FICO score is 850 — only about 1.7% of Americans have it 🏆",
+        "Average credit card interest rate in the US is around 21% — among the most expensive debt 💳",
+        "Checking your own credit score does NOT hurt it — that's a soft pull, not a hard inquiry 🔍",
+        "You can get a free credit report from each bureau once a year at annualcreditreport.com 📋",
+        "Debt snowball: pay off smallest debts first for motivation. Avalanche: highest rate first for math 🏔️",
+        "The best credit card strategy: use it for everything, pay in full every month, earn rewards 💯",
+        "Carrying a balance does NOT help your credit score — that's a myth banks love 🚫",
+        "Credit utilization above 30% starts to hurt your score even if you pay on time 📉",
+        // Taxes
+        "The US tax code is over 70,000 pages long — and growing every year 📚",
+        "You can deduct student loan interest without itemizing — most people miss this one 🎓",
+        "The standard deduction is $14,600 for single filers in 2024 — most people should take it 📋",
+        "Traditional IRA contributions can reduce your taxable income dollar for dollar 💰",
+        "Capital gains are taxed at lower rates than ordinary income if you hold investments 1+ year 📊",
+        "529 plans grow tax-free and can now be rolled into a Roth IRA if unused for school 🎓",
+        "Tax-loss harvesting lets you offset gains with losses — legal way to reduce your bill 📉",
+        "Freelancers can deduct home office expenses, equipment, internet, and software 💻",
+        "HSA contributions, growth, and withdrawals are all tax-free if used for medical expenses 🏥",
+        "The IRS offers payment plans — you can set one up online in minutes if you owe taxes 💳",
+        // Housing
+        "Homeowners have a median net worth 40x higher than renters in the US 🏡",
+        "The 28% rule: keep housing costs under 28% of your gross monthly income 🏠",
+        "A 15-year mortgage saves hundreds of thousands in interest compared to a 30-year mortgage 📊",
+        "The average US home has roughly tripled in value since 1990 🏡",
+        "Location matters more than the house itself — you can renovate a home, not a neighborhood 📍",
+        "HOA fees can add $3,000–$10,000/year — always factor them into home-buying math 🏘️",
+        "A 20% down payment avoids PMI (private mortgage insurance), saving you ~$100+/month 💰",
+        "Buying the worst house on a good street is often a better investment than the reverse 🏠",
+        "Renting isn't 'throwing money away' — you're buying flexibility and skipping maintenance costs 🔑",
+        "Every $100/month extra applied to your mortgage principal can save years off your loan ⏩",
+        // Income & career
+        "Negotiating your salary just once can be worth over $1 million over a full career 💼",
+        "Remote work saves the average employee $6,000–$12,000/year on commuting and expenses 🏠",
+        "Learning one in-demand skill (coding, copywriting, design) can double your income 💻",
+        "The average side hustle generates $1,122/month according to a 2023 survey 💰",
+        "Freelancers in tech often earn 20–40% more than salaried peers for similar work 💻",
+        "Selling unused stuff at home can generate $500–$2,000 for the average household 🛍️",
+        "Dividend-paying stocks generate income forever — without ever selling a share 📊",
+        "Real estate rentals return a median 8–12% annually including appreciation 🏡",
+        "The average person works 90,000 hours in their lifetime — know what each hour is worth 💼",
+        "Starting a business on the side creates legitimate tax deductions that lower your tax bill 💡",
+        // FIRE & financial independence
+        "The FIRE movement targets 25x your annual expenses invested — then you can retire 🔥",
+        "The 4% rule: withdraw 4% of your portfolio annually in retirement and it lasts 30+ years 📊",
+        "You need 25x your annual spending to be financially independent — not a specific dollar amount 🧮",
+        "Financial independence is about the gap between income and spending — not just income 💡",
+        "A raise means nothing if your spending rises with it — lifestyle inflation is the silent killer 📈",
+        "Every $100/month in reduced spending is worth $30,000 more at retirement (at 4% rule) 📊",
+        "Semi-retirement (part-time work you love) is often more realistic and sustainable than full FIRE 🏖️",
+        "Geographic arbitrage — living in a low-cost area — can accelerate FIRE by 5–10 years 🌍",
+        "Coast FIRE means you've saved enough that compound interest will do the rest — stop saving, enjoy 🏄",
+        "Barista FIRE: semi-retire early and work just enough to cover health insurance and fun money ☕",
+        // Global money facts
+        "Apple has more cash on hand than the GDP of most countries 🍎",
+        "Norway saves all oil revenue in a sovereign wealth fund now worth over $1.7 trillion 🇳🇴",
+        "The global shadow economy (unreported transactions) is estimated at $13 trillion annually 💰",
+        "Coca-Cola was originally sold as a 'brain tonic' for 5 cents a glass in 1886 🥤",
+        "McDonald's is technically one of the world's largest real estate companies by assets 🏠",
+        "Vatican City has the highest income per capita in Europe 🌍",
+        "The global remittance market (immigrants sending money home) exceeds $700 billion/year 💸",
+        "Japan's GDP is roughly the same size as it was in 1995 — 30 years of near-zero growth 🇯🇵",
+        "In Japan, it's considered rude to tip at restaurants — it implies the server needs charity 🇯🇵",
+        "Sweden is nearly cashless — over 98% of transactions there are digital 🇸🇪",
+        // Short punchy
+        "Inflation erodes 2–3% of your savings annually if it's sitting in a no-interest account 📉",
+        "A 1% expense ratio in a mutual fund costs $100,000+ over 30 years compared to 0.03% index ETFs 💸",
+        "Emergency fund = 3–6 months of living expenses in a liquid, accessible account 🛡️",
+        "People who review their finances weekly make measurably better financial decisions 📊",
+        "Financial wellness is 80% behavior and 20% knowledge — you already know enough to start 🧠",
+        "The richest people are paid while they sleep — passive income is the goal 💤",
+        "Net worth = assets minus liabilities. Build assets. Reduce liabilities. Simple math 📊",
+        "You don't need to earn more to build wealth — you need to keep more of what you earn 💰",
+        "Buying used cars and cooking at home builds wealth faster than most income raises 🏆",
+        "Every dollar you don't spend is a dollar that can compound for decades 📈",
+        "The fastest path to wealth is boring: earn, save, invest, wait. Repeat. 📊",
+        "Financial stress is one of the top causes of relationship problems — money talks matter 💑",
+        "Automating your finances is like putting your wealth-building on autopilot 🤖",
+        "The average person has 26 unused gift cards with a total value of $116 — use them! 🎁",
+        "Your biggest financial asset is your earning potential — invest in skills and health 💪",
+        "Tracking your net worth monthly (not just spending) gives you the full financial picture 📊",
+        "Every 1% rate increase on a $300,000 mortgage adds ~$180/month — rates matter enormously 🏠",
+        "The median US household income is ~$74,000 — net worth is what actually counts long-term 💰",
+        "People with written financial plans are 2.5x more likely to be on track for retirement ✍️",
+        "Starting an emergency fund with just $500 changes how you relate to money forever 🛡️",
+    ]
+
     // MARK: Day-specific
 
     static let monday: [String] = [
@@ -495,33 +693,33 @@ struct NotificationManager {
     // MARK: - Master Schedule
 
     static func scheduleAll(animalName: String, reminderHour: Int, reminderMinute: Int, reminderEnabled: Bool) {
-        // Daily
+        // Cancel old notifications that are no longer scheduled
+        center.removePendingNotificationRequests(withIdentifiers: [
+            AJID.midday, AJID.afternoon, AJID.lateFri, AJID.lateSat,
+            AJID.lunchTue, AJID.tueMorning,
+            AJID.lunchWed, AJID.wedMorning,
+            AJID.lunchThu, AJID.thuEarly,
+            AJID.monRecap, AJID.sunEvening, AJID.sunPrep2,
+            AJID.missionsEvening, AJID.comboReminder,
+            AJID.fit7am, AJID.fit12pm, AJID.fit530pm,
+        ])
+        // Daily (4 per day max)
         scheduleMorningGreetings(animalName: animalName, hour: reminderHour, minute: reminderMinute, enabled: reminderEnabled)
         scheduleStreakProtector(animalName: animalName)
-        scheduleMiddayMotivation(animalName: animalName)
-        scheduleAfternoonBoost(animalName: animalName)
         scheduleEveningCheckIn(animalName: animalName)
-        scheduleDailySavingsTip(animalName: animalName)
-        // Weekly
+        scheduleDailyMoneyFact(animalName: animalName)
+        // Weekly (Mon/Fri/Sat/Sun specials only)
         scheduleWeeklySummary()
-        scheduleLateNightReminders()
         scheduleWeekendCheckIn(animalName: animalName)
         scheduleMondayExtra(animalName: animalName)
-        scheduleTuesdayCheckIn(animalName: animalName)
-        scheduleWednesdayCheckIn(animalName: animalName)
-        scheduleThursdayCheckIn(animalName: animalName)
         scheduleFridayExtra(animalName: animalName)
         scheduleSaturdayMorning(animalName: animalName)
         scheduleSundayPrep(animalName: animalName)
-        scheduleSundayEvening(animalName: animalName)
         // Monthly
         schedulePaydayNotifications()
         scheduleMonthlyNotifications()
-        // Fitness
+        // Fitness (weekend + Monday only)
         scheduleFitnessCheckIns(animalName: animalName)
-        // Missions & combo
-        scheduleMissionReminder(animalName: animalName)
-        scheduleComboReminder(animalName: animalName)
         // Cancel miss-you (user is in the app)
         cancelMissYou()
     }
@@ -635,20 +833,6 @@ struct NotificationManager {
         schedule(id: AJID.comboEarned, content: c, trigger: after(seconds: 2))
     }
 
-    static func scheduleMissionReminder(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.missionsEvening])
-        let c = content(title: "Missions not done yet! 📋", body: "\(animalName) checked and there's still missions waiting. Don't let 'em expire! ⏰", badge: 1)
-        var comps = DateComponents(); comps.hour = 20; comps.minute = 30
-        schedule(id: AJID.missionsEvening, content: c, trigger: calendar(comps, repeats: true))
-    }
-
-    static func scheduleComboReminder(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.comboReminder])
-        let c = content(title: "Combo bonus available! 💪", body: "Do fitness + finance today for a bonus gem reward. \(animalName) is waiting on you! 🎯", badge: 0)
-        var comps = DateComponents(); comps.hour = 17; comps.minute = 0
-        schedule(id: AJID.comboReminder, content: c, trigger: calendar(comps, repeats: true))
-    }
-
     // MARK: - Miss You
 
     static func scheduleMissYou(animalName: String) {
@@ -711,20 +895,6 @@ struct NotificationManager {
         schedule(id: AJID.streak, content: c, trigger: calendar(comps, repeats: true))
     }
 
-    private static func scheduleMiddayMotivation(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.midday])
-        let c = content(title: "\(animalName) midday drop ☀️", body: AJCopy.pick(AJCopy.midday, key: "midday"), badge: 0)
-        var comps = DateComponents(); comps.hour = 12; comps.minute = 15
-        schedule(id: AJID.midday, content: c, trigger: calendar(comps, repeats: true))
-    }
-
-    private static func scheduleAfternoonBoost(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.afternoon])
-        let c = content(title: "\(animalName) afternoon check 💙", body: AJCopy.pick(AJCopy.afternoon, key: "afternoon"), badge: 0)
-        var comps = DateComponents(); comps.hour = 15; comps.minute = 30
-        schedule(id: AJID.afternoon, content: c, trigger: calendar(comps, repeats: true))
-    }
-
     private static func scheduleEveningCheckIn(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.evening])
         let c = content(title: "\(animalName) evening 📊", body: AJCopy.pick(AJCopy.evening, key: "evening"), badge: 0)
@@ -732,25 +902,14 @@ struct NotificationManager {
         schedule(id: AJID.evening, content: c, trigger: calendar(comps, repeats: true))
     }
 
-    private static func scheduleDailySavingsTip(animalName: String) {
+    private static func scheduleDailyMoneyFact(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.tip])
-        let c = content(title: "💡 Money tip from \(animalName)", body: AJCopy.pick(AJCopy.savingsTip, key: "savingsTip"), badge: 0)
-        var comps = DateComponents(); comps.hour = 8; comps.minute = 45
+        let c = content(title: "💡 Money fact of the day", body: AJCopy.pick(AJCopy.moneyFacts, key: "moneyFact"), badge: 0)
+        var comps = DateComponents(); comps.hour = 13; comps.minute = 30
         schedule(id: AJID.tip, content: c, trigger: calendar(comps, repeats: true))
     }
 
     // MARK: - Weekly Schedulers
-
-    private static func scheduleLateNightReminders() {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.lateFri, AJID.lateSat])
-        let cFri = content(title: "Late night check 🌙", body: AJCopy.pick(AJCopy.lateNight), badge: 0)
-        var friComps = DateComponents(); friComps.weekday = 6; friComps.hour = 23; friComps.minute = 0
-        schedule(id: AJID.lateFri, content: cFri, trigger: calendar(friComps, repeats: true))
-
-        let cSat = content(title: "Late night check 🌙", body: AJCopy.pick(AJCopy.lateNight), badge: 0)
-        var satComps = DateComponents(); satComps.weekday = 7; satComps.hour = 23; satComps.minute = 0
-        schedule(id: AJID.lateSat, content: cSat, trigger: calendar(satComps, repeats: true))
-    }
 
     private static func scheduleWeekendCheckIn(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.weekend])
@@ -761,50 +920,9 @@ struct NotificationManager {
 
     private static func scheduleMondayExtra(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.monEarly, AJID.monRecap])
-
         let cEarly = content(title: "\(animalName) Monday energy ☕", body: AJCopy.pick(AJCopy.monEarly), badge: 0)
         var earlyComps = DateComponents(); earlyComps.weekday = 2; earlyComps.hour = 7; earlyComps.minute = 0
         schedule(id: AJID.monEarly, content: cEarly, trigger: calendar(earlyComps, repeats: true))
-
-        let cRecap = content(title: "Monday recap 💬", body: AJCopy.pick(AJCopy.monRecap), badge: 0)
-        var recapComps = DateComponents(); recapComps.weekday = 2; recapComps.hour = 20; recapComps.minute = 0
-        schedule(id: AJID.monRecap, content: cRecap, trigger: calendar(recapComps, repeats: true))
-    }
-
-    private static func scheduleTuesdayCheckIn(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.lunchTue, AJID.tueMorning])
-
-        let cLunch = content(title: "\(animalName) Tuesday 💙", body: AJCopy.pick(AJCopy.tuesday), badge: 0)
-        var lunchComps = DateComponents(); lunchComps.weekday = 3; lunchComps.hour = 12; lunchComps.minute = 30
-        schedule(id: AJID.lunchTue, content: cLunch, trigger: calendar(lunchComps, repeats: true))
-
-        let cMorn = content(title: "Taco Tuesday check 🌮", body: AJCopy.pick(AJCopy.tueMorning), badge: 0)
-        var mornComps = DateComponents(); mornComps.weekday = 3; mornComps.hour = 8; mornComps.minute = 0
-        schedule(id: AJID.tueMorning, content: cMorn, trigger: calendar(mornComps, repeats: true))
-    }
-
-    private static func scheduleWednesdayCheckIn(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.lunchWed, AJID.wedMorning])
-
-        let cLunch = content(title: "\(animalName) midweek 📊", body: AJCopy.pick(AJCopy.wednesday), badge: 0)
-        var lunchComps = DateComponents(); lunchComps.weekday = 4; lunchComps.hour = 12; lunchComps.minute = 0
-        schedule(id: AJID.lunchWed, content: cLunch, trigger: calendar(lunchComps, repeats: true))
-
-        let cMorn = content(title: "Midweek reality 📊", body: AJCopy.pick(AJCopy.wedMorning), badge: 0)
-        var mornComps = DateComponents(); mornComps.weekday = 4; mornComps.hour = 8; mornComps.minute = 0
-        schedule(id: AJID.wedMorning, content: cMorn, trigger: calendar(mornComps, repeats: true))
-    }
-
-    private static func scheduleThursdayCheckIn(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.lunchThu, AJID.thuEarly])
-
-        let cCheck = content(title: "\(animalName) Thursday check 📊", body: AJCopy.pick(AJCopy.thursday), badge: 0)
-        var checkComps = DateComponents(); checkComps.weekday = 5; checkComps.hour = 15; checkComps.minute = 0
-        schedule(id: AJID.lunchThu, content: cCheck, trigger: calendar(checkComps, repeats: true))
-
-        let cEarly = content(title: "Almost Friday push 💼", body: AJCopy.pick(AJCopy.thuEarly), badge: 0)
-        var earlyComps = DateComponents(); earlyComps.weekday = 5; earlyComps.hour = 7; earlyComps.minute = 0
-        schedule(id: AJID.thuEarly, content: cEarly, trigger: calendar(earlyComps, repeats: true))
     }
 
     private static func scheduleFridayExtra(animalName: String) {
@@ -831,18 +949,6 @@ struct NotificationManager {
         let c = content(title: "\(animalName) week prep 🌅", body: AJCopy.pick(AJCopy.sundayPrep), badge: 0)
         var comps = DateComponents(); comps.weekday = 1; comps.hour = 9; comps.minute = 0
         schedule(id: AJID.sundayPrep, content: c, trigger: calendar(comps, repeats: true))
-    }
-
-    private static func scheduleSundayEvening(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.sunEvening, AJID.sunPrep2])
-
-        let cEvening = content(title: "Sunday prep 🗓️", body: AJCopy.pick(AJCopy.sunEvening), badge: 0)
-        var eveningComps = DateComponents(); eveningComps.weekday = 1; eveningComps.hour = 19; eveningComps.minute = 0
-        schedule(id: AJID.sunEvening, content: cEvening, trigger: calendar(eveningComps, repeats: true))
-
-        let cPrep2 = content(title: "Week ahead prep 🎯", body: AJCopy.pick(AJCopy.sunPrep2), badge: 0)
-        var prep2Comps = DateComponents(); prep2Comps.weekday = 1; prep2Comps.hour = 20; prep2Comps.minute = 0
-        schedule(id: AJID.sunPrep2, content: cPrep2, trigger: calendar(prep2Comps, repeats: true))
     }
 
     // MARK: - Monthly Schedulers
@@ -889,36 +995,21 @@ struct NotificationManager {
         let allFitnessIDs = [
             AJID.fit7am, AJID.fit12pm, AJID.fit530pm,
             AJID.fitSat, AJID.fitSun, AJID.fitMon,
-            // Remove any old hourly IDs still pending on device
             "aj_fit_6am", "aj_fit_8am", "aj_fit_9am", "aj_fit_10am", "aj_fit_11am",
             "aj_fit_1pm", "aj_fit_2pm", "aj_fit_3pm", "aj_fit_4pm", "aj_fit_5pm",
             "aj_fit_6pm", "aj_fit_7pm", "aj_fit_8pm", "aj_fit_9pm", "aj_fit_10pm"
         ]
         center.removePendingNotificationRequests(withIdentifiers: allFitnessIDs)
 
-        // Daily fitness — 3 per day only
-        let daily: [(String, String, Int, Int)] = [
-            (AJID.fit7am,   AJCopy.fit7am,   7,  0),
-            (AJID.fit12pm,  AJCopy.fit12pm,  12, 0),
-            (AJID.fit530pm, AJCopy.fit530pm, 17, 30),
-        ]
-        for (id, body, hour, minute) in daily {
-            let c = content(title: "Fitness check 💪", body: body, badge: 0)
-            var comps = DateComponents(); comps.hour = hour; comps.minute = minute
-            schedule(id: id, content: c, trigger: calendar(comps, repeats: true))
-        }
-
-        // Saturday 8am
+        // Weekend + Monday only — no daily fitness spam
         let cSat = content(title: "Weekend warrior 🏆", body: AJCopy.fitSat, badge: 0)
         var satComps = DateComponents(); satComps.weekday = 7; satComps.hour = 8; satComps.minute = 0
         schedule(id: AJID.fitSat, content: cSat, trigger: calendar(satComps, repeats: true))
 
-        // Sunday 8am
         let cSun = content(title: "Sunday sweat 🌅", body: AJCopy.fitSun, badge: 0)
         var sunComps = DateComponents(); sunComps.weekday = 1; sunComps.hour = 8; sunComps.minute = 0
         schedule(id: AJID.fitSun, content: cSun, trigger: calendar(sunComps, repeats: true))
 
-        // Monday 6:30am
         let cMon = content(title: "Monday kickoff 🚀", body: AJCopy.fitMon, badge: 0)
         var monComps = DateComponents(); monComps.weekday = 2; monComps.hour = 6; monComps.minute = 30
         schedule(id: AJID.fitMon, content: cMon, trigger: calendar(monComps, repeats: true))
