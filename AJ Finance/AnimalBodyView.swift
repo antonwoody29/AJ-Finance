@@ -575,6 +575,81 @@ struct CharConfig {
                          nose: Color(red:0.18,green:0.16,blue:0.18),
                          ear: .round, tail: .ringed,
                          cheekBlush: false, eyeKind: .wide)
+        // More new animals
+        case .camel:
+            return .init(body: Color(red:0.88,green:0.72,blue:0.44),
+                         belly: Color(red:1.0,green:0.90,blue:0.70),
+                         accent: Color(red:0.68,green:0.50,blue:0.24),
+                         iris: Color(red:0.36,green:0.24,blue:0.08),
+                         nose: Color(red:0.78,green:0.52,blue:0.36),
+                         ear: .tiny, tail: .tuft,
+                         cheekBlush: false, muzzle: true)
+        case .moose:
+            return .init(body: Color(red:0.36,green:0.24,blue:0.12),
+                         belly: Color(red:0.58,green:0.44,blue:0.28),
+                         accent: Color(red:0.58,green:0.42,blue:0.22),
+                         iris: Color(red:0.24,green:0.16,blue:0.06),
+                         nose: Color(red:0.30,green:0.20,blue:0.10),
+                         ear: .round, tail: .round, special: .horns,
+                         cheekBlush: false, muzzle: true)
+        case .rhino:
+            return .init(body: Color(red:0.54,green:0.52,blue:0.50),
+                         belly: Color(red:0.72,green:0.70,blue:0.68),
+                         accent: Color(red:0.38,green:0.36,blue:0.34),
+                         iris: Color(red:0.18,green:0.16,blue:0.14),
+                         nose: Color(red:0.46,green:0.44,blue:0.42),
+                         ear: .tiny, tail: .round, special: .horn, bodyKind: .hippo)
+        case .octopus:
+            return .init(body: Color(red:0.72,green:0.26,blue:0.58),
+                         belly: Color(red:0.90,green:0.60,blue:0.82),
+                         accent: Color(red:0.52,green:0.10,blue:0.40),
+                         iris: Color(red:0.10,green:0.08,blue:0.12),
+                         nose: Color(red:0.64,green:0.20,blue:0.50),
+                         ear: .none, tail: .none, bodyKind: .crab)
+        case .bat:
+            return .init(body: Color(red:0.16,green:0.12,blue:0.18),
+                         belly: Color(red:0.30,green:0.24,blue:0.34),
+                         accent: Color(red:0.48,green:0.22,blue:0.56),
+                         iris: Color(red:0.82,green:0.62,blue:0.10),
+                         nose: Color(red:0.38,green:0.18,blue:0.44),
+                         ear: .pointy, tail: .flat, special: .wings)
+        case .swan:
+            return .init(body: Color(red:0.97,green:0.97,blue:0.99),
+                         belly: .white,
+                         accent: Color(red:0.86,green:0.86,blue:0.90),
+                         iris: Color(red:0.08,green:0.18,blue:0.52),
+                         nose: Color(red:0.96,green:0.60,blue:0.10),
+                         ear: .none, tail: .fan, bodyKind: .flamingo)
+        case .jaguar:
+            return .init(body: Color(red:0.88,green:0.68,blue:0.20),
+                         belly: Color(red:1.0,green:0.94,blue:0.72),
+                         accent: Color(red:0.14,green:0.10,blue:0.06),
+                         iris: Color(red:0.60,green:0.40,blue:0.06),
+                         ear: .round, tail: .long, marking: .spots,
+                         cheekBlush: false, whiskers: true, muzzle: true)
+        case .alpaca:
+            return .init(body: Color(red:0.96,green:0.92,blue:0.84),
+                         belly: .white,
+                         accent: Color(red:0.72,green:0.62,blue:0.46),
+                         iris: Color(red:0.32,green:0.22,blue:0.08),
+                         nose: Color(red:0.88,green:0.60,blue:0.64),
+                         ear: .bunnyTall, tail: .round,
+                         cheekBlush: true, muzzle: true)
+        case .chinchilla:
+            return .init(body: Color(red:0.72,green:0.70,blue:0.76),
+                         belly: Color(red:0.92,green:0.90,blue:0.96),
+                         accent: Color(red:0.50,green:0.48,blue:0.54),
+                         iris: Color(red:0.18,green:0.16,blue:0.22),
+                         nose: Color(red:0.90,green:0.56,blue:0.64),
+                         ear: .huge, tail: .fluffy,
+                         cheekBlush: true, eyeKind: .wide)
+        case .walrus:
+            return .init(body: Color(red:0.60,green:0.50,blue:0.38),
+                         belly: Color(red:0.78,green:0.68,blue:0.54),
+                         accent: Color(red:0.42,green:0.34,blue:0.24),
+                         iris: Color(red:0.20,green:0.16,blue:0.12),
+                         nose: Color(red:0.54,green:0.44,blue:0.32),
+                         ear: .tiny, tail: .flat, bodyKind: .hippo)
         }
     }
 }
