@@ -307,6 +307,22 @@ final class AppState {
         min(1 + (animalDeathCount / 3) * 5, 15)
     }
 
+    var revivalProductID: String {
+        switch animalDeathCount {
+        case 0..<3: return SKID.revival1
+        case 3..<6: return SKID.revival2
+        default:    return SKID.revival3
+        }
+    }
+
+    var revivalDisplayPrice: String {
+        switch animalDeathCount {
+        case 0..<3: return "$4.99"
+        case 3..<6: return "$9.99"
+        default:    return "$14.99"
+        }
+    }
+
     // MARK: - Budget Computed
 
     var totalBudgetExpenses: Double {

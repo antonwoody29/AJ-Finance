@@ -1,0 +1,301 @@
+{
+  "identifier" : "AJLyfe-StoreKit-Config",
+  "nonConsumableProducts" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "founder_pack",
+      "localizations" : [
+        {
+          "description" : "Founder Pack — one-time unlock",
+          "displayName" : "AJ Lyfe Founder Pack",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.founder.pack",
+      "referenceName" : "Founder Pack",
+      "type" : "NonConsumable"
+    }
+  ],
+  "consumableProducts" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "gems_100",
+      "localizations" : [
+        {
+          "description" : "100 Gems",
+          "displayName" : "100 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJ_Finance.gem100",
+      "referenceName" : "100 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "gems_500",
+      "localizations" : [
+        {
+          "description" : "500 Gems",
+          "displayName" : "500 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.gems.500",
+      "referenceName" : "500 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "gems_1200",
+      "localizations" : [
+        {
+          "description" : "1,200 Gems",
+          "displayName" : "1,200 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.gems.1200",
+      "referenceName" : "1,200 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "19.99",
+      "familyShareable" : false,
+      "internalID" : "gems_3000",
+      "localizations" : [
+        {
+          "description" : "3,000 Gems",
+          "displayName" : "3,000 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.gems.3000",
+      "referenceName" : "3,000 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "49.99",
+      "familyShareable" : false,
+      "internalID" : "gems_7000",
+      "localizations" : [
+        {
+          "description" : "7,000 Gems",
+          "displayName" : "7,000 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.gems.7000",
+      "referenceName" : "7,000 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "99.99",
+      "familyShareable" : false,
+      "internalID" : "gems_15000",
+      "localizations" : [
+        {
+          "description" : "15,000 Gems",
+          "displayName" : "15,000 Gems",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.gems.15000",
+      "referenceName" : "15,000 Gems",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "shield",
+      "localizations" : [
+        {
+          "description" : "Streak Shield",
+          "displayName" : "Streak Shield",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.shield",
+      "referenceName" : "Streak Shield",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "streak_restore",
+      "localizations" : [
+        {
+          "description" : "Restore your streak",
+          "displayName" : "Streak Restore",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.streak.restore",
+      "referenceName" : "Streak Restore",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "1.99",
+      "familyShareable" : false,
+      "internalID" : "rescue_token",
+      "localizations" : [
+        {
+          "description" : "Pet Rescue Token",
+          "displayName" : "Rescue Token",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.rescue.token",
+      "referenceName" : "Rescue Token",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "recovery_bundle",
+      "localizations" : [
+        {
+          "description" : "Full recovery bundle",
+          "displayName" : "Recovery Bundle",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.recovery.bundle",
+      "referenceName" : "Recovery Bundle",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "revival_tier1",
+      "localizations" : [
+        {
+          "description" : "Revive your pet (first few deaths)",
+          "displayName" : "Pet Revival",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.revival.tier1",
+      "referenceName" : "Pet Revival Tier 1",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "revival_tier2",
+      "localizations" : [
+        {
+          "description" : "Revive your pet (mid tier)",
+          "displayName" : "Pet Revival",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.revival.tier2",
+      "referenceName" : "Pet Revival Tier 2",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "14.99",
+      "familyShareable" : false,
+      "internalID" : "revival_tier3",
+      "localizations" : [
+        {
+          "description" : "Revive your pet (max tier)",
+          "displayName" : "Pet Revival",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.revival.tier3",
+      "referenceName" : "Pet Revival Tier 3",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "crate_common",
+      "localizations" : [
+        {
+          "description" : "Common Crate",
+          "displayName" : "Common Crate",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.crate.common",
+      "referenceName" : "Common Crate",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "crate_rare",
+      "localizations" : [
+        {
+          "description" : "Rare Crate",
+          "displayName" : "Rare Crate",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.crate.rare",
+      "referenceName" : "Rare Crate",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "4.99",
+      "familyShareable" : false,
+      "internalID" : "crate_epic",
+      "localizations" : [
+        {
+          "description" : "Epic Crate",
+          "displayName" : "Epic Crate",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.crate.epic",
+      "referenceName" : "Epic Crate",
+      "type" : "Consumable"
+    },
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "crate_legendary",
+      "localizations" : [
+        {
+          "description" : "Legendary Crate",
+          "displayName" : "Legendary Crate",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.crate.legendary",
+      "referenceName" : "Legendary Crate",
+      "type" : "Consumable"
+    }
+  ],
+  "autoRenewableSubscriptions" : [
+    {
+      "familyShareable" : false,
+      "internalID" : "plus_monthly",
+      "localizations" : [
+        {
+          "description" : "AJ Lyfe Plus monthly subscription",
+          "displayName" : "AJ Lyfe Plus",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.aj.AJLyfe.plus.monthly",
+      "referenceName" : "AJ Lyfe Plus Monthly",
+      "subscriptionGroupID" : "ajlyfe_plus",
+      "subscriptionPeriod" : "P1M",
+      "recurringSubscriptionPeriod" : "P1M",
+      "displayPrice" : "4.99",
+      "type" : "RecurringSubscription"
+    }
+  ],
+  "version" : {
+    "major" : 2,
+    "minor" : 0
+  }
+}

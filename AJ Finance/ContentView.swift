@@ -797,6 +797,7 @@ struct SobrietySetupSheet: View {
 
 struct RevivalOverlay: View {
     @Environment(AppState.self) private var appState
+    @Environment(StoreKitManager.self) private var storeKit
 
     var body: some View {
         ZStack {
@@ -836,7 +837,7 @@ struct RevivalOverlay: View {
                         .frame(width: 1, height: 55)
 
                     VStack(spacing: 4) {
-                        Text("$\(appState.revivalCost)")
+                        Text(appState.revivalDisplayPrice)
                             .font(.system(size: 36, weight: .black))
                             .foregroundColor(.ajGold)
                         Text("to revive")
@@ -853,32 +854,38 @@ struct RevivalOverlay: View {
                 )
                 .padding(.horizontal, 28)
 
-                if appState.animalDeathCount > 0 && appState.revivalCost < 15 {
-                    Text("Every 3 deaths the cost increases by $5 — capped at $15")
+                if appState.animalDeathCount > 0 {
+                    Text("Price increases every 3 deaths — capped at $14.99")
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.38))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 30)
                 }
 
-                // Revive button (simulates in-app purchase)
+                // Real StoreKit purchase — triggers Apple Pay sheet
                 Button {
-                    appState.reviveAnimal()
+                    Task { await storeKit.purchase(id: appState.revivalProductID, appState: appState) }
                 } label: {
-                    Text("Revive for $\(appState.revivalCost) 💳")
-                        .font(.system(size: 17, weight: .black))
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 18)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(LinearGradient(
-                                    colors: [.ajGold, .ajOrange],
-                                    startPoint: .leading, endPoint: .trailing
-                                ))
-                                .shadow(color: .ajGold.opacity(0.5), radius: 12, y: 4)
-                        )
+                    HStack(spacing: 8) {
+                        if storeKit.purchaseInProgress {
+                            ProgressView().tint(.black)
+                        }
+                        Text(storeKit.purchaseInProgress ? "Processing..." : "Revive for \(appState.revivalDisplayPrice) 💳")
+                            .font(.system(size: 17, weight: .black))
+                            .foregroundColor(.black)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 18)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(
+                                colors: [.ajGold, .ajOrange],
+                                startPoint: .leading, endPoint: .trailing
+                            ))
+                            .shadow(color: .ajGold.opacity(0.5), radius: 12, y: 4)
+                    )
                 }
+                .disabled(storeKit.purchaseInProgress)
                 .padding(.horizontal, 28)
 
                 Text("💡 Save money regularly to keep your animal healthy!")

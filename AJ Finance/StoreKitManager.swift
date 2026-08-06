@@ -17,6 +17,9 @@ enum SKID {
     static let streakRestore    = "com.aj.AJLyfe.streak.restore"
     static let rescueToken      = "com.aj.AJLyfe.rescue.token"
     static let recoveryBundle   = "com.aj.AJLyfe.recovery.bundle"
+    static let revival1         = "com.aj.AJLyfe.revival.tier1"   // $4.99
+    static let revival2         = "com.aj.AJLyfe.revival.tier2"   // $9.99
+    static let revival3         = "com.aj.AJLyfe.revival.tier3"   // $14.99
     static let crateCommon      = "com.aj.AJLyfe.crate.common"
     static let crateRare        = "com.aj.AJLyfe.crate.rare"
     static let crateEpic        = "com.aj.AJLyfe.crate.epic"
@@ -26,7 +29,8 @@ enum SKID {
         plusMonthly, founderPack,
         gems100, gems500, gems1200, gems3000, gems7000, gems15000,
         shield, streakRestore, rescueToken, recoveryBundle,
-        crateCommon, crateRare, crateEpic, crateLegendary
+        crateCommon, crateRare, crateEpic, crateLegendary,
+        revival1, revival2, revival3,
     ]
 }
 
@@ -176,6 +180,10 @@ final class StoreKitManager {
             appState.earnXP(300)
             appState.animalFood = 100
             appState.showToast("💊 Full recovery! Back in action!", icon: "💊", color: .ajGreen)
+
+        // Pet revival (tiered price)
+        case SKID.revival1, SKID.revival2, SKID.revival3:
+            appState.reviveAnimal()
 
         // Crates
         case SKID.crateCommon:    appState.commonCrates += 1;    appState.showToast("📦 Common Crate added!", icon: "📦", color: .white)
