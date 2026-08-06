@@ -199,21 +199,6 @@
       "type" : "Consumable"
     },
     {
-      "displayPrice" : "14.99",
-      "familyShareable" : false,
-      "internalID" : "revival_tier3",
-      "localizations" : [
-        {
-          "description" : "Revive your pet (max tier)",
-          "displayName" : "Pet Revival",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.aj.AJLyfe.revival.tier3",
-      "referenceName" : "Pet Revival Tier 3",
-      "type" : "Consumable"
-    },
-    {
       "displayPrice" : "0.99",
       "familyShareable" : false,
       "internalID" : "crate_common",

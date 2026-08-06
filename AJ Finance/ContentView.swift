@@ -857,7 +857,7 @@ struct RevivalOverlay: View {
                 .padding(.horizontal, 28)
 
                 if appState.animalDeathCount > 0 {
-                    Text("Price increases every 3 deaths — capped at $14.99")
+                    Text("Price increases after 3 deaths — max $9.99")
                         .font(.system(size: 11))
                         .foregroundColor(.white.opacity(0.38))
                         .multilineTextAlignment(.center)
