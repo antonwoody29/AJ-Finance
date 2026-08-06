@@ -852,6 +852,10 @@ struct NotificationManager {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.miss48, AJID.miss72, AJID.miss7d])
     }
 
+    static func cancelStreakProtector() {
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.streak])
+    }
+
     // MARK: - Test Burst (debug)
 
     static func scheduleTestBurst(animalName: String) {
@@ -891,7 +895,7 @@ struct NotificationManager {
     private static func scheduleStreakProtector(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.streak])
         let c = content(title: "\(animalName) checking in 🔥", body: AJCopy.pick(AJCopy.streakProtect, key: "streakProtect"), badge: 1)
-        var comps = DateComponents(); comps.hour = 22; comps.minute = 0
+        var comps = DateComponents(); comps.hour = 21; comps.minute = 0
         schedule(id: AJID.streak, content: c, trigger: calendar(comps, repeats: true))
     }
 

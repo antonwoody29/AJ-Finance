@@ -1342,6 +1342,7 @@ final class AppState {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 self.showDailyRewardBox = true
             }
+            NotificationManager.cancelStreakProtector()
         }
         updateStreak()
         earnXP(25)
