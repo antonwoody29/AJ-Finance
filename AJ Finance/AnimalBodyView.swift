@@ -17,6 +17,7 @@ struct CharConfig {
     var cheekBlush:  Bool        = false
     var whiskers:    Bool        = false   // cat/tiger/fox whisker lines
     var muzzle:      Bool        = false   // lighter snout protrusion
+    var bucktooth:   Bool        = false   // two crooked front teeth (alpaca-style)
     var flipperArms: Bool        = false   // penguin-style wing flippers
     var eyeKind:     EyeKind     = .standard
     var bodyKind:    BodyKind    = .standard
@@ -634,7 +635,8 @@ struct CharConfig {
                          iris: Color(red:0.32,green:0.22,blue:0.08),
                          nose: Color(red:0.88,green:0.60,blue:0.64),
                          ear: .bunnyTall, tail: .round,
-                         cheekBlush: true, muzzle: true)
+                         cheekBlush: true, muzzle: true, bucktooth: true,
+                         bodyKind: .longNeckDog)
         case .chinchilla:
             return .init(body: Color(red:0.72,green:0.70,blue:0.76),
                          belly: Color(red:0.92,green:0.90,blue:0.96),
@@ -1666,6 +1668,21 @@ struct AnimalBodyView: View {
             mouth.addLine(to: CGPoint(x: hx + u*0.044, y: my + u*0.030))
         }
         ctx.stroke(mouth, with: .color(cfg.outline), lineWidth: u*0.022)
+
+        // Buck teeth — two crooked front teeth that stick out below the nose
+        if cfg.bucktooth {
+            let ty = hy + u * 0.086   // sit just below nose
+            // Left tooth: slightly taller and shifted right (crooked overlap)
+            var tL = Path(roundedRect: CGRect(x: hx - u*0.042, y: ty, width: u*0.038, height: u*0.064),
+                          cornerRadius: u*0.008)
+            ctx.fill(tL, with: .color(.white))
+            ctx.stroke(tL, with: .color(cfg.outline), lineWidth: u*0.016)
+            // Right tooth: slightly shorter and angled inward (crooked)
+            var tR = Path(roundedRect: CGRect(x: hx + u*0.006, y: ty + u*0.010, width: u*0.034, height: u*0.054),
+                          cornerRadius: u*0.008)
+            ctx.fill(tR, with: .color(.white))
+            ctx.stroke(tR, with: .color(cfg.outline), lineWidth: u*0.016)
+        }
 
         // Whiskers — cat, tiger, fox, lion, wolf
         if cfg.whiskers {
