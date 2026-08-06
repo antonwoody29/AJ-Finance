@@ -135,23 +135,60 @@ enum AJMood: String, CaseIterable, Identifiable {
                 "The grind never looked so good.",
                 "Millionaire mindset loading…",
                 "Status: 87% complete.",
-                "Keep going legend 👑"
+                "Keep going legend 👑",
+                "You're literally writing your own success story right now.",
+                "The discipline you're building? Priceless.",
+                "Every dollar saved is fuel for your future.",
+                "Zero excuses, all results. That's you today 🔥",
+                "The version of you from a year ago would be SHOOK.",
+                "Not everybody has what it takes to do this consistently. You do.",
+                "Progress isn't always loud. Sometimes it's quiet wins like this.",
+                "Consistent beats talented every single time. You're both 🔥",
+                "Your future life is being built one choice at a time. Today was a good one.",
+                "Champions don't just show up on good days. You showed up today 👑",
+                "Stack habits. Stack savings. Stack wins. That's the formula 🔥",
+                "You're not just budgeting. You're building a different life.",
+                "While everyone else is spending, you're building. Big difference 💰",
+                "The grind is quiet. The results will be loud. Keep going.",
+                "Every decision you make today is an investment in tomorrow.",
+                "Level up energy is radiating off you rn 👑",
+                "Nobody accidentally builds wealth. You're choosing it every day.",
+                "The compound effect is working in your favor right now.",
+                "You're doing the boring stuff that creates extraordinary results.",
+                "You're living proof that consistency creates magic 🔥",
+                "LETS GO BESTIE WE ACTUALLY DOING IT 🏆",
+                "Today's decisions become tomorrow's life. And today was EXCELLENT.",
             ]
         case .happy:
             return [
                 "Looking good bestie! 😊", "Keep it up!", "We doing great!",
-                "Love to see it!", "This is the way 🐯", "I see you moving smart 👏",
+                "Love to see it!", "This is the way 🐾", "I see you moving smart 👏",
                 "You're really built different fr 🌟", "That's what I'm talking about! 💪",
                 "Small steps lead to big wins 🎯", "I knew you had it in you 😊",
                 "This is what financial glow up looks like ✨", "We out here winning quietly 🌟",
                 "Progress is progress bestie, no matter how small 💚",
-                "One good decision at a time, let's get it 🐯",
+                "One good decision at a time, let's get it 🐾",
                 "I'm not even surprised, you always show up 👏",
                 "The consistency is showing, I'm proud fr 🏆",
                 "You're not just saving money, you're saving your future 💫",
                 "Bag secured. Vibes immaculate. We winning. 😊",
                 "Every dollar you save is a vote for your future self 💰",
-                "Quietly becoming a different person financially 🌱"
+                "Quietly becoming a different person financially 🌱",
+                "You're really out here winning 💚",
+                "Noticed something? You're getting better at this every day.",
+                "The streak doesn't lie. You keep showing up 🔥",
+                "This is you in your main character era 💛",
+                "The budget is balanced, the vibes are immaculate 🌟",
+                "You checked in. That's the whole game right there 💚",
+                "Slow and steady wins the race AND the bag 💰",
+                "The small wins add up. You're proof of that 💪",
+                "Still here, still winning, still proud of you 💛",
+                "Your consistency is genuinely inspiring fr 🌟",
+                "Another day, another good decision. The pattern is clear 👏",
+                "Financial glow up is a daily practice. And you're practicing 🌱",
+                "Love the dedication bestie, keep cooking 🍳",
+                "You checked in AND logged? We love a responsible icon 👑",
+                "Future you is already thanking present you 💙",
             ]
         case .neutral:
             return [
@@ -254,7 +291,36 @@ enum AJMood: String, CaseIterable, Identifiable {
                 "Something good is coming.",
                 "Trust the process.",
                 "And maybe the budget.",
-                "Mostly the budget 😌"
+                "Mostly the budget 😌",
+                "Is it weird that I know your spending habits better than your friends do?",
+                "Just thinking about compound interest... never mind.",
+                "If I were a bank I'd give you the best rates ngl.",
+                "Did you know a snail can sleep for three years? Not relevant. Just interesting.",
+                "Hypothetically: if money grew on trees, would you still track it?",
+                "I feel like yes. You seem like a responsible tree-money-tracker.",
+                "My spirit animal is a spreadsheet.",
+                "No I don't want to talk about it.",
+                "I saw you almost buy something unnecessary earlier. I said what I said 👀",
+                "That was a close one. Your wallet thanks you.",
+                "The economy is a lot. But we're handling it.",
+                "Tired champions. Still champions.",
+                "I don't have opposable thumbs but I could STILL manage a budget better than most.",
+                "I had a thought and then it left. Classic.",
+                "Just casually existing and judging your subscriptions 🙂",
+                "I believe in you. Also I believe in deleting unused apps. Both important.",
+                "Money can't buy happiness but it can buy guacamole and that's close.",
+                "If budgeting was a sport I'd be training for the Olympics.",
+                "Debt is just a subscription you didn't know you signed up for.",
+                "Plot twist: the real treasure was the money we didn't spend along the way.",
+                "Fun fact: I have never impulse-bought anything. I am an animal.",
+                "I keep hearing about work-life balance. Where's the money-spending balance?",
+                "Some people count sheep. I count unclaimed daily rewards.",
+                "Did you log today? Just checking. Casually. No pressure. Okay maybe a little pressure.",
+                "I'm rooting for you and also your savings rate.",
+                "The vibes are carrying us right now. Don't check the math.",
+                "Just kidding. Always check the math. Bestie we track everything.",
+                "Log a receipt. Feed a pet. Save the world. Easy. 🌍",
+                "You and me vs. unnecessary expenses. We're winning btw.",
             ]
         case .sad:
             return [
@@ -402,21 +468,30 @@ enum AJMood: String, CaseIterable, Identifiable {
     func randomSpeech(for animalName: String = "your pet") -> String {
         switch self {
         case .hype:
-            if Double.random(in: 0...1) < 0.01 {
-                return AJMood.legendaryHypeLines.randomElement()!
+            if Double.random(in: 0...1) < 0.03 {
+                return pickRotating(AJMood.legendaryHypeLines, key: "legendary_hype")
             }
         case .sad:
-            if Double.random(in: 0...1) < 0.01 {
-                return AJMood.rareEmotionalLines.randomElement()!
+            if Double.random(in: 0...1) < 0.03 {
+                return pickRotating(AJMood.rareEmotionalLines, key: "rare_emotional")
             }
         case .neutral:
-            if Double.random(in: 0...1) < 0.05 {
-                return AJMood.chaoticIdleLines.randomElement()!
+            if Double.random(in: 0...1) < 0.08 {
+                return pickRotating(AJMood.chaoticIdleLines, key: "chaotic_idle")
             }
         default: break
         }
         let lines = speechLines(for: animalName)
-        return lines.randomElement() ?? lines[0]
+        return pickRotating(lines, key: "speech_\(self)")
+    }
+
+    private func pickRotating(_ pool: [String], key: String) -> String {
+        guard pool.count > 1 else { return pool.first ?? "" }
+        let lastIdx = UserDefaults.standard.integer(forKey: "ajspeech_last_\(key)")
+        let candidates = pool.indices.filter { $0 != lastIdx }
+        let nextIdx = (candidates.isEmpty ? pool.indices.map { $0 } : candidates).randomElement() ?? 0
+        UserDefaults.standard.set(nextIdx, forKey: "ajspeech_last_\(key)")
+        return pool[nextIdx]
     }
 
     static let legendaryHypeLines: [String] = [
@@ -429,7 +504,17 @@ enum AJMood: String, CaseIterable, Identifiable {
         "Financial freedom isn't luck. It's habits. And you're building them.",
         "The future belongs to people who keep showing up.",
         "This is the stuff that changes family trees.",
-        "Your future self would hug you for this one. 💙"
+        "Your future self would hug you for this one. 💙",
+        "You are quietly building a life that will speak for itself.",
+        "The people who change their circumstances are the ones who keep going when it's inconvenient.",
+        "Discipline is just choosing your future self over your present comfort. You're choosing wisely.",
+        "Nobody will see the daily work. But everyone will see the result.",
+        "You are not where you want to be yet. But you're moving. That's everything.",
+        "The best investment you'll ever make is becoming the person who makes great choices consistently.",
+        "One day you'll have the life you've been saving for. Today is how you get there.",
+        "This is what self-respect looks like. Showing up for your own future.",
+        "You are building something that compound interest will finish. Trust the process.",
+        "The version of you that gave up doesn't exist. That's the most powerful thing about you.",
     ]
 
     static let rareEmotionalLines: [String] = [
@@ -460,7 +545,19 @@ enum AJMood: String, CaseIterable, Identifiable {
         "I've got 99 problems and most of them are subscriptions.",
         "Being financially responsible is my toxic trait.",
         "I am once again asking for a snack.",
-        "Somebody somewhere is making worse decisions than us."
+        "Somebody somewhere is making worse decisions than us.",
+        "Unsubscribing from things gives me the same energy as winning an award.",
+        "What if we taxed procrastination? I'd owe so much.",
+        "I've made peace with the fact that adulting is just making decisions while tired.",
+        "Inflation got us out here doing math we didn't sign up for.",
+        "The audacity of bills to arrive monthly without fail, truly.",
+        "Just out here manifesting passive income and good vibes.",
+        "I stared at a receipt for five minutes. It did not explain itself.",
+        "The secret to wealth: spend less, earn more, repeat until rich. You're welcome.",
+        "Petition to make budgeting as satisfying as popping bubble wrap.",
+        "I have achieved a state of financial awareness. It is terrifying and enlightening.",
+        "Plot armor is not a valid financial strategy unfortunately.",
+        "Today I choose chaos. Just kidding. I choose the budget.",
     ]
 
     var kidSpeechLines: [String] {
@@ -3117,4 +3214,65 @@ struct SpendingChallenge: Codable, Identifiable {
 struct CheckInRecord: Codable {
     var date: Date
     var gemsEarned: Int
+}
+
+// MARK: - Recurring Transaction
+
+struct RecurringTransaction: Identifiable, Codable {
+    var id          = UUID()
+    var name        : String
+    var amount      : Double
+    var category    : SpendCategory
+    var dayOfMonth  : Int        // 1-28, day it auto-logs each month
+    var isEnabled   : Bool = true
+    var lastAutoLogged: Date? = nil
+}
+
+// MARK: - Seasonal Event
+
+struct SeasonalEvent: Identifiable {
+    var id          : String
+    var name        : String
+    var emoji       : String
+    var startMonth  : Int
+    var startDay    : Int
+    var endMonth    : Int
+    var endDay      : Int
+    var teaser      : String
+
+    static let all: [SeasonalEvent] = [
+        SeasonalEvent(id: "halloween", name: "Spooky Season",    emoji: "🎃",
+                      startMonth: 10, startDay: 1,  endMonth: 10, endDay: 31,
+                      teaser: "Spooky outfits available all October!"),
+        SeasonalEvent(id: "holiday",   name: "Holiday Season",   emoji: "🎄",
+                      startMonth: 12, startDay: 1,  endMonth: 12, endDay: 31,
+                      teaser: "Holiday outfits available all December!"),
+        SeasonalEvent(id: "valentine", name: "Valentine's Day",  emoji: "💘",
+                      startMonth: 2,  startDay: 1,  endMonth: 2,  endDay: 14,
+                      teaser: "Valentine's outfits until Feb 14!"),
+        SeasonalEvent(id: "summer",    name: "Summer Vibes",     emoji: "☀️",
+                      startMonth: 6,  startDay: 1,  endMonth: 8,  endDay: 31,
+                      teaser: "Summer outfits available June–August!"),
+    ]
+
+    var isActive: Bool {
+        let cal = Calendar.current
+        let m   = cal.component(.month, from: Date())
+        let d   = cal.component(.day,   from: Date())
+        if startMonth == endMonth {
+            return m == startMonth && d >= startDay && d <= endDay
+        }
+        return (m == startMonth && d >= startDay) || (m == endMonth && d <= endDay)
+    }
+
+    var daysRemaining: Int {
+        guard isActive else { return 0 }
+        let cal = Calendar.current
+        var end = DateComponents()
+        end.year  = cal.component(.year, from: Date())
+        end.month = endMonth
+        end.day   = endDay
+        guard let endDate = cal.date(from: end) else { return 0 }
+        return max(0, cal.dateComponents([.day], from: Date(), to: endDate).day ?? 0)
+    }
 }

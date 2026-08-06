@@ -136,12 +136,14 @@ struct ReceiptScannerView: View {
     var amountValue: Double { Double(amount) ?? 0 }
     var isValid: Bool { amountValue > 0 }
 
-    var isDuplicate: Bool {
-        guard amountValue > 0 else { return false }
+    var duplicateTransaction: SpendEntry? {
+        guard amountValue > 0 else { return nil }
         return appState.transactions
             .filter { $0.hasReceipt && !$0.isSaving }
-            .contains { abs($0.amount - amountValue) < 0.02 && Date().timeIntervalSince($0.date) < 300 }
+            .first { abs($0.amount - amountValue) < 0.02 && $0.category == category && Date().timeIntervalSince($0.date) < 86400 }
     }
+
+    var isDuplicate: Bool { duplicateTransaction != nil }
 
     var body: some View {
         NavigationStack {
@@ -428,11 +430,11 @@ struct ReceiptScannerView: View {
                 }
                 .disabled(!isValid)
                 .animation(.easeInOut(duration: 0.2), value: isValid)
-                .alert("Possible Duplicate", isPresented: $showDuplicateAlert) {
+                .alert("Duplicate Receipt?", isPresented: $showDuplicateAlert) {
                     Button("Log Anyway") { logReceipt() }
                     Button("Cancel", role: .cancel) {}
                 } message: {
-                    Text("A receipt for $\(String(format: "%.2f", amountValue)) was already logged in the last 5 minutes. Are you sure this is a different receipt?")
+                    Text("A \(category.rawValue) receipt for $\(String(format: "%.2f", amountValue)) was already logged today. Are you sure this is a different transaction?")
                 }
             }
             .padding(20)

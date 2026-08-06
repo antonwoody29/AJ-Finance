@@ -60,6 +60,15 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut(duration: 0.3), value: showSplash)
+        .overlay {
+            if appState.showDailyRewardBox {
+                DailyRewardBoxOverlay()
+                    .environment(appState)
+                    .transition(.opacity.combined(with: .scale(scale: 0.85)))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.7), value: appState.showDailyRewardBox)
+                    .zIndex(90)
+            }
+        }
         .onOpenURL { url in
             guard url.scheme == "ajlyfe", url.host == "reset" else { return }
             if let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?

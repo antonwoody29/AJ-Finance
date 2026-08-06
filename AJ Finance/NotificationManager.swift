@@ -78,6 +78,18 @@ private enum AJCopy {
         "Every receipt logged is a vote for future you 💪",
         "Morning! Your goals didn't take a day off either 🎯",
         "Woke up and chose financial stability 💅",
+        "Sun's up, bag's up. Let's lock in today 🌅",
+        "Today is a gift. So is compound interest. Open both 🎁",
+        "Another day to make future you proud. No pressure tho 💙",
+        "Good morning! The budget is ready when you are 💼",
+        "Rise, grind, and keep those finances tight 💪",
+        "A new morning means a new chance to level up 🌟",
+        "AJ says good morning and please don't spend recklessly today 😌",
+        "Morning motivation: you are one logged receipt closer to your goals 🧾",
+        "Today's energy: financially responsible and thriving ✨",
+        "The bag don't wait for nobody bestie. Let's move 💸",
+        "Wakey wakey eggs and savey 🍳 (savings, that is)",
+        "New morning new opportunity to absolutely secure the bag 🔐",
     ]
 
     static let midday: [String] = [
@@ -89,6 +101,14 @@ private enum AJCopy {
         "Noon o'clock. Time to remember what we're saving for 💰",
         "Your financial future called. It says keep going 🔥",
         "Mid-day reminder: future you is counting on present you 💙",
+        "You're doing great. Your budget is doing great. We're all doing great 💙",
+        "Midday motivational thought: you are capable of absolutely securing this bag 💼",
+        "Lunchtime = receipt logging time? AJ thinks yes 🧾",
+        "Half the day crushed. Let's keep the second half financially tight 🎯",
+        "Checking on you and your spending habits 👀 All good bestie?",
+        "Midday reminder that your goals are still waiting on you 🌟",
+        "Halfway point. The goals are watching. The savings are growing 💰",
+        "Lunch break energy: log what you spent this morning, keep crushing it 📝",
     ]
 
     static let afternoon: [String] = [
@@ -100,6 +120,15 @@ private enum AJCopy {
         "Your future self is sending afternoon encouragement 🌟",
         "Keep that energy up! Goals don't take afternoon breaks 🎯",
         "You're closer to your goal than you were this morning 💙",
+        "4pm check-in: did the budget survive the day so far? 👀",
+        "The end of the workday approaches. AJ is cheering for you 🎉",
+        "Afternoon pick-me-up: you're closer to your goal than yesterday 💪",
+        "Last stretch of the day! Keep those finances locked 🔒",
+        "Clocking out soon? Don't forget to log today's spending 📝",
+        "The sunset is almost here. So is your savings milestone 🌅",
+        "Final hours of the day. Finish strong bestie 🏁",
+        "Afternoon energy check: still on budget? AJ hopes yes 💙",
+        "Power through the rest of the day with that financial discipline 💎",
     ]
 
     static let evening: [String] = [
@@ -111,6 +140,15 @@ private enum AJCopy {
         "Before you get cozy — quick receipt log? 🧾",
         "The day had spending. The app has a log button. Do the math 😂",
         "AJ evening reminder: small steps daily = big wins monthly 🌟",
+        "Evening energy! Log today before you sleep 🌙",
+        "The day is wrapping up beautifully. Your log is waiting 📊",
+        "Tonight's a great night to review your spending 💙",
+        "Before Netflix — one quick log and you're golden 🌟",
+        "End your day right: one log and the streak survives 🔥",
+        "Recap the day: what did you spend? AJ wants to know 📝",
+        "Evening routine: dinner ✅ log receipts ✅ feel good about finances ✅",
+        "You made it through the day bestie! Now let's capture those receipts 🧾",
+        "Night vibes are immaculate. So is logging your spending 😌",
     ]
 
     static let streakProtect: [String] = [
@@ -119,6 +157,17 @@ private enum AJCopy {
         "Real quick: log something before midnight. Streak on the line ⚡",
         "AJ is literally holding your streak together rn 😅 Help me out!",
         "The streak doesn't care it's late. Neither does future you 🌃",
+        "Your daily reward is waiting 🎁 Log one transaction to claim it!",
+        "Midnight in 2 hours. Streak survives if you log NOW 🏃 Let's go!",
+        "One tap. One transaction. That's all the streak needs 🔥",
+        "Your pet noticed you haven't logged today 🐾 They're judging. Lovingly.",
+        "Tonight's the night you keep the streak alive. Don't sleep on it 💪",
+        "Hey! Log ONE thing tonight and the streak lives on 🔥",
+        "Quick! Before midnight! One transaction keeps the chain alive 🔗",
+        "Your streak is precious. One tap protects it tonight 💙",
+        "It's not too late. Thirty seconds. One log. Streak saved. GO. 🏃",
+        "Your future self is begging you to log something tonight 🙏",
+        "The streak is literally right there. Don't let it die at this hour 😤",
     ]
 
     static let savingsTip: [String] = [
@@ -128,10 +177,23 @@ private enum AJCopy {
         "Quick tip: unsubscribe from one thing you don't use. Free money! 💡",
         "The 24-hour rule: wait a day before any purchase over $50 🕐",
         "Tip: track every dollar for 7 days and see where it actually goes 👀",
-        "Saving $10/day = $3,650 a year. Just saying. 🤯",
         "Tip: your biggest wins come from fixing your biggest leaks 💧",
         "Emergency fund = financial confidence. Build yours one dollar at a time 💪",
         "Tip: future you is literally sending a thank-you note rn 📝",
+        "Tip: spending less than you earn isn't sacrifice. It's power 💪",
+        "The latte factor is real. $5/day = $1,825/year. Worth tracking 📊",
+        "Tip: pay yourself first. Automate savings before anything else 💰",
+        "You don't need more income to build wealth. You need fewer leaks 💧",
+        "Tip: one no-spend day per week = hundreds saved per month 🙌",
+        "The difference between rich and broke is usually habits, not income 💡",
+        "Tip: every impulse purchase is a future goal being delayed 📅",
+        "Building an emergency fund is the most loving thing you can do for yourself 💙",
+        "Tip: round up your spending and move the difference to savings 💰",
+        "Small consistent savings beat big sporadic ones every single time 📈",
+        "Tip: the best budget is the one you'll actually stick to. Keep it simple 🎯",
+        "A $1,000 emergency fund changes your relationship with money forever 🛡️",
+        "Tip: check your subscriptions monthly. You're probably paying for things you forgot 📱",
+        "The #1 wealth-building secret? Don't try to keep up with anyone else 💡",
     ]
 
     // MARK: Day-specific
@@ -335,18 +397,38 @@ private enum AJCopy {
         "I saved your spot 🐾 Come back whenever you're ready.",
         "AJ has been waiting… no pressure, just missed you 😊",
         "Hey you. Your pet is doing okay but they miss their person 💙",
+        "Your streak is still alive — for now 🔥 Don't let it die tonight!",
+        "You haven't logged today. Your pet is bored 🐾 Give it 30 seconds?",
+        "Quick check-in = happy pet + happy budget 💙 Tap to log anything!",
+        "Miss you around here 🌟 Everything okay?",
+        "Your savings goals are gathering dust. Come back and blow them off 💨",
+        "One tap is all it takes bestie. We're right here 💙",
+        "The app is quieter without you. Come make some financial moves 💸",
+        "Your daily reward is unclaimed. 30 seconds and it's yours 🎁",
     ]
 
     static let miss72: [String] = [
         "Three days… AJ is starting to talk to the furniture 😅 Come back!",
         "Still here. Still rooting for you. No judgment 💙",
         "AJ kept the lights on. Your goals did too. Ready when you are ✨",
+        "3 days without logging. Your budget is flying blind 😬 Let's fix it!",
+        "Your pet is getting lonely and your wallet is getting reckless. Log something? 👀",
+        "Even one receipt brings the streak back. You got this 💪",
+        "Three days MIA but we're still holding your spot 🐾 Come back!",
+        "No cap we miss you. The app misses you. The budget NEEDS you. 💙",
+        "Just one tap. That's all. Let's get back on track together 🙌",
     ]
 
     static let miss7d: [String] = [
         "It's been a week. AJ filed a missing persons report. Please come back 😭",
         "A whole week?? AJ is not okay. Your goals are not okay. Come back 🥺",
         "Seven days. We're still here. We're always here. Please bestie 💙",
+        "7 days gone. Your pet evolved… into sadness 😔 Come back and revive them!",
+        "Week 1 of being offline. Your future self is sending a search party 📡",
+        "The daily reward is piling up unclaimed. Just saying 🪙🪙🪙 Come back!",
+        "A whole week bestie. I'm not judging. I'm just. Here. Waiting. 😔",
+        "Your goals didn't give up on you during this week. Don't give up on them 💙",
+        "Week 1 without you. The streak is gone but the comeback can still be legendary 🔥",
     ]
 
     static let healthCritical: [String] = [
@@ -392,8 +474,15 @@ private enum AJCopy {
         "New level unlocked. Your animal is EVOLVING. Keep going bestie 🔥",
     ]
 
-    static func pick(_ pool: [String]) -> String {
-        pool.randomElement() ?? pool[0]
+    static func pick(_ pool: [String], key: String? = nil) -> String {
+        guard !pool.isEmpty else { return "" }
+        guard pool.count > 1, let key else { return pool.randomElement() ?? pool[0] }
+        let storageKey = "ajcopy_last_\(key)"
+        let lastIdx = UserDefaults.standard.integer(forKey: storageKey)
+        let candidates = pool.indices.filter { $0 != lastIdx }
+        let nextIdx = (candidates.isEmpty ? pool.indices.map { $0 } : candidates).randomElement() ?? 0
+        UserDefaults.standard.set(nextIdx, forKey: storageKey)
+        return pool[nextIdx]
     }
 }
 
@@ -602,50 +691,50 @@ struct NotificationManager {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.morning, AJID.morningMon, AJID.morningFri])
         guard enabled else { return }
 
-        let cMon = content(title: "\(animalName) 💼", body: AJCopy.pick(AJCopy.monday), badge: 0)
+        let cMon = content(title: "\(animalName) 💼", body: AJCopy.pick(AJCopy.monday, key: "monday"), badge: 0)
         var monComps = DateComponents(); monComps.weekday = 2; monComps.hour = hour; monComps.minute = minute
         schedule(id: AJID.morningMon, content: cMon, trigger: calendar(monComps, repeats: true))
 
-        let cFri = content(title: "\(animalName) 🎉", body: AJCopy.pick(AJCopy.friday), badge: 0)
+        let cFri = content(title: "\(animalName) 🎉", body: AJCopy.pick(AJCopy.friday, key: "friday"), badge: 0)
         var friComps = DateComponents(); friComps.weekday = 6; friComps.hour = hour; friComps.minute = minute
         schedule(id: AJID.morningFri, content: cFri, trigger: calendar(friComps, repeats: true))
 
-        let cGen = content(title: "\(animalName) ⭐", body: AJCopy.pick(AJCopy.morning), badge: 0)
+        let cGen = content(title: "\(animalName) ⭐", body: AJCopy.pick(AJCopy.morning, key: "morning"), badge: 0)
         var genComps = DateComponents(); genComps.hour = hour; genComps.minute = minute
         schedule(id: AJID.morning, content: cGen, trigger: calendar(genComps, repeats: true))
     }
 
     private static func scheduleStreakProtector(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.streak])
-        let c = content(title: "\(animalName) checking in 🔥", body: AJCopy.pick(AJCopy.streakProtect), badge: 1)
+        let c = content(title: "\(animalName) checking in 🔥", body: AJCopy.pick(AJCopy.streakProtect, key: "streakProtect"), badge: 1)
         var comps = DateComponents(); comps.hour = 22; comps.minute = 0
         schedule(id: AJID.streak, content: c, trigger: calendar(comps, repeats: true))
     }
 
     private static func scheduleMiddayMotivation(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.midday])
-        let c = content(title: "\(animalName) midday drop ☀️", body: AJCopy.pick(AJCopy.midday), badge: 0)
+        let c = content(title: "\(animalName) midday drop ☀️", body: AJCopy.pick(AJCopy.midday, key: "midday"), badge: 0)
         var comps = DateComponents(); comps.hour = 12; comps.minute = 15
         schedule(id: AJID.midday, content: c, trigger: calendar(comps, repeats: true))
     }
 
     private static func scheduleAfternoonBoost(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.afternoon])
-        let c = content(title: "\(animalName) afternoon check 💙", body: AJCopy.pick(AJCopy.afternoon), badge: 0)
+        let c = content(title: "\(animalName) afternoon check 💙", body: AJCopy.pick(AJCopy.afternoon, key: "afternoon"), badge: 0)
         var comps = DateComponents(); comps.hour = 15; comps.minute = 30
         schedule(id: AJID.afternoon, content: c, trigger: calendar(comps, repeats: true))
     }
 
     private static func scheduleEveningCheckIn(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.evening])
-        let c = content(title: "\(animalName) evening 📊", body: AJCopy.pick(AJCopy.evening), badge: 0)
+        let c = content(title: "\(animalName) evening 📊", body: AJCopy.pick(AJCopy.evening, key: "evening"), badge: 0)
         var comps = DateComponents(); comps.hour = 18; comps.minute = 30
         schedule(id: AJID.evening, content: c, trigger: calendar(comps, repeats: true))
     }
 
     private static func scheduleDailySavingsTip(animalName: String) {
         center.removePendingNotificationRequests(withIdentifiers: [AJID.tip])
-        let c = content(title: "💡 Money tip from \(animalName)", body: AJCopy.pick(AJCopy.savingsTip), badge: 0)
+        let c = content(title: "💡 Money tip from \(animalName)", body: AJCopy.pick(AJCopy.savingsTip, key: "savingsTip"), badge: 0)
         var comps = DateComponents(); comps.hour = 8; comps.minute = 45
         schedule(id: AJID.tip, content: c, trigger: calendar(comps, repeats: true))
     }

@@ -276,6 +276,13 @@ struct HomeView: View {
                 // ── Layer 10: Bottom UI ────────────────────────────────
                 VStack(spacing: 0) {
                     Spacer()
+                    // Seasonal event banner
+                    if let event = SeasonalEvent.all.first(where: { $0.isActive }) {
+                        SeasonalEventBannerView(event: event)
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 8)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                     goalPillsRow
                         .padding(.bottom, 5)
                     bottomActions
@@ -416,9 +423,11 @@ struct HomeView: View {
             // Hype dance rings
             if appState.isHypeDancing {
                 ForEach(0..<3, id: \.self) { i in
+                    let sz: CGFloat = CGFloat(150 + i * 34)
+                    let op: Double  = 0.30 - Double(i) * 0.08
                     Circle()
-                        .stroke(appState.selectedAnimal.bodyColor.opacity(0.30 - Double(i) * 0.08), lineWidth: 2)
-                        .frame(width: CGFloat(150 + i * 34), height: CGFloat(150 + i * 34))
+                        .stroke(appState.selectedAnimal.bodyColor.opacity(op), lineWidth: 2)
+                        .frame(width: sz, height: sz)
                         .scaleEffect(1.12)
                         .animation(
                             .easeInOut(duration: 0.50).repeatForever(autoreverses: true)
@@ -426,6 +435,13 @@ struct HomeView: View {
                             value: appState.isHypeDancing
                         )
                 }
+            }
+
+            // Evolution glow ring (sits behind animal)
+            if appState.animalGrowthStage >= 1 {
+                EvolutionGlowRing(stage: appState.animalGrowthStage)
+                    .frame(width: 160, height: 160)
+                    .offset(y: 30)
             }
 
             AnimalCanvas(

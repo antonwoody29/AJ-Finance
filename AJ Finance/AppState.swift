@@ -172,6 +172,13 @@ final class AppState {
     // MARK: - Seasonal Event
     var claimedSeasonalRewards: [String] = []  // event IDs claimed
 
+    // MARK: - Daily Reward Box
+    var showDailyRewardBox: Bool = false
+    var dailyRewardAmount: Int   = 0
+
+    // MARK: - Recurring Transactions
+    var recurringTransactions: [RecurringTransaction] = []
+
     // MARK: - Computed
 
     var totalSaved: Double {
@@ -1325,9 +1332,17 @@ final class AppState {
         transactions.append(tx)
         receiptCount += 1
         companionTxCounts[selectedAnimal.rawValue, default: 0] += 1
-        // Award 25 gems for first budget activity each day
+        // Award 25 gems + daily reward box for first log of the day
         let isFirstTodayTx = !transactions.dropLast().contains { Calendar.current.isDateInToday($0.date) }
-        if isFirstTodayTx { awardGems(25, reason: "Budget activity 💰") }
+        if isFirstTodayTx {
+            awardGems(25, reason: "Budget activity 💰")
+            let bonus = Int.random(in: 10...50)
+            dailyRewardAmount = bonus
+            earnCoins(bonus)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                self.showDailyRewardBox = true
+            }
+        }
         updateStreak()
         earnXP(25)
         earnCoins(5)
@@ -1398,6 +1413,42 @@ final class AppState {
         let fallback = ["$\(amt) gone like that 💨 Easy come easy go bestie", "Another day another dollar spent 💸"]
         let pool = roasts[tx.category] ?? fallback
         return pool.randomElement()
+    }
+
+    // MARK: - Recurring Transactions
+
+    func addRecurringTransaction(_ rt: RecurringTransaction) {
+        recurringTransactions.append(rt)
+        saveRecurring()
+        showToast("🔄 \(rt.name) added as recurring ($\(String(format: "%.2f", rt.amount))/mo)", icon: "🔄", color: .ajOrange)
+    }
+
+    func removeRecurringTransaction(id: UUID) {
+        recurringTransactions.removeAll { $0.id == id }
+        saveRecurring()
+    }
+
+    func checkRecurringTransactions() {
+        let cal      = Calendar.current
+        let today    = Date()
+        let todayDay = cal.component(.day, from: today)
+        for i in recurringTransactions.indices {
+            guard recurringTransactions[i].isEnabled else { continue }
+            let rt = recurringTransactions[i]
+            guard rt.dayOfMonth == todayDay else { continue }
+            if let last = rt.lastAutoLogged, cal.isDateInToday(last) { continue }
+            recurringTransactions[i].lastAutoLogged = today
+            let entry = SpendEntry(amount: rt.amount, category: rt.category,
+                                   note: "\(rt.name) (auto-recurring)", isSaving: false)
+            addTransaction(entry)   // counts toward streak & XP
+        }
+        saveRecurring()
+    }
+
+    private func saveRecurring() {
+        if let d = try? JSONEncoder().encode(recurringTransactions) {
+            UserDefaults.standard.set(d, forKey: "aj_recurringTx")
+        }
     }
 
     // MARK: - Subscription Graveyard
@@ -2538,10 +2589,12 @@ final class AppState {
 
         // Features
         let ud = UserDefaults.standard
-        if let d = ud.data(forKey: "aj_subscriptions"),    let v = try? JSONDecoder().decode([Subscription].self,        from: d) { subscriptions    = v }
-        if let d = ud.data(forKey: "aj_savingsJars"),      let v = try? JSONDecoder().decode([SavingsJar].self,          from: d) { savingsJars      = v }
-        if let d = ud.data(forKey: "aj_netWorthItems"),    let v = try? JSONDecoder().decode([NetWorthItem].self,        from: d) { netWorthItems    = v }
-        if let d = ud.data(forKey: "aj_joinedChallenges"), let v = try? JSONDecoder().decode([SpendingChallenge].self,   from: d) { joinedChallenges = v }
+        if let d = ud.data(forKey: "aj_subscriptions"),    let v = try? JSONDecoder().decode([Subscription].self,           from: d) { subscriptions           = v }
+        if let d = ud.data(forKey: "aj_savingsJars"),      let v = try? JSONDecoder().decode([SavingsJar].self,             from: d) { savingsJars             = v }
+        if let d = ud.data(forKey: "aj_netWorthItems"),    let v = try? JSONDecoder().decode([NetWorthItem].self,           from: d) { netWorthItems           = v }
+        if let d = ud.data(forKey: "aj_joinedChallenges"), let v = try? JSONDecoder().decode([SpendingChallenge].self,     from: d) { joinedChallenges        = v }
+        if let d = ud.data(forKey: "aj_recurringTx"),      let v = try? JSONDecoder().decode([RecurringTransaction].self,  from: d) { recurringTransactions   = v }
+        checkRecurringTransactions()
         netWorthMilestonesReached = ud.array(forKey: "aj_netWorthMilestones") as? [Int] ?? []
         checkInStreak  = ud.integer(forKey: "aj_checkInStreak")
         lastCheckInDate = ud.object(forKey: "aj_lastCheckIn") as? Date

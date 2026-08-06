@@ -2,13 +2,14 @@ import SwiftUI
 
 struct SpendView: View {
     @Environment(AppState.self) private var appState
-    @State private var showScanner      = false
-    @State private var showTrips        = false
+    @State private var showScanner        = false
+    @State private var showTrips          = false
     @State private var selectedCategory: SpendCategory?
-    @State private var showRoast        = false
-    @State private var showSubGraveyard = false
-    @State private var showQuickAdd     = false
-    @State private var searchText       = ""
+    @State private var showRoast          = false
+    @State private var showSubGraveyard   = false
+    @State private var showQuickAdd       = false
+    @State private var searchText         = ""
+    @State private var showRecurring      = false
 
     var body: some View {
         ZStack {
@@ -22,12 +23,18 @@ struct SpendView: View {
                     // Trip budget shortcut — always visible
                     tripBudgetCard
 
+                    // Recurring bills shortcut — always visible
+                    recurringBillsCard
+
                     if appState.monthlyTransactions.isEmpty {
                         // Rich empty state
                         spendEmptyState
                     } else {
                         // Monthly total hero card
                         monthlyHeroCard
+
+                        // Weekly AI recap
+                        WeeklyRecapCard(transactions: appState.transactions)
 
                         // Monthly recap story
                         monthlyRecapCard
@@ -38,8 +45,12 @@ struct SpendView: View {
                         // Month comparison
                         comparisonCard
 
-                        // Category breakdown
+                        // Category breakdown + pie chart
                         categoryBreakdownCard
+                        SpendingPieChartCard(spendingByCategory: appState.spendingByCategory)
+
+                        // Streak calendar
+                        StreakCalendarCard(transactions: appState.transactions)
 
                         // Transaction history
                         transactionHistoryCard
@@ -103,10 +114,39 @@ struct SpendView: View {
         .sheet(isPresented: $showRoast, onDismiss: { appState.pendingSpendRoast = nil }) {
             SpendRoastSheet(roast: appState.pendingSpendRoast ?? "")
         }
+        .sheet(isPresented: $showRecurring) {
+            RecurringTransactionManagerView().environment(appState)
+        }
         .navigationDestination(isPresented: $showSubGraveyard) { SubscriptionGraveyardView() }
         .onChange(of: appState.pendingSpendRoast) { _, roast in
             if roast != nil { showRoast = true }
         }
+    }
+
+    private var recurringBillsCard: some View {
+        Button { showRecurring = true } label: {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle().fill(Color.ajOrange.opacity(0.15)).frame(width: 44, height: 44)
+                    Text("🔄").font(.system(size: 22))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Recurring Bills")
+                        .font(.system(size: 15, weight: .bold)).foregroundColor(.white)
+                    let rt = appState.recurringTransactions
+                    Text(rt.isEmpty
+                         ? "Auto-log rent, Netflix, car payment…"
+                         : "$\(String(format: "%.2f", rt.filter { $0.isEnabled }.reduce(0) { $0 + $1.amount }))/mo · \(rt.count) bill\(rt.count == 1 ? "" : "s")")
+                        .font(.system(size: 12)).foregroundColor(.white.opacity(0.5))
+                }
+                Spacer()
+                Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.3)).font(.system(size: 13, weight: .semibold))
+            }
+            .padding(14)
+            .background(RoundedRectangle(cornerRadius: 14).fill(Color.ajCard)
+                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.25), lineWidth: 1)))
+        }
+        .buttonStyle(.plain)
     }
 
     private var subscriptionCard: some View {
