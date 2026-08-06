@@ -1424,6 +1424,17 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     // Birds
     case owl            = "Owl"
     case blueJay        = "Blue Jay"
+    // New animals
+    case gorilla        = "Gorilla"
+    case dolphin        = "Dolphin"
+    case parrot         = "Parrot"
+    case raccoon        = "Raccoon"
+    case narwhal        = "Narwhal"
+    case meerkat        = "Meerkat"
+    case platypus       = "Platypus"
+    case fennecFox      = "Fennec Fox"
+    case polarBear      = "Polar Bear"
+    case lemur          = "Lemur"
     var id: String { rawValue }
 
     var emoji: String {
@@ -1493,6 +1504,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "🐰"
         case .owl:            return "🦉"
         case .blueJay:        return "💙"
+        case .gorilla:        return "🦍"
+        case .dolphin:        return "🐬"
+        case .parrot:         return "🦜"
+        case .raccoon:        return "🦝"
+        case .narwhal:        return "🦄"
+        case .meerkat:        return "🐾"
+        case .platypus:       return "🦆"
+        case .fennecFox:      return "🦊"
+        case .polarBear:      return "🐻‍❄️"
+        case .lemur:          return "🐒"
         }
     }
 
@@ -1577,6 +1598,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return Color(red: 0.98, green: 0.96, blue: 0.97)
         case .owl:            return Color(red: 0.72, green: 0.55, blue: 0.30)
         case .blueJay:        return Color(red: 0.25, green: 0.55, blue: 0.88)
+        case .gorilla:        return Color(red: 0.22, green: 0.18, blue: 0.14)
+        case .dolphin:        return Color(red: 0.46, green: 0.68, blue: 0.86)
+        case .parrot:         return Color(red: 0.18, green: 0.72, blue: 0.28)
+        case .raccoon:        return Color(red: 0.56, green: 0.54, blue: 0.58)
+        case .narwhal:        return Color(red: 0.80, green: 0.90, blue: 0.98)
+        case .meerkat:        return Color(red: 0.82, green: 0.68, blue: 0.46)
+        case .platypus:       return Color(red: 0.58, green: 0.42, blue: 0.22)
+        case .fennecFox:      return Color(red: 0.98, green: 0.88, blue: 0.66)
+        case .polarBear:      return Color(red: 0.96, green: 0.96, blue: 0.98)
+        case .lemur:          return Color(red: 0.82, green: 0.80, blue: 0.84)
         }
     }
 
@@ -1647,6 +1678,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return .flowerGarden
         case .owl:            return .woodland
         case .blueJay:        return .flowerGarden
+        case .gorilla:        return .jungle
+        case .dolphin:        return .ocean
+        case .parrot:         return .jungle
+        case .raccoon:        return .woodland
+        case .narwhal:        return .ocean
+        case .meerkat:        return .savanna
+        case .platypus:       return .river
+        case .fennecFox:      return .mountain
+        case .polarBear:      return .arctic
+        case .lemur:          return .woodland
         }
     }
 
@@ -1717,6 +1758,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Soft life, serious savings 🌸"
         case .owl:            return "Wisest saver in the night 🦉"
         case .blueJay:        return "Loud, proud, and stacking coins 💙"
+        case .gorilla:        return "Raw power meets quiet wealth 🦍"
+        case .dolphin:        return "Smart, social, and stacking 🐬"
+        case .parrot:         return "Talk the talk, save the walk 🦜"
+        case .raccoon:        return "Finds treasure everywhere 🦝"
+        case .narwhal:        return "Legendary and one-of-a-kind 🌊"
+        case .meerkat:        return "Always watching for the next deal 👀"
+        case .platypus:       return "Weird flex but okay, the bag hits 🦆"
+        case .fennecFox:      return "Big ears, bigger returns 👂"
+        case .polarBear:      return "Ice cold strategy, warm wallet ❄️"
+        case .lemur:          return "Eyes wide open on the bag 👁️"
         }
     }
 
@@ -1787,6 +1838,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Cloud-Soft Accumulator"
         case .owl:            return "Wise Night Investor"
         case .blueJay:        return "Bold Territory Claimer"
+        case .gorilla:        return "Silent Power Builder"
+        case .dolphin:        return "Social Wealth Networker"
+        case .parrot:         return "Knowledge Compounding Repeater"
+        case .raccoon:        return "Resourceful Opportunity Finder"
+        case .narwhal:        return "Mythical Wealth Achiever"
+        case .meerkat:        return "Vigilant Market Watcher"
+        case .platypus:        return "Unconventional Success Maker"
+        case .fennecFox:      return "Desert Survival Saver"
+        case .polarBear:      return "Cold Strategy Long Player"
+        case .lemur:          return "Wide-Eyed Visionary Saver"
         }
     }
 
@@ -1890,6 +1951,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Don't let this fluffy exterior fool you — Fluffy is OUT HERE stacking coins every single day 🐰"
         case .owl:            return "I see everything in the dark. Your finances got nowhere to hide — let's fix them 🦉"
         case .blueJay:        return "Blue skies and BLUE CHIP savings — loud and proud about that bag 💙"
+        case .gorilla:        return "You got the strength of a gorilla — use it to SMASH your savings goals RIGHT NOW 🦍"
+        case .dolphin:        return "Smart as a dolphin means you know better — stop playing with your money and SAVE IT 🐬"
+        case .parrot:         return "Stop squawking about being broke and DO SOMETHING — save that bag today 🦜"
+        case .raccoon:        return "Everything is a come-up if you look right — hustle that bag and save every penny you find 🦝"
+        case .narwhal:        return "One-of-a-kind energy means one-of-a-kind savings — rare moves only, let's GO 🌊"
+        case .meerkat:        return "Eyes up, head on a swivel — opportunities are EVERYWHERE if you're paying attention, so SAVE NOW 👀"
+        case .platypus:        return "Nobody saw me coming and nobody sees my bag growing — surprise everyone, save in silence 🦆"
+        case .fennecFox:      return "These ears don't miss a thing — especially not a good deal, so stack that bread NOW 👂"
+        case .polarBear:      return "Ice cold on spending, warm on savings — that's the only temperature that matters ❄️"
+        case .lemur:          return "Big eyes see the big picture — and the big picture is you NEED TO SAVE MORE, let's go 👁️"
         }
     }
 
@@ -1960,6 +2031,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Fluffy says every little hop toward saving adds up to something huge! 🐰"
         case .owl:            return "The wise owl sees your future — and it's bright if you save! 🦉"
         case .blueJay:        return "Blue Jay says be bold and save bold! You've got this! 💙"
+        case .gorilla:        return "Be as strong as a gorilla with your savings! You can do it! 🦍"
+        case .dolphin:        return "Dolphins are super smart — and so are you for saving! 🐬"
+        case .parrot:         return "Say it with me: I am a SAVER! Now go save some coins! 🦜"
+        case .raccoon:        return "Raccoons find treasure everywhere — and so do you! 🦝"
+        case .narwhal:        return "You're as unique as a narwhal! Your savings are magical! 🌊"
+        case .meerkat:        return "Keep your eyes open for every chance to save! You've got this! 👀"
+        case .platypus:        return "Be wonderfully unique AND a great saver — that's you! 🦆"
+        case .fennecFox:      return "Your big ears hear opportunity everywhere — save it up! 👂"
+        case .polarBear:      return "Cool, calm, and saving! Polar bears always have a plan! ❄️"
+        case .lemur:          return "Eyes wide open and savings growing — you're amazing! 👁️"
         }
     }
 
@@ -2022,6 +2103,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "🥕"
         case .owl:            return "🦗"
         case .blueJay:        return "🫐"
+        case .gorilla:        return "🍌"
+        case .dolphin:        return "🐟"
+        case .parrot:         return "🌰"
+        case .raccoon:        return "🦀"
+        case .narwhal:        return "🦐"
+        case .meerkat:        return "🦂"
+        case .platypus:        return "🦐"
+        case .fennecFox:      return "🌵"
+        case .polarBear:      return "🐟"
+        case .lemur:          return "🍎"
         }
     }
 
@@ -2092,6 +2183,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Sweet Baby Carrots"
         case .owl:            return "Night Crickets"
         case .blueJay:        return "Fresh Blueberries"
+        case .gorilla:        return "Jungle Bananas"
+        case .dolphin:        return "Ocean Fish"
+        case .parrot:         return "Tropical Nuts"
+        case .raccoon:        return "River Crayfish"
+        case .narwhal:        return "Arctic Shrimp"
+        case .meerkat:        return "Desert Scorpion"
+        case .platypus:        return "River Shrimp"
+        case .fennecFox:      return "Desert Dates"
+        case .polarBear:      return "Arctic Salmon"
+        case .lemur:          return "Forest Fruit"
         }
     }
 
@@ -2176,6 +2277,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Impossibly soft exterior hiding an iron savings game. Fluffy hops fast toward every financial goal and never misses."
         case .owl:            return "Night-shift genius. Sees what others miss in the dark. The wisest financial mind in the forest."
         case .blueJay:        return "Bold and territorial about the bag. Stakes a claim, defends it hard, and sings loud about every win."
+        case .gorilla:        return "Quiet power broker. Says nothing, builds everything. When the gorilla moves, wealth moves."
+        case .dolphin:        return "Social genius. Rides every wave, reads every room, and always ends up richer for it."
+        case .parrot:         return "Knowledge multiplier. Absorbs every financial tip and repeats it until it sticks — loudly."
+        case .raccoon:        return "Resourceful opportunist. Finds value in everything, wastes nothing, turns every find into a come-up."
+        case .narwhal:        return "Mythical overachiever. Exists in a league of its own — the wealth game doesn't have a category for this one."
+        case .meerkat:        return "Hyper-vigilant lookout. First to spot the threat, first to dodge the dip, always on guard for the bag."
+        case .platypus:        return "Underestimated genius. Defies every expectation, breaks every mold, and quietly builds generational wealth."
+        case .fennecFox:      return "Desert survivor. Thrives with less, hears more than everyone else, and makes magic out of scarcity."
+        case .polarBear:      return "Cold-blooded strategist. Plays the long game in extreme conditions. Patience is the superpower."
+        case .lemur:          return "Wide-eyed visionary. Sees everything coming, misses nothing, and turns every observation into a profit."
         }
     }
 
@@ -2246,6 +2357,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "🌸 Flower crown"
         case .owl:            return "📚 Wisdom tome"
         case .blueJay:        return "💙 Blue feather"
+        case .gorilla:        return "🍌 Jungle banana"
+        case .dolphin:        return "🌊 Surf fin"
+        case .parrot:         return "🪙 Gold coin perch"
+        case .raccoon:        return "🎭 Bandit mask"
+        case .narwhal:        return "✨ Spiral horn"
+        case .meerkat:        return "🔭 Tiny lookout scope"
+        case .platypus:        return "🦆 Duck bill badge"
+        case .fennecFox:      return "👂 Desert ear charm"
+        case .polarBear:      return "❄️ Ice paw print"
+        case .lemur:          return "👁️ Night vision ring"
         }
     }
 
@@ -2316,6 +2437,16 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .rabbitFluffy:   return "Excited nose twitch then full binky victory jump"
         case .owl:            return "Silent head swivel then slow wing spread"
         case .blueJay:        return "Wing flare and bold victory call"
+        case .gorilla:        return "Chest pound then calm victory stand"
+        case .dolphin:        return "Backflip leap and splash landing"
+        case .parrot:         return "Wing clap and victory squawk repeat"
+        case .raccoon:        return "Coin toss catch then bandit bow"
+        case .narwhal:        return "Spiral twist dive and emerge"
+        case .meerkat:        return "Full stand alert scan then relaxed clap"
+        case .platypus:        return "Belly slide then bill snap celebration"
+        case .fennecFox:      return "Ear perk up then desert dust kick"
+        case .polarBear:      return "Ice slide and snow shake victory"
+        case .lemur:          return "Tail ring flash and wide-eye victory stare"
         }
     }
 }
