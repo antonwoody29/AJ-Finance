@@ -164,6 +164,7 @@ struct ContentView: View {
             if !appState.animalIsAlive {
                 RevivalOverlay()
                     .environment(appState)
+                    .environment(storeKit)
                     .transition(.opacity)
                     .animation(.easeInOut(duration: 0.4), value: appState.animalIsAlive)
             }

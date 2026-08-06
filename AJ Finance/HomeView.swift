@@ -283,6 +283,7 @@ struct HomeView: View {
                         .padding(.bottom, 100)
                 }
 
+
                 // ── Layer 11: Coin burst ───────────────────────────────
                 Text("+\(coinBurstAmount)🪙")
                     .font(.system(size: 21, weight: .black))
