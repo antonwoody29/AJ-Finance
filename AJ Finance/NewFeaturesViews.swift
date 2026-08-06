@@ -17,47 +17,102 @@ struct DailyRewardBoxOverlay: View {
                 .ignoresSafeArea()
                 .onTapGesture { if boxOpen { closeSelf() } }
 
-            VStack(spacing: 28) {
+            VStack(spacing: 20) {
                 Text("DAILY REWARD")
                     .font(.system(size: 13, weight: .black))
                     .foregroundColor(.ajOrange)
                     .tracking(3)
 
+                // Streak badge
+                HStack(spacing: 10) {
+                    Text("🔥")
+                        .font(.system(size: 22))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(appState.streak) Day Streak")
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundColor(.white)
+                        Text(appState.streak == 0 ? "Start logging to build your streak!" : "Keep it going!")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    Spacer()
+                    if appState.streak >= 7 {
+                        Text(appState.streak >= 30 ? "👑" : appState.streak >= 14 ? "🏅" : "⚡")
+                            .font(.system(size: 20))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.07)))
+
+                // Seasonal event card (if active)
+                if let event = SeasonalEvent.all.first(where: { $0.isActive }) {
+                    HStack(spacing: 10) {
+                        Text(event.emoji)
+                            .font(.system(size: 22))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(event.name.uppercased())
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundColor(.ajOrange)
+                                .tracking(2)
+                            Text(event.teaser)
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                        Spacer()
+                        VStack(spacing: 1) {
+                            Text("\(event.daysRemaining)")
+                                .font(.system(size: 16, weight: .black))
+                                .foregroundColor(.ajGold)
+                            Text("days left")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.4))
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.07))
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
+                    )
+                }
+
                 ZStack {
                     if !boxOpen {
                         Text("🎁")
-                            .font(.system(size: 90))
+                            .font(.system(size: 80))
                             .scaleEffect(scale)
                             .shadow(color: .ajGold.opacity(0.5), radius: 20)
                             .onTapGesture { openBox() }
                     } else {
-                        VStack(spacing: 10) {
+                        VStack(spacing: 8) {
                             Text("🪙")
-                                .font(.system(size: 70))
+                                .font(.system(size: 60))
                                 .scaleEffect(coinsPopped ? 1.25 : 0.6)
                                 .animation(.spring(response: 0.4, dampingFraction: 0.5), value: coinsPopped)
                             Text("+\(appState.dailyRewardAmount) COINS")
-                                .font(.system(size: 34, weight: .black))
+                                .font(.system(size: 30, weight: .black))
                                 .foregroundColor(.ajGold)
                             Text("First log bonus 🎉")
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.6))
                         }
                         .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .frame(height: 130)
+                .frame(height: 110)
 
                 if !boxOpen {
                     Text("Tap the box to claim your reward!")
-                        .font(.system(size: 14))
+                        .font(.system(size: 13))
                         .foregroundColor(.white.opacity(0.55))
                 } else {
                     Button("Collect!") { closeSelf() }
                         .font(.system(size: 16, weight: .black))
                         .foregroundColor(.black)
                         .padding(.horizontal, 44)
-                        .padding(.vertical, 15)
+                        .padding(.vertical, 14)
                         .background(Capsule().fill(Color.ajGold))
                         .shadow(color: .ajGold.opacity(0.4), radius: 12)
                         .transition(.scale.combined(with: .opacity))
@@ -418,37 +473,62 @@ struct WeeklyRecapCard: View {
 struct SeasonalEventBannerView: View {
     let event: SeasonalEvent
     @State private var shimmer = false
+    @AppStorage("seasonalBannerMinimized") private var minimized = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             Text(event.emoji)
-                .font(.system(size: 28))
+                .font(.system(size: minimized ? 18 : 28))
                 .scaleEffect(shimmer ? 1.08 : 1.0)
                 .animation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true), value: shimmer)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(event.name.uppercased())
-                    .font(.system(size: 10, weight: .black))
+            if !minimized {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(event.name.uppercased())
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Text(event.teaser)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .transition(.opacity.combined(with: .move(edge: .leading)))
+            } else {
+                Text(event.name)
+                    .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.ajOrange)
-                    .tracking(2)
-                Text(event.teaser)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.8))
+                    .transition(.opacity)
             }
 
             Spacer()
 
-            VStack(spacing: 2) {
-                Text("\(event.daysRemaining)")
-                    .font(.system(size: 20, weight: .black))
-                    .foregroundColor(.ajGold)
-                Text("days left")
-                    .font(.system(size: 9, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.4))
+            if !minimized {
+                VStack(spacing: 2) {
+                    Text("\(event.daysRemaining)")
+                        .font(.system(size: 20, weight: .black))
+                        .foregroundColor(.ajGold)
+                    Text("days left")
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+                .transition(.opacity.combined(with: .move(edge: .trailing)))
             }
+
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    minimized.toggle()
+                }
+            } label: {
+                Image(systemName: minimized ? "chevron.down" : "chevron.up")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(.white.opacity(0.45))
+                    .frame(width: 26, height: 26)
+                    .background(Circle().fill(Color.white.opacity(0.08)))
+            }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 14)
+        .padding(.vertical, minimized ? 8 : 12)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color.ajCard)

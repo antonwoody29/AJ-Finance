@@ -276,13 +276,6 @@ struct HomeView: View {
                 // ── Layer 10: Bottom UI ────────────────────────────────
                 VStack(spacing: 0) {
                     Spacer()
-                    // Seasonal event banner
-                    if let event = SeasonalEvent.all.first(where: { $0.isActive }) {
-                        SeasonalEventBannerView(event: event)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 8)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
                     goalPillsRow
                         .padding(.bottom, 5)
                     bottomActions
@@ -352,7 +345,7 @@ struct HomeView: View {
 
     // MARK: - Ground geometry
 
-    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.600 }
+    private func groundY(_ geo: GeometryProxy) -> CGFloat { geo.size.height * 0.680 }
     private func clamped(_ v: CGFloat, _ lo: CGFloat, _ hi: CGFloat) -> CGFloat { max(lo, min(hi, v)) }
 
     // MARK: - Atmosphere layers
