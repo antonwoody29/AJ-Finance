@@ -799,6 +799,7 @@ struct SobrietySetupSheet: View {
 struct RevivalOverlay: View {
     @Environment(AppState.self) private var appState
     @Environment(StoreKitManager.self) private var storeKit
+    @State private var showError = false
 
     var body: some View {
         ZStack {
@@ -865,7 +866,10 @@ struct RevivalOverlay: View {
 
                 // Real StoreKit purchase — triggers Apple Pay sheet
                 Button {
-                    Task { await storeKit.purchase(id: appState.revivalProductID, appState: appState) }
+                    Task {
+                        await storeKit.purchase(id: appState.revivalProductID, appState: appState)
+                        if storeKit.lastError != nil { showError = true }
+                    }
                 } label: {
                     HStack(spacing: 8) {
                         if storeKit.purchaseInProgress {
@@ -896,6 +900,11 @@ struct RevivalOverlay: View {
 
                 Spacer()
             }
+        }
+        .alert("Payment Unavailable", isPresented: $showError) {
+            Button("OK") { storeKit.lastError = nil }
+        } message: {
+            Text(storeKit.lastError ?? "Something went wrong. Please try again.")
         }
     }
 }
