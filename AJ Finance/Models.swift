@@ -189,6 +189,7 @@ enum AJMood: String, CaseIterable, Identifiable {
                 "Love the dedication bestie, keep cooking 🍳",
                 "You checked in AND logged? We love a responsible icon 👑",
                 "Future you is already thanking present you 💙",
+                "You save that money oh snap we outside this weekend shiiiii 🎉",
             ]
         case .neutral:
             return [
