@@ -66,32 +66,43 @@ struct AJCard<Content: View>: View {
         content()
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.14, green: 0.07, blue: 0.01),
-                                Color(red: 0.07, green: 0.033, blue: 0.0),
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.13),
-                                        Color(red: 0.24, green: 0.12, blue: 0.02).opacity(0.8),
-                                        Color.clear,
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.16, green: 0.08, blue: 0.02),
+                                    Color(red: 0.06, green: 0.028, blue: 0.008),
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
                             )
-                    )
+                        )
+                    // Subtle inner orange glow on top edge
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.ajOrange.opacity(0.07), .clear],
+                                startPoint: .top,
+                                endPoint: UnitPoint(x: 0.5, y: 0.45)
+                            )
+                        )
+                    // Border: bright top-left fade to dim bottom-right
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.18),
+                                    Color.ajOrange.opacity(0.10),
+                                    Color(red: 0.20, green: 0.10, blue: 0.02).opacity(0.5),
+                                    Color.clear,
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                }
             )
     }
 }

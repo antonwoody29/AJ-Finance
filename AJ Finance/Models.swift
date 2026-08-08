@@ -19,29 +19,47 @@ struct AJRichBackground: View {
     var body: some View {
         ZStack {
             Color.ajDark
-            // Brand orange warmth — top right
+
+            // 🔥 Bold orange fire — top right (brand anchor)
             RadialGradient(
-                colors: [Color.ajOrange.opacity(0.14), .clear],
-                center: UnitPoint(x: 0.88, y: 0.04),
-                startRadius: 0, endRadius: 340
+                colors: [Color.ajOrange.opacity(0.38), Color.ajOrange.opacity(0.08), .clear],
+                center: UnitPoint(x: 0.92, y: 0.0),
+                startRadius: 0, endRadius: 380
             )
-            // Deep indigo depth — bottom left
+
+            // ⚡ Electric violet — bottom left (drama + depth)
             RadialGradient(
-                colors: [Color(red: 0.10, green: 0.04, blue: 0.36).opacity(0.28), .clear],
-                center: UnitPoint(x: 0.06, y: 0.96),
-                startRadius: 0, endRadius: 400
+                colors: [Color(red: 0.42, green: 0.06, blue: 0.90).opacity(0.42), .clear],
+                center: UnitPoint(x: 0.0, y: 1.0),
+                startRadius: 0, endRadius: 460
             )
-            // Subtle amber mid accent — left edge
+
+            // 🌊 Deep teal — bottom right (cool contrast)
             RadialGradient(
-                colors: [Color(red: 0.55, green: 0.22, blue: 0.0).opacity(0.09), .clear],
-                center: UnitPoint(x: 0.0, y: 0.48),
-                startRadius: 0, endRadius: 220
+                colors: [Color(red: 0.0, green: 0.58, blue: 0.68).opacity(0.22), .clear],
+                center: UnitPoint(x: 1.0, y: 0.88),
+                startRadius: 0, endRadius: 320
             )
-            // Top shimmer line
+
+            // 🟠 Amber ember — left mid (warmth bridge)
+            RadialGradient(
+                colors: [Color(red: 0.70, green: 0.28, blue: 0.0).opacity(0.20), .clear],
+                center: UnitPoint(x: 0.0, y: 0.42),
+                startRadius: 0, endRadius: 260
+            )
+
+            // 🌙 Center vignette — pulls eye inward
+            RadialGradient(
+                colors: [.clear, Color.black.opacity(0.30)],
+                center: .center,
+                startRadius: 120, endRadius: 500
+            )
+
+            // ✨ Top edge shimmer
             LinearGradient(
-                colors: [Color.white.opacity(0.05), .clear],
+                colors: [Color.white.opacity(0.07), .clear],
                 startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.10)
+                endPoint: UnitPoint(x: 0.5, y: 0.09)
             )
         }
         .ignoresSafeArea()
