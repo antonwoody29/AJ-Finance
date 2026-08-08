@@ -652,6 +652,89 @@ struct CharConfig {
                          iris: Color(red:0.20,green:0.16,blue:0.12),
                          nose: Color(red:0.54,green:0.44,blue:0.32),
                          ear: .tiny, tail: .flat, bodyKind: .hippo)
+        case .lynx:
+            return .init(body: Color(red:0.76,green:0.70,blue:0.60),
+                         belly: Color(red:0.92,green:0.88,blue:0.82),
+                         accent: Color(red:0.28,green:0.22,blue:0.16),
+                         iris: Color(red:0.62,green:0.44,blue:0.10),
+                         ear: .pointy, tail: .round, marking: .spots,
+                         cheekBlush: true, whiskers: true, muzzle: true)
+        case .seahorse:
+            return .init(body: Color(red:0.98,green:0.62,blue:0.18),
+                         belly: Color(red:1.0,green:0.88,blue:0.54),
+                         accent: Color(red:0.72,green:0.32,blue:0.06),
+                         iris: Color(red:0.10,green:0.42,blue:0.70),
+                         ear: .none, tail: .curled, bodyKind: .fish)
+        case .toucan:
+            return .init(body: Color(red:0.10,green:0.10,blue:0.12),
+                         belly: Color(red:0.98,green:0.94,blue:0.56),
+                         accent: Color(red:0.94,green:0.34,blue:0.10),
+                         iris: Color(red:0.14,green:0.56,blue:0.22),
+                         nose: Color(red:0.94,green:0.60,blue:0.14),
+                         ear: .none, tail: .fan, special: .crest,
+                         flipperArms: true)
+        case .quokka:
+            return .init(body: Color(red:0.70,green:0.58,blue:0.40),
+                         belly: Color(red:0.92,green:0.82,blue:0.64),
+                         accent: Color(red:0.44,green:0.34,blue:0.20),
+                         iris: Color(red:0.24,green:0.16,blue:0.08),
+                         ear: .round, tail: .long,
+                         cheekBlush: true, muzzle: true)
+        case .ocelot:
+            return .init(body: Color(red:0.88,green:0.72,blue:0.38),
+                         belly: Color(red:1.0,green:0.96,blue:0.84),
+                         accent: Color(red:0.22,green:0.14,blue:0.06),
+                         iris: Color(red:0.26,green:0.58,blue:0.18),
+                         ear: .pointy, tail: .long, marking: .spots,
+                         cheekBlush: true, whiskers: true, muzzle: true)
+        case .pangolin:
+            return .init(body: Color(red:0.52,green:0.44,blue:0.34),
+                         belly: Color(red:0.78,green:0.68,blue:0.54),
+                         accent: Color(red:0.32,green:0.26,blue:0.18),
+                         iris: Color(red:0.22,green:0.16,blue:0.08),
+                         nose: Color(red:0.28,green:0.20,blue:0.12),
+                         ear: .tiny, tail: .long, special: .spikes)
+        case .phoenix:
+            return .init(body: Color(red:0.98,green:0.36,blue:0.08),
+                         belly: Color(red:1.0,green:0.72,blue:0.10),
+                         accent: Color(red:0.72,green:0.12,blue:0.04),
+                         iris: Color(red:1.0,green:0.72,blue:0.10),
+                         ear: .none, tail: .fan, special: .wings, special2: .crest)
+        case .lobster:
+            return .init(body: Color(red:0.92,green:0.22,blue:0.12),
+                         belly: Color(red:1.0,green:0.48,blue:0.30),
+                         accent: Color(red:0.60,green:0.10,blue:0.06),
+                         iris: Color(red:0.10,green:0.10,blue:0.10),
+                         nose: Color(red:0.78,green:0.16,blue:0.08),
+                         ear: .none, tail: .flat, bodyKind: .crab)
+        case .husky:
+            return .init(body: Color(red:0.58,green:0.58,blue:0.62),
+                         belly: Color(red:0.96,green:0.96,blue:0.98),
+                         accent: Color(red:0.18,green:0.18,blue:0.22),
+                         iris: Color(red:0.40,green:0.68,blue:0.92),
+                         ear: .pointy, tail: .fluffy, marking: .eyePatch,
+                         cheekBlush: true, muzzle: true)
+        case .kinkajou:
+            return .init(body: Color(red:0.72,green:0.52,blue:0.24),
+                         belly: Color(red:0.92,green:0.76,blue:0.46),
+                         accent: Color(red:0.44,green:0.30,blue:0.10),
+                         iris: Color(red:0.22,green:0.16,blue:0.08),
+                         ear: .round, tail: .long,
+                         cheekBlush: true, muzzle: true)
+        case .mongoose:
+            return .init(body: Color(red:0.64,green:0.54,blue:0.40),
+                         belly: Color(red:0.84,green:0.74,blue:0.58),
+                         accent: Color(red:0.38,green:0.28,blue:0.16),
+                         iris: Color(red:0.52,green:0.36,blue:0.08),
+                         ear: .round, tail: .long,
+                         cheekBlush: true, muzzle: true)
+        case .dingo:
+            return .init(body: Color(red:0.82,green:0.60,blue:0.28),
+                         belly: Color(red:1.0,green:0.90,blue:0.72),
+                         accent: Color(red:0.48,green:0.30,blue:0.10),
+                         iris: Color(red:0.44,green:0.28,blue:0.08),
+                         ear: .pointy, tail: .long,
+                         cheekBlush: true, muzzle: true)
         }
     }
 }

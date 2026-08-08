@@ -1446,6 +1446,19 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case alpaca         = "Alpaca"
     case chinchilla     = "Chinchilla"
     case walrus         = "Walrus"
+    // New animals
+    case lynx           = "Lynx"
+    case seahorse       = "Seahorse"
+    case toucan         = "Toucan"
+    case quokka         = "Quokka"
+    case ocelot         = "Ocelot"
+    case pangolin       = "Pangolin"
+    case phoenix        = "Phoenix"
+    case lobster        = "Lobster"
+    case husky          = "Husky"
+    case kinkajou       = "Kinkajou"
+    case mongoose       = "Mongoose"
+    case dingo          = "Dingo"
     var id: String { rawValue }
 
     var emoji: String {
@@ -1535,6 +1548,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "🦙"
         case .chinchilla:     return "🐭"
         case .walrus:         return "🦭"
+        case .lynx:           return "🐾"
+        case .seahorse:       return "🌊"
+        case .toucan:         return "🌈"
+        case .quokka:         return "😊"
+        case .ocelot:         return "🐆"
+        case .pangolin:       return "🛡️"
+        case .phoenix:        return "🔥"
+        case .lobster:        return "🦞"
+        case .husky:          return "❄️"
+        case .kinkajou:       return "🍯"
+        case .mongoose:       return "💨"
+        case .dingo:          return "🌅"
         }
     }
 
@@ -1639,6 +1664,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return Color(red: 0.96, green: 0.92, blue: 0.84)
         case .chinchilla:     return Color(red: 0.74, green: 0.72, blue: 0.78)
         case .walrus:         return Color(red: 0.62, green: 0.52, blue: 0.40)
+        case .lynx:           return Color(red: 0.76, green: 0.70, blue: 0.60)
+        case .seahorse:       return Color(red: 0.98, green: 0.62, blue: 0.18)
+        case .toucan:         return Color(red: 0.10, green: 0.10, blue: 0.12)
+        case .quokka:         return Color(red: 0.70, green: 0.58, blue: 0.40)
+        case .ocelot:         return Color(red: 0.88, green: 0.72, blue: 0.38)
+        case .pangolin:       return Color(red: 0.52, green: 0.44, blue: 0.34)
+        case .phoenix:        return Color(red: 0.98, green: 0.36, blue: 0.08)
+        case .lobster:        return Color(red: 0.92, green: 0.22, blue: 0.12)
+        case .husky:          return Color(red: 0.58, green: 0.58, blue: 0.62)
+        case .kinkajou:       return Color(red: 0.72, green: 0.52, blue: 0.24)
+        case .mongoose:       return Color(red: 0.64, green: 0.54, blue: 0.40)
+        case .dingo:          return Color(red: 0.82, green: 0.60, blue: 0.28)
         }
     }
 
@@ -1729,6 +1766,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return .mountain
         case .chinchilla:     return .burrow
         case .walrus:         return .arctic
+        case .lynx:           return .mountain
+        case .seahorse:       return .ocean
+        case .toucan:         return .jungle
+        case .quokka:         return .forest
+        case .ocelot:         return .jungle
+        case .pangolin:       return .forest
+        case .phoenix:        return .volcano
+        case .lobster:        return .ocean
+        case .husky:          return .arctic
+        case .kinkajou:       return .jungle
+        case .mongoose:       return .savanna
+        case .dingo:          return .savanna
         }
     }
 
@@ -1819,6 +1868,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Soft life, solid savings 🦙"
         case .chinchilla:     return "Tiny, floofy, and financially focused 🐭"
         case .walrus:         return "Big splash, bigger bank account 🦭"
+        case .lynx:           return "Silent, sharp, and stacking 🏔️"
+        case .seahorse:       return "Patience is the current 🌊"
+        case .toucan:         return "Bold colors, even bolder returns 🌈"
+        case .quokka:         return "World's happiest saver 😊"
+        case .ocelot:         return "Spotted in first class 🐆"
+        case .pangolin:       return "Armored and accumulating 🛡️"
+        case .phoenix:        return "Rise from every financial setback 🔥"
+        case .lobster:        return "Premium by nature, premium by savings 🦞"
+        case .husky:          return "Built for the long haul ❄️"
+        case .kinkajou:       return "Sweet rewards for patient work 🍯"
+        case .mongoose:       return "Too quick for financial danger 💨"
+        case .dingo:          return "Wild instincts, calculated moves 🌅"
         }
     }
 
@@ -1909,6 +1970,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Soft Life Saver"
         case .chinchilla:     return "Micro-Savings Floof"
         case .walrus:         return "Arctic Wealth Guardian"
+        case .lynx:           return "Silent Precision Tracker"
+        case .seahorse:       return "Current-Riding Accumulator"
+        case .toucan:         return "Bold-Color Bold-Returns Investor"
+        case .quokka:         return "Optimism Wealth Builder"
+        case .ocelot:         return "Spotted Opportunity Hunter"
+        case .pangolin:       return "Armored Asset Defender"
+        case .phoenix:        return "Eternal Rebirth Investor"
+        case .lobster:        return "Premium Wealth Harvester"
+        case .husky:          return "Endurance Long-Haul Saver"
+        case .kinkajou:       return "Sweetness Accumulator"
+        case .mongoose:       return "Danger-Dodge Saver"
+        case .dingo:          return "Instinct-Led Accumulator"
         }
     }
 
@@ -2032,6 +2105,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "This fluffy exterior hides an iron will — soft vibes, HARD savings, let's GO 🦙"
         case .chinchilla:     return "Soft, small, and SILENTLY stacking coins while you sleep — be like the chinchilla NOW 🐭"
         case .walrus:         return "I live on ice and still eat good — your excuses are WEAK, save that bag 🦭"
+        case .lynx:           return "Lynxes don't announce their moves — we just appear with a BIGGER bag than you expected 🏔️"
+        case .seahorse:       return "I drift with the current but I know exactly where I'm going — straight to financial freedom 🌊"
+        case .toucan:         return "Big bill, even bigger bag — nobody overlooks a toucan and nobody overlooks this savings game 🌈"
+        case .quokka:         return "I am the world's happiest animal because I save my money and I NEVER stress about cash 😊"
+        case .ocelot:         return "Spots are permanent. Your broke habits are not. Change them RIGHT NOW and stack that bag 🐆"
+        case .pangolin:       return "Every scale is armor. Every dollar saved is another layer of protection — BUILD THAT DEFENSE NOW 🛡️"
+        case .phoenix:        return "Every financial setback is just the fire that makes you rise stronger and RICHER — rise NOW 🔥"
+        case .lobster:        return "I am literally the most premium thing in the ocean — act accordingly and build that premium bag 🦞"
+        case .husky:          return "Built for blizzards and built for the long haul — your savings better be just as tough ❄️"
+        case .kinkajou:       return "The sweetest life goes to those who work for it in the dark — stack now, celebrate later 🍯"
+        case .mongoose:       return "Cobras fear me and so does financial stress — I move FAST and I save FASTER 💨"
+        case .dingo:          return "Australia's wild dog doesn't wait to be fed — GO GET YOUR BAG and save every cent of it 🌅"
         }
     }
 
@@ -2122,6 +2207,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Soft on the outside, strong with savings — that's you! 🦙"
         case .chinchilla:     return "Even the tiniest save makes a huge difference — keep it up! 🐭"
         case .walrus:         return "Big hugs and big savings — you can do both! 🦭"
+        case .lynx:           return "Quiet and powerful — just like your growing savings! Keep going! 🏔️"
+        case .seahorse:       return "Float toward your goals one little save at a time — you've got this! 🌊"
+        case .toucan:         return "Be colorful, be bold, and save big — just like a toucan! 🌈"
+        case .quokka:         return "Stay happy and keep saving — every little bit makes you smile more! 😊"
+        case .ocelot:         return "Spotted something amazing? Save for it! You're an awesome ocelot saver! 🐆"
+        case .pangolin:       return "Roll up your savings like a pangolin — protected and growing every day! 🛡️"
+        case .phoenix:        return "Even on tough days you rise back up brighter — your savings do the same! 🔥"
+        case .lobster:        return "Premium saver alert! Every coin you save is first class — just like you! 🦞"
+        case .husky:          return "Strong and steady through every season — your savings are just as powerful! ❄️"
+        case .kinkajou:       return "Hang in there and keep saving — sweet rewards are coming your way! 🍯"
+        case .mongoose:       return "Quick and clever — you dodge every excuse and save like a champion! 💨"
+        case .dingo:          return "Wild and free — and smart enough to save for every adventure! 🌅"
         }
     }
 
@@ -2204,6 +2301,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "🌱"
         case .chinchilla:     return "🌰"
         case .walrus:         return "🐟"
+        case .lynx:           return "🐾"
+        case .seahorse:       return "🦐"
+        case .toucan:         return "🍓"
+        case .quokka:         return "🌿"
+        case .ocelot:         return "🥩"
+        case .pangolin:       return "🐜"
+        case .phoenix:        return "🔥"
+        case .lobster:        return "🌿"
+        case .husky:          return "🥩"
+        case .kinkajou:       return "🍯"
+        case .mongoose:       return "🦂"
+        case .dingo:          return "🥩"
         }
     }
 
@@ -2294,19 +2403,33 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Mountain Grass"
         case .chinchilla:     return "Wild Chestnuts"
         case .walrus:         return "Arctic Fish"
+        case .lynx:           return "Snowshoe Hare"
+        case .seahorse:       return "Ocean Plankton"
+        case .toucan:         return "Jungle Berries"
+        case .quokka:         return "Island Leaves"
+        case .ocelot:         return "Jungle Prey"
+        case .pangolin:       return "Forest Ants"
+        case .phoenix:        return "Ember Sparks"
+        case .lobster:        return "Ocean Kelp"
+        case .husky:          return "Arctic Salmon"
+        case .kinkajou:       return "Wild Honey"
+        case .mongoose:       return "Desert Cobra"
+        case .dingo:          return "Outback Prey"
         }
     }
 
     var rarity: CompanionRarity {
         switch self {
-        case .dragon:                          return .legendary
+        case .dragon, .phoenix:                return .legendary
         case .unicorn, .axolotl, .peacock,
              .chameleon, .snowLeopard,
-             .capybara:                        return .epic
+             .capybara, .ocelot, .pangolin:    return .epic
         case .fox, .lion, .elephant, .deer,
              .flamingo, .wolf, .otter, .crab,
              .cheetah, .redPanda, .hippo,
-             .giraffe, .owl:                   return .rare
+             .giraffe, .owl, .lynx, .seahorse,
+             .toucan, .quokka, .lobster,
+             .kinkajou:                        return .rare
         default:                               return .common
         }
     }
@@ -2398,6 +2521,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Soft-life achiever. Doesn't look stressed, isn't stressed, and somehow always has more than enough."
         case .chinchilla:     return "Micro-savings champion. Collects crumbs while others ignore them — and builds mountains from those crumbs."
         case .walrus:         return "Arctic survivor king. Thrives in conditions that would break others. Warmth comes from inside the wallet."
+        case .lynx:           return "The mountain ghost. Moves without sound, strikes without warning. Already rich before anyone knew it started."
+        case .seahorse:       return "The patient drifter. Goes where the current takes it but always ends up exactly where it needs to be."
+        case .toucan:         return "Rainforest royalty. Loud, vivid, and impossible to ignore — just like its investment returns."
+        case .quokka:         return "The perpetually optimistic accumulator. Smiles through every market dip and somehow still wins every time."
+        case .ocelot:         return "Urban jungle apex. Spotted in luxury environments, living on a meticulously planned budget nobody else sees."
+        case .pangolin:       return "The fortress. Rolls up at the first sign of financial threat, and every scale is another dollar saved."
+        case .phoenix:        return "The ultimate comeback story. Every financial fire it walks through leaves it richer and stronger than before."
+        case .lobster:        return "Premium tier existence. The rarest catch in the ocean — and in the personal finance world too."
+        case .husky:          return "The long-distance champion. Runs through financial blizzards that stop everyone else and still finishes first."
+        case .kinkajou:       return "The nocturnal accumulator. Works the night shift on wealth-building while everyone else sleeps. Sweet life earned."
+        case .mongoose:       return "The fear killer. Faces financial danger head-on, defeats it in seconds, and moves on without hesitation."
+        case .dingo:          return "The outback survivor. Feral instincts honed for modern financial warfare. Hunts every opportunity relentlessly."
         }
     }
 
@@ -2488,6 +2623,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "🦙 Fluffy scarf"
         case .chinchilla:     return "🐭 Tiny chestnut pouch"
         case .walrus:         return "🦭 Tusk gold ring"
+        case .lynx:           return "🏔️ Snow-tipped paw print"
+        case .seahorse:       return "🌊 Curled gold tail ring"
+        case .toucan:         return "🌈 Beak rainbow charm"
+        case .quokka:         return "😊 Island flower lei"
+        case .ocelot:         return "💛 Gold spot crown"
+        case .pangolin:       return "🛡️ Scale armor badge"
+        case .phoenix:        return "🔥 Eternal flame feather"
+        case .lobster:        return "🦞 Ruby claw pin"
+        case .husky:          return "❄️ Blue ice crystal tag"
+        case .kinkajou:       return "🍯 Honeycomb locket"
+        case .mongoose:       return "⚡ Lightning-fast fang charm"
+        case .dingo:          return "🌅 Outback sunrise compass"
         }
     }
 
@@ -2578,6 +2725,18 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .alpaca:         return "Fur floof shake and happy spit celebration"
         case .chinchilla:     return "Dust bath spin then cheek puff victory"
         case .walrus:         return "Tusk clap and belly slide victory pose"
+        case .lynx:           return "Ear tuft swivel then silent mountain pounce"
+        case .seahorse:       return "Tail curl and ocean current drift reveal"
+        case .toucan:         return "Bill rainbow flash then jungle canopy bow"
+        case .quokka:         return "Full body happy wiggle and island spin"
+        case .ocelot:         return "Spot shimmer flash then stealthy victory slink"
+        case .pangolin:       return "Full curl roll then dramatic scale-fan unfold"
+        case .phoenix:        return "Ash collapse then blazing full-body rise"
+        case .lobster:        return "Claw snap fanfare then deep-sea victory bow"
+        case .husky:          return "Snow shake then ice-blue eye glow reveal"
+        case .kinkajou:       return "Branch hang swing then honey drop celebration"
+        case .mongoose:       return "Lightning-fast spin then triumphant cobra-dodge pose"
+        case .dingo:          return "Outback howl and wild victory sprint loop"
         }
     }
 }
