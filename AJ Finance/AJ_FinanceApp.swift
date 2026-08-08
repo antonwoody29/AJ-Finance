@@ -9,21 +9,23 @@ struct AJ_FinanceApp: App {
     init() {
         // Set delegate so notifications appear in-foreground
         UNUserNotificationCenter.current().delegate = AJNotificationDelegate.shared
-        // Request permission
-        UNUserNotificationCenter.current()
-            .requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
-                if granted {
-                    // Schedule baseline notifications on first permission grant
-                    DispatchQueue.main.async {
-                        NotificationManager.scheduleAll(
-                            animalName: UserDefaults.standard.string(forKey: "aj_animalName") ?? "AJ",
-                            reminderHour:   UserDefaults.standard.integer(forKey: "aj_reminderHour").clamped(8, 22),
-                            reminderMinute: UserDefaults.standard.integer(forKey: "aj_reminderMin"),
-                            reminderEnabled: true
-                        )
+        // Request permission — skip on simulator to avoid blocking the UI during testing
+        let isSimulator = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil
+        if !isSimulator {
+            UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
+                    if granted {
+                        DispatchQueue.main.async {
+                            NotificationManager.scheduleAll(
+                                animalName: UserDefaults.standard.string(forKey: "aj_animalName") ?? "AJ",
+                                reminderHour:   UserDefaults.standard.integer(forKey: "aj_reminderHour").clamped(8, 22),
+                                reminderMinute: UserDefaults.standard.integer(forKey: "aj_reminderMin"),
+                                reminderEnabled: true
+                            )
+                        }
                     }
                 }
-            }
+        }
     }
 
     var body: some Scene {

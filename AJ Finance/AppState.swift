@@ -2563,12 +2563,13 @@ final class AppState {
         loadPetStats()
         loadMissions()
         loadStoreState()
-        // Load login state
-        isLoggedIn    = UserDefaults.standard.bool(forKey: "aj_isLoggedIn")
+        // Load login state (auto-login on simulator for UI testing)
+        let isSimBuild = ProcessInfo.processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil
+        isLoggedIn    = isSimBuild ? true : UserDefaults.standard.bool(forKey: "aj_isLoggedIn")
         appleUserID   = UserDefaults.standard.string(forKey: "aj_appleUserID")   ?? ""
         appleUserName = UserDefaults.standard.string(forKey: "aj_appleUserName") ?? ""
         // Load age/mode flags
-        hasSeenAgeWarning = UserDefaults.standard.bool(forKey: "aj_ageWarning")
+        hasSeenAgeWarning = isSimBuild ? true : UserDefaults.standard.bool(forKey: "aj_ageWarning")
         if let styleRaw = UserDefaults.standard.string(forKey: "aj_notifStyle"),
            let style = NotificationStyle(rawValue: styleRaw) {
             notificationStyle = style
@@ -2576,7 +2577,7 @@ final class AppState {
         animalFood = UserDefaults.standard.object(forKey: "aj_food") as? Double ?? 100.0
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
-        needsDailyFoodCheck = UserDefaults.standard.bool(forKey: "aj_needsFood")
+        needsDailyFoodCheck = isSimBuild ? false : UserDefaults.standard.bool(forKey: "aj_needsFood")
         hasSobrietyGoal   = UserDefaults.standard.bool(forKey: "aj_sobrietyEnabled")
         sobrietyStartDate = UserDefaults.standard.object(forKey: "aj_sobrietyStart") as? Date
         sobrietyGoalName  = UserDefaults.standard.string(forKey: "aj_sobrietyName") ?? "My Sobriety Journey"
@@ -2621,9 +2622,12 @@ final class AppState {
         guard
             let raw = UserDefaults.standard.data(forKey: saveKey),
             let d   = try? JSONDecoder().decode(SaveData.self, from: raw)
-        else { return }
+        else {
+            if isSimBuild { hasCompletedOnboarding = true }
+            return
+        }
         userName = d.userName
-        hasCompletedOnboarding = d.hasCompletedOnboarding
+        hasCompletedOnboarding = isSimBuild ? true : d.hasCompletedOnboarding
         goals = d.goals; transactions = d.transactions; badges = d.badges
         // Migration: if goalsCompletedCount wasn't saved yet, count from completed goals
         let countFromGoals = d.goals.filter { $0.completedDate != nil }.count

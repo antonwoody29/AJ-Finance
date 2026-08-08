@@ -373,8 +373,25 @@ struct HamburgerMenuView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
                 .background(
-                    RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white.opacity(0.07))
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(Color.white.opacity(0.06))
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.ajOrange.opacity(0.08), Color(red: 0.55, green: 0.18, blue: 0.95).opacity(0.06)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                )
+                            )
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.white.opacity(0.18), Color.white.opacity(0.05)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    }
                 )
 
                 // This Month tracker
@@ -502,7 +519,35 @@ struct HamburgerMenuView: View {
             .padding(.top, 16)
             .padding(.bottom, 40)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .background(
+            ZStack {
+                Color.ajDark
+                // Warm top-right glow
+                RadialGradient(
+                    colors: [Color.ajOrange.opacity(0.14), .clear],
+                    center: UnitPoint(x: 0.85, y: 0.04),
+                    startRadius: 0, endRadius: 260
+                )
+                // Cool bottom-left glow
+                RadialGradient(
+                    colors: [Color(red: 0.18, green: 0.28, blue: 0.95).opacity(0.11), .clear],
+                    center: UnitPoint(x: 0.1, y: 0.88),
+                    startRadius: 0, endRadius: 300
+                )
+                // Center purple depth
+                RadialGradient(
+                    colors: [Color(red: 0.55, green: 0.18, blue: 0.95).opacity(0.07), .clear],
+                    center: UnitPoint(x: 0.5, y: 0.45),
+                    startRadius: 60, endRadius: 420
+                )
+                // Subtle top shimmer line
+                LinearGradient(
+                    colors: [Color.white.opacity(0.04), .clear],
+                    startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.12)
+                )
+            }
+            .ignoresSafeArea()
+        )
         .navigationTitle("Menu")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -592,6 +637,10 @@ struct LifeMeterView: View {
     @Environment(AppState.self) private var appState
     @State private var showSobrietySetup = false
 
+    private let savingsColor  = Color.ajGold
+    private let fitnessColor  = Color(red: 0.0, green: 0.82, blue: 1.0)
+    private let sobrietyColor = Color(red: 0.72, green: 0.32, blue: 1.0)
+
     private var savingsScore: Double {
         let goals = appState.activeGoals
         guard !goals.isEmpty else { return 0 }
@@ -599,9 +648,8 @@ struct LifeMeterView: View {
     }
 
     private var fitnessScore: Double {
-        let streak = appState.gymStreak
-        guard streak > 0 else { return 0 }
-        return min(Double(streak) / 30.0, 1.0)
+        guard appState.gymStreak > 0 else { return 0 }
+        return min(Double(appState.gymStreak) / 30.0, 1.0)
     }
 
     private var sobrietyScore: Double {
@@ -609,58 +657,118 @@ struct LifeMeterView: View {
         return min(Double(appState.daysClean) / 365.0, 1.0)
     }
 
-    private var overallScore: Double {
-        var scores: [Double] = [savingsScore]
-        if appState.gymStreak > 0 { scores.append(fitnessScore) }
-        if appState.hasSobrietyGoal { scores.append(sobrietyScore) }
-        return scores.reduce(0, +) / Double(scores.count)
+    private struct MeterSegment {
+        let start: Double; let width: Double
+        let score: Double; let color: Color
+        let icon: String; let label: String
     }
 
-    private var faceEmoji: String {
-        switch overallScore {
-        case 0.9...: return "😁"
-        case 0.7...: return "😊"
-        case 0.5...: return "😐"
-        case 0.3...: return "😕"
-        default: return "😟"
+    private var segments: [MeterSegment] {
+        var entries: [(score: Double, color: Color, icon: String, label: String)] = [
+            (savingsScore, savingsColor, "🎯", "Savings")
+        ]
+        if appState.gymStreak > 0      { entries.append((fitnessScore,  fitnessColor,  "💪", "Fitness"))  }
+        if appState.hasSobrietyGoal    { entries.append((sobrietyScore, sobrietyColor, "✨", "Sobriety")) }
+
+        let n = entries.count
+        let gapFrac = n > 1 ? 8.0 / 360.0 : 0.0
+        let segW = (1.0 - gapFrac * Double(n)) / Double(n)
+        let step = segW + gapFrac
+
+        return entries.enumerated().map { i, e in
+            MeterSegment(start: Double(i) * step, width: segW,
+                         score: e.score, color: e.color,
+                         icon: e.icon, label: e.label)
         }
     }
 
-    private var ringColor: Color {
+    private var overallScore: Double {
+        guard !segments.isEmpty else { return 0 }
+        return segments.reduce(0) { $0 + $1.score } / Double(segments.count)
+    }
+
+    private var scoreColor: Color {
         switch overallScore {
         case 0.7...: return Color(red: 0.2, green: 0.85, blue: 0.45)
         case 0.4...: return .ajOrange
-        default: return .ajOrangeRed
+        default:     return .ajOrangeRed
         }
     }
 
     var body: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
             ZStack {
+                // Soft ambient glow behind ring
                 Circle()
-                    .stroke(Color.white.opacity(0.10), lineWidth: 10)
-                    .frame(width: 100, height: 100)
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.white.opacity(0.07), .clear],
+                            center: .center, startRadius: 28, endRadius: 68
+                        )
+                    )
+                    .frame(width: 136, height: 136)
+
+                // Track ring
                 Circle()
-                    .trim(from: 0, to: CGFloat(overallScore))
-                    .stroke(ringColor, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                    .frame(width: 100, height: 100)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.spring(response: 0.7), value: overallScore)
-                VStack(spacing: 2) {
-                    Text(faceEmoji).font(.system(size: 36))
-                    Text("\(Int(overallScore * 100))%")
-                        .font(.system(size: 11, weight: .black))
-                        .foregroundColor(.white.opacity(0.55))
+                    .stroke(Color.white.opacity(0.07), lineWidth: 14)
+                    .frame(width: 124, height: 124)
+
+                // Per-metric colored arcs
+                ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
+                    let filled = max(seg.start, seg.start + seg.width * seg.score)
+
+                    // Bloom glow
+                    Circle()
+                        .trim(from: seg.start, to: filled)
+                        .stroke(seg.color.opacity(0.30), style: StrokeStyle(lineWidth: 22, lineCap: .butt))
+                        .frame(width: 124, height: 124)
+                        .rotationEffect(.degrees(-90))
+                        .blur(radius: 7)
+
+                    // Crisp filled arc
+                    Circle()
+                        .trim(from: seg.start, to: filled)
+                        .stroke(
+                            LinearGradient(
+                                colors: [seg.color.opacity(0.7), seg.color],
+                                startPoint: .leading, endPoint: .trailing
+                            ),
+                            style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                        )
+                        .frame(width: 124, height: 124)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring(response: 0.75, dampingFraction: 0.78), value: seg.score)
+                        .shadow(color: seg.color.opacity(0.65), radius: 6)
                 }
+
+                // Animal form in center
+                AnimalBodyView(
+                    type: appState.selectedAnimal,
+                    mood: appState.animalMood,
+                    size: 78,
+                    isWalking: false,
+                    outfit: appState.equippedOutfit,
+                    evolutionStage: appState.animalGrowthStage
+                )
+                .frame(width: 78, height: 78)
+                .clipShape(Circle())
+            }
+            .frame(width: 136, height: 136)
+
+            // Score badge
+            HStack(spacing: 5) {
+                Circle()
+                    .fill(scoreColor)
+                    .frame(width: 6, height: 6)
+                Text("\(Int(overallScore * 100))% Life Score")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.white.opacity(0.65))
             }
 
+            // Metric pills
             HStack(spacing: 8) {
-                meterPill("🎯", "Savings", Int(savingsScore * 100), color: .ajGold)
-                if appState.gymStreak > 0 {
-                    meterPill("💪", "Fitness", Int(fitnessScore * 100), color: Color(red: 0.2, green: 0.85, blue: 0.45))
-                }
-                if appState.hasSobrietyGoal {
-                    meterPill("✨", "\(appState.daysClean)d", Int(sobrietyScore * 100), color: .ajOrange)
+                ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
+                    meterPill(seg.icon, seg.label, Int(seg.score * 100), color: seg.color)
                 }
             }
             .padding(.horizontal, 12)
@@ -686,18 +794,23 @@ struct LifeMeterView: View {
     }
 
     private func meterPill(_ icon: String, _ label: String, _ pct: Int, color: Color) -> some View {
-        VStack(spacing: 3) {
-            Text(icon).font(.system(size: 14))
+        VStack(spacing: 4) {
+            Text(icon).font(.system(size: 16))
             Text("\(pct)%")
-                .font(.system(size: 13, weight: .black))
+                .font(.system(size: 14, weight: .black))
                 .foregroundColor(color)
             Text(label)
-                .font(.system(size: 9, weight: .semibold))
+                .font(.system(size: 9, weight: .bold))
                 .foregroundColor(.white.opacity(0.40))
+                .tracking(0.5)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 9)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.07)))
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(color.opacity(0.12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.28), lineWidth: 1))
+        )
     }
 }
 

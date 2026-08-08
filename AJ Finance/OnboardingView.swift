@@ -580,112 +580,134 @@ struct OnboardingView: View {
 
     private var goalPage: some View {
         VStack(spacing: 0) {
-            Spacer()
+            ScrollView {
+                VStack(spacing: 22) {
+                    Spacer(minLength: 24)
 
-            VStack(spacing: 22) {
-                // Header
-                VStack(spacing: 6) {
-                    Text("🎯").font(.system(size: 44))
-                    Text("First Savings Goal")
-                        .font(.system(size: 24, weight: .black))
-                        .foregroundColor(.white)
-                    Text(goalValid ? "You're all set — tap Start Saving! 🔥" : "Name your goal and pick a target amount")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.5))
-                        .multilineTextAlignment(.center)
-                }
+                    // Header
+                    VStack(spacing: 6) {
+                        Text("🎯").font(.system(size: 44))
+                        Text("First Savings Goal")
+                            .font(.system(size: 24, weight: .black))
+                            .foregroundColor(.white)
+                        Text(goalValid ? "You're all set — tap Start Saving! 🔥" : "Name your goal and pick a target amount")
+                            .font(.system(size: 13))
+                            .foregroundColor(goalValid ? Color.ajOrange.opacity(0.8) : .white.opacity(0.5))
+                            .multilineTextAlignment(.center)
+                            .animation(.easeInOut(duration: 0.2), value: goalValid)
+                    }
 
-                // Goal name field
-                HStack(spacing: 10) {
-                    Text(goalEmoji).font(.system(size: 24))
-                    TextField("Goal name (e.g. PS5, Vacation...)", text: $goalName)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(.white)
-                        .tint(.ajOrange)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 14)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.white.opacity(0.08))
-                        .overlay(RoundedRectangle(cornerRadius: 14)
-                            .stroke(goalName.isEmpty ? Color.white.opacity(0.12) : Color.ajOrange.opacity(0.5), lineWidth: 1.5))
-                )
-                .padding(.horizontal, 30)
+                    // Goal name field
+                    HStack(spacing: 10) {
+                        Text(goalEmoji).font(.system(size: 24))
+                        TextField("Goal name (e.g. PS5, Vacation...)", text: $goalName)
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(.white)
+                            .tint(.ajOrange)
+                            .submitLabel(.next)
+                            .onSubmit {
+                                if !showCustomAmount { showCustomAmount = true; goalAmount = "" }
+                            }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.08))
+                            .overlay(RoundedRectangle(cornerRadius: 14)
+                                .stroke(goalName.isEmpty ? Color.white.opacity(0.12) : Color.ajOrange.opacity(0.6), lineWidth: 1.5))
+                    )
+                    .padding(.horizontal, 30)
+                    .animation(.easeInOut(duration: 0.2), value: goalName.isEmpty)
 
-                // Amount section
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Text("TARGET AMOUNT")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundColor(.ajOrange)
-                            .tracking(2)
-                        Spacer()
-                        if goalAmountValue > 0 {
-                            Text("$\(Int(goalAmountValue).formatted())")
-                                .font(.system(size: 14, weight: .black))
+                    // Amount section
+                    VStack(alignment: .leading, spacing: 10) {
+                        HStack {
+                            Text("TARGET AMOUNT")
+                                .font(.system(size: 10, weight: .black))
                                 .foregroundColor(.ajOrange)
+                                .tracking(2)
+                            Spacer()
+                            if goalAmountValue > 0 {
+                                Text("$\(Int(goalAmountValue).formatted())")
+                                    .font(.system(size: 14, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .transition(.opacity.combined(with: .scale))
+                            }
                         }
-                    }
+                        .animation(.easeInOut(duration: 0.15), value: goalAmountValue > 0)
 
-                    HStack(spacing: 8) {
-                        ForEach(Array(presetAmounts.prefix(4)), id: \.self) { presetChip($0) }
-                    }
-                    HStack(spacing: 8) {
-                        ForEach(Array(presetAmounts.suffix(4)), id: \.self) { presetChip($0) }
-                    }
-
-                    if showCustomAmount {
                         HStack(spacing: 8) {
-                            Text("$").font(.system(size: 22, weight: .black)).foregroundColor(.ajOrange)
-                            TextField("0", text: $goalAmount)
-                                .font(.system(size: 22, weight: .black))
-                                .foregroundColor(.white)
-                                .tint(.ajOrange)
-                                .keyboardType(.decimalPad)
+                            ForEach(Array(presetAmounts.prefix(4)), id: \.self) { presetChip($0) }
+                        }
+                        HStack(spacing: 8) {
+                            ForEach(Array(presetAmounts.suffix(4)), id: \.self) { presetChip($0) }
+                        }
+
+                        if showCustomAmount {
+                            HStack(spacing: 8) {
+                                Text("$").font(.system(size: 22, weight: .black)).foregroundColor(.ajOrange)
+                                TextField("0", text: $goalAmount)
+                                    .font(.system(size: 22, weight: .black))
+                                    .foregroundColor(.white)
+                                    .tint(.ajOrange)
+                                    .keyboardType(.decimalPad)
+                                    .toolbar {
+                                        ToolbarItemGroup(placement: .keyboard) {
+                                            Spacer()
+                                            Button("Done") {
+                                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                            }
+                                            .font(.system(size: 15, weight: .bold))
+                                            .foregroundColor(.ajOrange)
+                                        }
+                                    }
+                                Button {
+                                    showCustomAmount = false
+                                    goalAmount = ""
+                                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(.white.opacity(0.3))
+                                }
+                            }
+                            .padding(.top, 4)
+                        } else {
                             Button {
-                                showCustomAmount = false
-                                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                                showCustomAmount = true
+                                goalAmount = ""
                             } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 20))
-                                    .foregroundColor(.white.opacity(0.3))
+                                HStack(spacing: 5) {
+                                    Image(systemName: "pencil").font(.system(size: 11))
+                                    Text("Custom amount").font(.system(size: 12, weight: .semibold))
+                                }
+                                .foregroundColor(.white.opacity(0.4))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 9)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white.opacity(0.05))
+                                        .overlay(RoundedRectangle(cornerRadius: 10)
+                                            .stroke(Color.white.opacity(0.1), lineWidth: 1))
+                                )
                             }
+                            .buttonStyle(.plain)
                         }
-                        .padding(.top, 4)
-                    } else {
-                        Button {
-                            showCustomAmount = true
-                            goalAmount = ""
-                        } label: {
-                            HStack(spacing: 5) {
-                                Image(systemName: "pencil").font(.system(size: 11))
-                                Text("Custom amount").font(.system(size: 12, weight: .semibold))
-                            }
-                            .foregroundColor(.white.opacity(0.4))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 9)
-                            .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color.white.opacity(0.05))
-                                    .overlay(RoundedRectangle(cornerRadius: 10)
-                                        .stroke(Color.white.opacity(0.1), lineWidth: 1))
-                            )
-                        }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 30)
+
+                    Spacer(minLength: 16)
                 }
-                .padding(.horizontal, 30)
             }
+            .scrollDismissesKeyboard(.interactively)
 
-            Spacer()
-
+            // Sticky CTA — always visible above keyboard
             Button {
                 let goal = SavingsGoal(name: goalName, emoji: goalEmoji, targetAmount: goalAmountValue)
                 appState.goals.append(goal)
                 appState.hasCompletedOnboarding = true
                 appState.lastHealthDecayDate = Date()
-                // Starter rewards for new users
                 if appState.gems == 0 { appState.gems = 300 }
                 if appState.animalCoins == 0 { appState.animalCoins = 120 }
                 appState.setMood(.hype, speech: "LETS GOOO \(name)! \(appState.selectedAnimal.catchphrase)")
@@ -701,12 +723,15 @@ struct OnboardingView: View {
                         RoundedRectangle(cornerRadius: 18)
                             .fill(goalValid
                                 ? LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)
-                                : LinearGradient(colors: [Color.white.opacity(0.1), Color.white.opacity(0.08)], startPoint: .leading, endPoint: .trailing))
+                                : LinearGradient(colors: [Color.white.opacity(0.12), Color.white.opacity(0.08)], startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: goalValid ? Color.ajOrange.opacity(0.45) : .clear, radius: 12, x: 0, y: 4)
                     )
+                    .animation(.spring(response: 0.35, dampingFraction: 0.75), value: goalValid)
             }
             .disabled(!goalValid)
             .padding(.horizontal, 30)
-            .padding(.bottom, 100)
+            .padding(.vertical, 16)
+            .padding(.bottom, 40)
         }
     }
 }
