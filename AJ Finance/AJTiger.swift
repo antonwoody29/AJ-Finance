@@ -664,7 +664,7 @@ private struct BubbleTail: Shape {
 
 #Preview {
     ZStack {
-        Color.ajDark.ignoresSafeArea()
+        AJRichBackground()
         ScrollView {
             VStack(spacing: 16) {
                 ForEach(AJMood.allCases) { mood in

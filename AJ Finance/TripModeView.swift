@@ -13,7 +13,7 @@ struct TripModeView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
 
             if appState.trips.isEmpty {
                 emptyState
@@ -220,7 +220,7 @@ struct TripDetailView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 20) {
                         budgetHeader
@@ -534,7 +534,7 @@ struct CreateTripSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 18) {
                         // Emoji picker
@@ -721,7 +721,7 @@ struct AddExpenseSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 16) {
                         AJCard {
@@ -868,7 +868,7 @@ struct AddRecipeSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 16) {
                         AJCard {

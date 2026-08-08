@@ -19,7 +19,7 @@ struct LifeChoicesGame: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 switch phase {
                 case .playing:  playingView
                 case .result:   resultView

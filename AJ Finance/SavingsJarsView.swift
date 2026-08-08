@@ -49,7 +49,7 @@ struct SavingsJarsView: View {
                 .padding(.bottom, 20)
             }
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("Savings Jars 🫙")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showCreate) { CreateJarSheet() }
@@ -156,7 +156,7 @@ private struct AddToJarSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 28) {
                     Spacer()
                     Text(jar.emoji).font(.system(size: 72))
@@ -220,7 +220,7 @@ private struct CreateJarSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 24) {
                         AJCard {

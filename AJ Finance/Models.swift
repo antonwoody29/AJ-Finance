@@ -13,6 +13,47 @@ extension Color {
     static let ajGreen     = Color(red: 0.0,   green: 0.82,  blue: 0.37)
 }
 
+// MARK: - Rich Background
+
+struct AJRichBackground: View {
+    var body: some View {
+        ZStack {
+            Color.ajDark
+            // Brand orange warmth — top right
+            RadialGradient(
+                colors: [Color.ajOrange.opacity(0.14), .clear],
+                center: UnitPoint(x: 0.88, y: 0.04),
+                startRadius: 0, endRadius: 340
+            )
+            // Deep indigo depth — bottom left
+            RadialGradient(
+                colors: [Color(red: 0.10, green: 0.04, blue: 0.36).opacity(0.28), .clear],
+                center: UnitPoint(x: 0.06, y: 0.96),
+                startRadius: 0, endRadius: 400
+            )
+            // Subtle amber mid accent — left edge
+            RadialGradient(
+                colors: [Color(red: 0.55, green: 0.22, blue: 0.0).opacity(0.09), .clear],
+                center: UnitPoint(x: 0.0, y: 0.48),
+                startRadius: 0, endRadius: 220
+            )
+            // Top shimmer line
+            LinearGradient(
+                colors: [Color.white.opacity(0.05), .clear],
+                startPoint: .top,
+                endPoint: UnitPoint(x: 0.5, y: 0.10)
+            )
+        }
+        .ignoresSafeArea()
+    }
+}
+
+extension View {
+    func ajBackground() -> some View {
+        background(AJRichBackground())
+    }
+}
+
 // MARK: - Enums
 
 enum AJMood: String, CaseIterable, Identifiable {

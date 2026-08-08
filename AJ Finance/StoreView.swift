@@ -78,7 +78,7 @@ struct StoreView: View {
             .padding(.horizontal, 16)
             .padding(.top, 8)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("Store")
         .navigationBarTitleDisplayMode(.large)
         .alert("🎡 Lucky Wheel", isPresented: $showWheelResult) {

@@ -5,7 +5,7 @@ struct BadgesView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
 

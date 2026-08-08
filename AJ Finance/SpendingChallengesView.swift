@@ -16,7 +16,7 @@ struct SpendingChallengesView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
                     headerCard

@@ -9,7 +9,7 @@ struct GamesView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
 

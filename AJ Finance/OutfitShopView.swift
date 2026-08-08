@@ -15,7 +15,7 @@ struct OutfitShopView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 0) {
                     // Coin balance header
                     HStack {

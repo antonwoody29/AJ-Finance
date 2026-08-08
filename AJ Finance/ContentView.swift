@@ -91,7 +91,7 @@ struct ContentView: View {
 
     private var mainView: some View {
         ZStack(alignment: .bottom) {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
 
             // Tab content
             Group {
@@ -826,7 +826,7 @@ struct SobrietySetupSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 22) {
                         Text("✨")

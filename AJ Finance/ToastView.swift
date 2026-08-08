@@ -67,10 +67,30 @@ struct AJCard<Content: View>: View {
             .padding(16)
             .background(
                 RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(red: 0.086, green: 0.043, blue: 0.0))
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.14, green: 0.07, blue: 0.01),
+                                Color(red: 0.07, green: 0.033, blue: 0.0),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .overlay(
                         RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color(red: 0.165, green: 0.082, blue: 0.0), lineWidth: 1)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.13),
+                                        Color(red: 0.24, green: 0.12, blue: 0.02).opacity(0.8),
+                                        Color.clear,
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
             )
     }

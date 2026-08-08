@@ -585,7 +585,7 @@ struct RecurringTransactionManagerView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 16) {
 

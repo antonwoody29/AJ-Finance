@@ -54,7 +54,7 @@ struct MilestoneShareView: View {
                 }
                 .padding(20)
             }
-            .background(Color.ajDark.ignoresSafeArea())
+            .ajBackground()
             .navigationTitle("Share Milestones")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

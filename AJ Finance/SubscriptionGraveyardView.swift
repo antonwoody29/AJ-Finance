@@ -6,7 +6,7 @@ struct SubscriptionGraveyardView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
                     burnCard
@@ -149,7 +149,7 @@ private struct AddSubscriptionSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 24) {
                         Text("What are you paying for?")

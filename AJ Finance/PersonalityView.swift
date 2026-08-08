@@ -11,7 +11,7 @@ struct PersonalityView: View {
             }
             .padding(20)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("Personality")
         .navigationBarTitleDisplayMode(.large)
     }

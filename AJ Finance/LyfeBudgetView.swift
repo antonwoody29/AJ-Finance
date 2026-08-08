@@ -34,7 +34,7 @@ struct LyfeBudgetView: View {
             }
             .padding(20)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("Lyfe Budget")
         .navigationBarTitleDisplayMode(.large)
         .onAppear {
@@ -557,7 +557,7 @@ struct AddBudgetExpenseSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 20) {
                         // Category header
@@ -719,7 +719,7 @@ struct BudgetConfirmSheet: View {
 
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 24) {
                     Spacer()
 

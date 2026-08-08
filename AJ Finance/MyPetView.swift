@@ -19,7 +19,7 @@ struct MyPetView: View {
             }
             .padding(20)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("My Pet")
         .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showOutfitShop) {

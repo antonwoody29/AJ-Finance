@@ -11,7 +11,7 @@ struct GoalsView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
 
@@ -423,7 +423,7 @@ struct AddSavingsSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 28) {
                     Spacer()
                     AnimalCanvas(type: appState.selectedAnimal, mood: amount > 0 ? .happy : .neutral,

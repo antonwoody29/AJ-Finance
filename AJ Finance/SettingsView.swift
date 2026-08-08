@@ -17,7 +17,7 @@ struct SettingsView: View {
             }
             .padding(20)
         }
-        .background(Color.ajDark.ignoresSafeArea())
+        .ajBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.large)
     }
@@ -393,7 +393,7 @@ struct ReminderTimePicker: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 DatePicker(
                     "Reminder Time",
                     selection: Binding(

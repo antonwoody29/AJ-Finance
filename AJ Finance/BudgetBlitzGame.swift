@@ -91,7 +91,7 @@ struct BudgetBlitzGame: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
 
                 switch phase {
                 case .playing:

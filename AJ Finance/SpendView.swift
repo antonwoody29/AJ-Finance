@@ -13,7 +13,7 @@ struct SpendView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
 
@@ -640,7 +640,7 @@ struct QuickAddTransactionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 22) {
 
@@ -835,7 +835,7 @@ struct SpendRoastSheet: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             VStack(spacing: 28) {
                 Spacer()
                 AnimalCanvas(type: appState.selectedAnimal, mood: .neutral, size: 110,

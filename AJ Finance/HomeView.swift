@@ -311,7 +311,7 @@ struct HomeView: View {
                     DailyMissionsView()
                         .padding(20)
                 }
-                .background(Color.ajDark.ignoresSafeArea())
+                .ajBackground()
                 .navigationTitle("Missions")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

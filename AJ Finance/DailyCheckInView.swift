@@ -56,7 +56,7 @@ struct DailyCheckInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 if didCheckIn {
                     successState
                 } else {

@@ -86,7 +86,7 @@ struct MarketsView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 0) {
                     headerSection

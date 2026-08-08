@@ -516,7 +516,7 @@ struct CompanionProfileSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
 
                 ScrollView {
                     VStack(spacing: 0) {

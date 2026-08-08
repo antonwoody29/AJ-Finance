@@ -7,7 +7,7 @@ struct NetWorthView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 20) {
                     netWorthHero
@@ -210,7 +210,7 @@ private struct AddNetWorthItemSheet: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 ScrollView {
                     VStack(spacing: 22) {
                         AJCard {

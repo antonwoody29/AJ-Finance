@@ -148,7 +148,7 @@ struct ReceiptScannerView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 switch phase {
                 case .pick:     pickPhaseView
                 case .scanning: scanningPhaseView

@@ -214,7 +214,7 @@ struct HealthView: View {
 
     var body: some View {
         ZStack {
-            Color.ajDark.ignoresSafeArea()
+            AJRichBackground()
             ScrollView {
                 VStack(spacing: 16) {
                     if !hk.authorized {
@@ -781,7 +781,7 @@ struct HealthView: View {
     private var weightSheet: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 24) {
                     Spacer()
                     AnimalCanvas(type: appState.selectedAnimal, mood: .happy, size: 110,
@@ -828,7 +828,7 @@ struct HealthView: View {
     private var targetSheet: some View {
         NavigationStack {
             ZStack {
-                Color.ajDark.ignoresSafeArea()
+                AJRichBackground()
                 VStack(spacing: 24) {
                     Spacer()
                     AJCard {
@@ -900,7 +900,7 @@ struct HealthView: View {
                 }
                 .padding(.horizontal, 20)
             }
-            .background(Color.ajDark.ignoresSafeArea())
+            .ajBackground()
             .navigationTitle("Disclaimer").navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.ajDark, for: .navigationBar).toolbarBackground(.visible, for: .navigationBar)
             .toolbar { ToolbarItem(placement: .cancellationAction) {
