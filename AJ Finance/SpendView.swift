@@ -34,6 +34,9 @@ struct SpendView: View {
                         // Monthly total hero card
                         monthlyHeroCard
 
+                        // Spending forecast
+                        spendingForecastCard
+
                         // Category budget tracker
                         budgetTrackerCard
 
@@ -530,6 +533,59 @@ struct SpendView: View {
                         Spacer()
                     }
                     .padding(.vertical, 8)
+                }
+            }
+        }
+    }
+
+    // MARK: - Spending Forecast Card
+
+    private var spendingForecastCard: some View {
+        let calendar = Calendar.current
+        let now = Date()
+        let day = calendar.component(.day, from: now)
+        let daysInMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
+        let daysElapsed = max(1, day)
+        let daysRemaining = daysInMonth - daysElapsed
+        let dailyAvg = appState.totalSpent / Double(daysElapsed)
+        let projected = dailyAvg * Double(daysInMonth)
+        let totalBudget = appState.categoryBudgets.values.reduce(0, +)
+        let isOver = totalBudget > 0 && projected > totalBudget
+        let accentColor: Color = totalBudget == 0 ? .white : (isOver ? .red : Color(red: 0.2, green: 0.85, blue: 0.5))
+
+        return AJCard {
+            VStack(spacing: 10) {
+                HStack {
+                    Text("SPENDING FORECAST")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    Text("\(daysRemaining)d left")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.35))
+                }
+
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("~$\(Int(projected))")
+                        .font(.system(size: 34, weight: .black))
+                        .foregroundColor(accentColor)
+                    Text("projected this month")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                HStack(spacing: 8) {
+                    Label("$\(String(format: "%.0f", dailyAvg))/day avg", systemImage: "chart.bar.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                    Spacer()
+                    if totalBudget > 0 {
+                        Text(isOver ? "⚠️ Pace over budget" : "✅ On track")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(isOver ? .red : Color(red: 0.2, green: 0.85, blue: 0.5))
+                    }
                 }
             }
         }

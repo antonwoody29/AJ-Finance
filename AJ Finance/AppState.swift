@@ -1381,7 +1381,36 @@ final class AppState {
         }
         checkBadges()
         checkEvolutionRewards()
+        checkCategoryBudgetOverage(for: tx)
         save()
+    }
+
+    private func checkCategoryBudgetOverage(for tx: SpendEntry) {
+        guard !tx.isSaving,
+              let limit = categoryBudgets[tx.category.rawValue],
+              limit > 0 else { return }
+        let spent = monthlyTransactions
+            .filter { $0.category == tx.category }
+            .reduce(0) { $0 + $1.amount }
+        let ratio = spent / limit
+        guard ratio >= 0.9 else { return }
+        let catName = tx.category.rawValue
+        let icon = tx.category.icon
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
+            if ratio >= 1.0 {
+                self.showToast("\(icon) \(catName) budget blown 🚨", icon: "🚨", color: .red)
+                self.setMood(.angry, speech: "You just blew the \(catName) budget 😤 No more \(catName) spending this month!")
+            } else {
+                let pct = Int(ratio * 100)
+                let remaining = String(format: "$%.0f", limit - spent)
+                self.showToast("\(icon) \(catName) at \(pct)% of budget ⚠️", icon: "⚠️", color: .yellow)
+                self.setMood(.sad, speech: "\(catName) budget \(pct)% gone... only \(remaining) left 👀")
+            }
+            Task {
+                try? await Task.sleep(for: .seconds(4))
+                self.setMood(.neutral)
+            }
+        }
     }
 
     func deleteTransaction(id: UUID) {
