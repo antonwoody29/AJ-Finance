@@ -320,7 +320,7 @@ struct SpendingPieChartCard: View {
     }
 }
 
-private struct AJPieChartView: View {
+struct AJPieChartView: View {
     let data: [(SpendCategory, Double)]
     private var total: Double { data.reduce(0) { $0 + $1.1 } }
 

@@ -57,6 +57,12 @@ final class AppState {
     var gymStreak: Int = 0
     var lastGymDate: Date? = nil
     var gymStreakRewardsClaimed: [Int] = []   // milestone days: 3, 7, 30, 60, 90
+
+    // MARK: - No-Spend Streak
+    var noSpendStreak: Int = 0
+    var noSpendStreakBest: Int = 0
+    var noSpendStreakCheckDate: Date? = nil
+    var noSpendMilestonesClaimed: [Int] = []
     var currentWeight: Double = 0            // lbs, 0 = not set
     var startingWeight: Double = 0           // lbs at first entry
     var targetWeight: Double = 0             // user's goal weight
@@ -1418,6 +1424,58 @@ final class AppState {
         save()
     }
 
+    // MARK: - No-Spend Streak
+
+    func updateNoSpendStreak() {
+        let cal = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let lastCheck = noSpendStreakCheckDate.map { cal.startOfDay(for: $0) } ?? today
+        guard lastCheck < today else { return }
+
+        var cursor = cal.date(byAdding: .day, value: 1, to: lastCheck)!
+        let yesterday = cal.date(byAdding: .day, value: -1, to: today)!
+
+        while cursor <= yesterday {
+            let next = cal.date(byAdding: .day, value: 1, to: cursor)!
+            let hadSpend = transactions.contains { !$0.isSaving && $0.date >= cursor && $0.date < next }
+            if hadSpend {
+                noSpendStreak = 0
+            } else {
+                noSpendStreak += 1
+                noSpendStreakBest = max(noSpendStreakBest, noSpendStreak)
+                checkNoSpendMilestones()
+            }
+            cursor = next
+        }
+        noSpendStreakCheckDate = today
+        saveNoSpendStreak()
+    }
+
+    private func checkNoSpendMilestones() {
+        let milestones = [(3, 50, "🧊 3-Day No-Spend Streak! Discipline mode activated 💪"),
+                          (7, 150, "❄️ 7 days no spend! You're built different fr 🔥"),
+                          (14, 350, "🏔️ 14-Day streak! Two weeks of pure restraint 👑"),
+                          (30, 1000, "💎 30 DAYS! You are a financial LEGEND 🎉")]
+        for (days, xp, msg) in milestones {
+            guard noSpendStreak >= days, !noSpendMilestonesClaimed.contains(days) else { continue }
+            noSpendMilestonesClaimed.append(days)
+            earnXP(xp)
+            earnCoins(days * 10)
+            showToast(msg, icon: days >= 14 ? "👑" : "🧊", color: days >= 14 ? .ajGold : .blue)
+            setMood(.hype, speech: msg)
+        }
+    }
+
+    private func saveNoSpendStreak() {
+        let ud = UserDefaults.standard
+        ud.set(noSpendStreak,     forKey: "aj_noSpendStreak")
+        ud.set(noSpendStreakBest, forKey: "aj_noSpendStreakBest")
+        ud.set(noSpendStreakCheckDate, forKey: "aj_noSpendCheckDate")
+        if let d = try? JSONEncoder().encode(noSpendMilestonesClaimed) {
+            ud.set(d, forKey: "aj_noSpendMilestones")
+        }
+    }
+
     func generateSpendRoast(for tx: SpendEntry) -> String? {
         guard !tx.isSaving, tx.amount >= 15 else { return nil }
         let amt = Int(tx.amount)
@@ -2707,5 +2765,15 @@ final class AppState {
         startingWeight = d.startingWeight
         targetWeight = d.targetWeight
         weightLossRewardsClaimed = d.weightLossRewardsClaimed
+
+        // No-spend streak (UserDefaults, not SaveData)
+        noSpendStreak     = UserDefaults.standard.integer(forKey: "aj_noSpendStreak")
+        noSpendStreakBest = UserDefaults.standard.integer(forKey: "aj_noSpendStreakBest")
+        noSpendStreakCheckDate = UserDefaults.standard.object(forKey: "aj_noSpendCheckDate") as? Date
+        if let data = UserDefaults.standard.data(forKey: "aj_noSpendMilestones"),
+           let decoded = try? JSONDecoder().decode([Int].self, from: data) {
+            noSpendMilestonesClaimed = decoded
+        }
+        updateNoSpendStreak()
     }
 }

@@ -27,6 +27,9 @@ struct SpendView: View {
                     // Recurring bills shortcut — always visible
                     recurringBillsCard
 
+                    // No-spend streak — always visible
+                    noSpendStreakCard
+
                     if appState.monthlyTransactions.isEmpty {
                         // Rich empty state
                         spendEmptyState
@@ -52,9 +55,8 @@ struct SpendView: View {
                         // Month comparison
                         comparisonCard
 
-                        // Category breakdown + pie chart
+                        // Category breakdown
                         categoryBreakdownCard
-                        SpendingPieChartCard(spendingByCategory: appState.spendingByCategory)
 
                         // Streak calendar
                         StreakCalendarCard(transactions: appState.transactions)
@@ -182,6 +184,70 @@ struct SpendView: View {
                 .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrangeRed.opacity(0.3), lineWidth: 1)))
         }
         .buttonStyle(.plain)
+    }
+
+    // MARK: - No-Spend Streak Card
+
+    private var noSpendStreakCard: some View {
+        let streak = appState.noSpendStreak
+        let best   = appState.noSpendStreakBest
+        let cal    = Calendar.current
+        let spentToday = appState.transactions.contains {
+            !$0.isSaving && cal.isDateInToday($0.date)
+        }
+        let isActive = streak > 0 && !spentToday
+        let icon: String  = streak == 0 ? "🧊" : streak < 7 ? "❄️" : streak < 14 ? "🔥" : "💎"
+        let accentColor: Color = spentToday ? .red.opacity(0.8)
+                               : streak == 0 ? .white.opacity(0.5)
+                               : streak < 7  ? Color(red: 0.4, green: 0.76, blue: 1.0)
+                               : streak < 14 ? .ajOrange
+                               : .ajGold
+
+        return AJCard {
+            HStack(spacing: 16) {
+                Text(icon)
+                    .font(.system(size: 36))
+                    .scaleEffect(isActive ? 1.1 : 1.0)
+                    .animation(.spring(response: 0.4), value: isActive)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("NO-SPEND STREAK")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        Text("\(streak)")
+                            .font(.system(size: 30, weight: .black))
+                            .foregroundColor(accentColor)
+                        Text(streak == 1 ? "day" : "days")
+                            .font(.system(size: 14))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    Text(spentToday ? "Spent today — streak resets tomorrow"
+                         : streak == 0 ? "No spend today to start your streak!"
+                         : "Today: ✅ No spend yet — keep it up!")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+
+                Spacer()
+
+                if best > 0 {
+                    VStack(spacing: 2) {
+                        Text("BEST")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.white.opacity(0.3))
+                            .tracking(1)
+                        Text("\(best)")
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundColor(.white.opacity(0.5))
+                        Text("days")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.25))
+                    }
+                }
+            }
+        }
     }
 
     // MARK: - Empty State
@@ -425,20 +491,61 @@ struct SpendView: View {
     }
 
     private var monthlyHeroCard: some View {
-        AJCard {
-            VStack(spacing: 6) {
-                Text("SPENT THIS MONTH")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundColor(.white.opacity(0.5))
-                    .tracking(2)
-                Text("$\(String(format: "%.2f", appState.totalSpent))")
-                    .font(.system(size: 46, weight: .black))
-                    .foregroundColor(.white)
-                Text("\(appState.monthlyTransactions.count) transactions")
-                    .font(.system(size: 13))
-                    .foregroundColor(.white.opacity(0.5))
+        let spending = appState.spendingByCategory
+        let total    = appState.totalSpent
+        let nonZero  = SpendCategory.allCases
+            .map { ($0, spending[$0] ?? 0) }
+            .filter { $0.1 > 0 }
+            .sorted { $0.1 > $1.1 }
+
+        return AJCard {
+            VStack(spacing: 14) {
+                HStack(alignment: .center, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("SPENT THIS MONTH")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(.white.opacity(0.45))
+                            .tracking(2)
+                        Text("$\(String(format: "%.0f", total))")
+                            .font(.system(size: 40, weight: .black))
+                            .foregroundColor(.white)
+                        Text("\(appState.monthlyTransactions.count) transaction\(appState.monthlyTransactions.count == 1 ? "" : "s")")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.4))
+                    }
+                    Spacer()
+                    if total > 0 {
+                        AJPieChartView(data: nonZero)
+                            .frame(width: 88, height: 88)
+                    } else {
+                        Text("🥧")
+                            .font(.system(size: 52))
+                            .opacity(0.25)
+                    }
+                }
+
+                if !nonZero.isEmpty {
+                    Divider().background(Color.white.opacity(0.08))
+                    VStack(spacing: 7) {
+                        ForEach(nonZero.prefix(5), id: \.0.id) { cat, amt in
+                            HStack(spacing: 8) {
+                                Circle().fill(cat.color).frame(width: 7, height: 7)
+                                Text("\(cat.icon) \(cat.rawValue)")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.75))
+                                Spacer()
+                                Text("$\(Int(amt))")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.45))
+                                Text("\(Int((amt / total) * 100))%")
+                                    .font(.system(size: 11, weight: .black))
+                                    .foregroundColor(cat.color)
+                                    .frame(width: 34, alignment: .trailing)
+                            }
+                        }
+                    }
+                }
             }
-            .frame(maxWidth: .infinity)
         }
     }
 
