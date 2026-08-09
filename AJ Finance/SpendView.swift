@@ -552,18 +552,51 @@ struct SpendView: View {
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.07)))
 
                 if filteredTransactions.isEmpty {
-                    HStack {
-                        Spacer()
-                        VStack(spacing: 8) {
-                            Text(searchText.isEmpty ? "🧾" : "🔍")
-                                .font(.system(size: 32))
-                            Text(searchText.isEmpty ? "No receipts yet" : "No results for \"\(searchText)\"")
-                                .font(.system(size: 14))
-                                .foregroundColor(.white.opacity(0.4))
+                    if searchText.isEmpty {
+                        VStack(spacing: 16) {
+                            Text("🧾")
+                                .font(.system(size: 44))
+                            VStack(spacing: 6) {
+                                Text("No transactions yet")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.7))
+                                Text("Tap below to log your first spend")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.white.opacity(0.35))
+                            }
+                            Button {
+                                showQuickAdd = true
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Log a Transaction")
+                                }
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.ajOrange)
+                                .padding(.horizontal, 18)
+                                .padding(.vertical, 9)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.ajOrange.opacity(0.12))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                                )
+                            }
                         }
-                        Spacer()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 20)
+                    } else {
+                        HStack {
+                            Spacer()
+                            VStack(spacing: 8) {
+                                Text("🔍").font(.system(size: 32))
+                                Text("No results for \"\(searchText)\"")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white.opacity(0.4))
+                            }
+                            Spacer()
+                        }
+                        .padding(.vertical, 12)
                     }
-                    .padding(.vertical, 12)
                 } else {
                     ForEach(filteredTransactions) { tx in
                         TransactionRow(tx: tx)
@@ -628,9 +661,13 @@ struct QuickAddTransactionView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
+    var onLogged: (() -> Void)? = nil
+
     @State private var amountText        = ""
     @State private var selectedCategory  : SpendCategory = .food
     @State private var note              = ""
+    @State private var didLog            = false
+    @State private var successScale      : CGFloat = 0.4
     @FocusState private var amountFocused: Bool
 
     var amount: Double { Double(amountText) ?? 0 }
@@ -747,12 +784,7 @@ struct QuickAddTransactionView: View {
                 .padding(.bottom, 16)
 
                 // ── Log button — always visible ──
-                Button {
-                    guard hasAmount else { return }
-                    appState.addTransaction(SpendEntry(amount: amount, category: selectedCategory, note: note))
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    dismiss()
-                } label: {
+                Button { logTransaction() } label: {
                     HStack(spacing: 8) {
                         Text(selectedCategory.icon).font(.system(size: 20))
                         Text(hasAmount
@@ -779,6 +811,45 @@ struct QuickAddTransactionView: View {
         .presentationDetents([.height(470), .large])
         .presentationDragIndicator(.hidden)
         .onAppear { amountFocused = true }
+        // ── Success overlay ──
+        .overlay {
+            if didLog {
+                ZStack {
+                    AJRichBackground().opacity(0.96)
+                    VStack(spacing: 18) {
+                        Text(selectedCategory.icon)
+                            .font(.system(size: 72))
+                            .scaleEffect(successScale)
+                            .animation(.spring(response: 0.35, dampingFraction: 0.5), value: successScale)
+                        VStack(spacing: 6) {
+                            Text("$\(String(format: "%.2f", amount))")
+                                .font(.system(size: 40, weight: .black))
+                                .foregroundColor(.white)
+                            Text("Logged! 💪")
+                                .font(.system(size: 20, weight: .bold))
+                                .foregroundColor(.ajGreen)
+                        }
+                    }
+                }
+                .transition(.opacity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.22), value: didLog)
+    }
+
+    private func logTransaction() {
+        guard hasAmount else { return }
+        appState.addTransaction(SpendEntry(amount: amount, category: selectedCategory, note: note))
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation { didLog = true }
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.5)) { successScale = 1.15 }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { successScale = 1.0 }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            onLogged?()
+            dismiss()
+        }
     }
 }
 

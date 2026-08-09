@@ -298,7 +298,16 @@ struct HomeView: View {
         .sheet(isPresented: $showScanner)        { ReceiptScannerView() }
         .sheet(isPresented: $showAddGoal)        { AddGoalView() }
         .sheet(isPresented: $showShop)           { OutfitShopView() }
-        .sheet(isPresented: $showQuickAdd)       { QuickAddTransactionView().environment(appState) }
+        .sheet(isPresented: $showQuickAdd) {
+            QuickAddTransactionView(onLogged: {
+                burstCoins(5)
+                let msgs = ["That's what I'm talking about! 💪", "Logged and locked in 🔒", "Stack it up! 📈", "On the grind fr 🔥", "AJ proud of you rn 🫡"]
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    appState.currentSpeech = msgs.randomElement() ?? "Logged! 💪"
+                    scheduleSpeechHide(after: 4.0)
+                }
+            }).environment(appState)
+        }
         .sheet(isPresented: $showStore) {
             NavigationStack { StoreView() }.environment(appState)
         }
