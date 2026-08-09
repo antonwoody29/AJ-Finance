@@ -215,19 +215,36 @@ struct SpendView: View {
                 }
             }
 
-            Button { showScanner = true } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: "camera.fill").font(.system(size: 16, weight: .bold))
-                    Text("Snap First Receipt").font(.system(size: 15, weight: .black))
+            VStack(spacing: 10) {
+                Button { showScanner = true } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "camera.fill").font(.system(size: 16, weight: .bold))
+                        Text("Snap First Receipt").font(.system(size: 15, weight: .black))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: .ajOrange.opacity(0.4), radius: 10, y: 4)
+                    )
                 }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
-                        .shadow(color: .ajOrange.opacity(0.4), radius: 10, y: 4)
-                )
+
+                Button { showQuickAdd = true } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill").font(.system(size: 16, weight: .bold))
+                        Text("Log Manually").font(.system(size: 15, weight: .black))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.10))
+                            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.15), lineWidth: 1))
+                    )
+                }
             }
         }
         .padding(.top, 20)
