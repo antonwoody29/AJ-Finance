@@ -49,9 +49,6 @@ struct SpendView: View {
                         // Monthly recap story
                         monthlyRecapCard
 
-                        // Spending personality card
-                        spendingPersonalityCard
-
                         // Month comparison
                         comparisonCard
 
