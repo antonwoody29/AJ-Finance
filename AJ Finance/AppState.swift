@@ -118,6 +118,7 @@ final class AppState {
     var savingsStreak: Int = 0
     var lastSavingsMonth: Int = -1
     var savingsStreakRewardsClaimed: [Int] = []
+    var categoryBudgets: [String: Double] = [:]
 
     // MARK: - Subscription Graveyard
     var subscriptions: [Subscription] = []
@@ -1331,6 +1332,9 @@ final class AppState {
         ud.set(savingsStreakRewardsClaimed, forKey: "aj_savingsStreakRewards")
         if let d = try? JSONEncoder().encode(budgetExpenses) {
             ud.set(d, forKey: "aj_budgetExpenses")
+        }
+        if let d = try? JSONEncoder().encode(categoryBudgets) {
+            ud.set(d, forKey: "aj_categoryBudgets")
         }
     }
 
@@ -2618,6 +2622,10 @@ final class AppState {
            let decoded = try? JSONDecoder().decode([BudgetExpense].self, from: d) {
             budgetExpenses = decoded
         }
+        if let d = UserDefaults.standard.data(forKey: "aj_categoryBudgets"),
+           let decoded = try? JSONDecoder().decode([String: Double].self, from: d) {
+            categoryBudgets = decoded
+        }
 
         guard
             let raw = UserDefaults.standard.data(forKey: saveKey),
@@ -2628,7 +2636,27 @@ final class AppState {
         }
         userName = d.userName
         hasCompletedOnboarding = isSimBuild ? true : d.hasCompletedOnboarding
-        goals = d.goals; transactions = d.transactions; badges = d.badges
+        goals = d.goals; badges = d.badges
+        if isSimBuild && d.transactions.isEmpty {
+            let now = Date()
+            transactions = [
+                SpendEntry(amount: 38, category: .food,          date: now, note: "Chipotle"),
+                SpendEntry(amount: 52, category: .food,          date: now, note: "Groceries"),
+                SpendEntry(amount: 45, category: .shopping,      date: now, note: "Amazon"),
+                SpendEntry(amount: 12, category: .coffee,        date: now, note: "Starbucks"),
+                SpendEntry(amount: 60, category: .entertainment, date: now, note: "Netflix + concert"),
+                SpendEntry(amount: 30, category: .gas,           date: now, note: "Shell"),
+            ]
+            categoryBudgets = [
+                SpendCategory.food.rawValue:          150,
+                SpendCategory.shopping.rawValue:      100,
+                SpendCategory.coffee.rawValue:         40,
+                SpendCategory.entertainment.rawValue:  80,
+                SpendCategory.gas.rawValue:            60,
+            ]
+        } else {
+            transactions = d.transactions
+        }
         // Migration: if goalsCompletedCount wasn't saved yet, count from completed goals
         let countFromGoals = d.goals.filter { $0.completedDate != nil }.count
         goalsCompletedCount = max(goalsCompletedCount, d.goalsCompletedCount, countFromGoals)

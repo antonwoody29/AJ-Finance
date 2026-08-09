@@ -10,6 +10,7 @@ struct SpendView: View {
     @State private var showQuickAdd       = false
     @State private var searchText         = ""
     @State private var showRecurring      = false
+    @State private var showBudgetSetter   = false
 
     var body: some View {
         ZStack {
@@ -32,6 +33,9 @@ struct SpendView: View {
                     } else {
                         // Monthly total hero card
                         monthlyHeroCard
+
+                        // Category budget tracker
+                        budgetTrackerCard
 
                         // Weekly AI recap
                         WeeklyRecapCard(transactions: appState.transactions)
@@ -116,6 +120,9 @@ struct SpendView: View {
         }
         .sheet(isPresented: $showRecurring) {
             RecurringTransactionManagerView().environment(appState)
+        }
+        .sheet(isPresented: $showBudgetSetter) {
+            BudgetSetterSheet().environment(appState)
         }
         .navigationDestination(isPresented: $showSubGraveyard) { SubscriptionGraveyardView() }
         .onChange(of: appState.pendingSpendRoast) { _, roast in
@@ -528,6 +535,90 @@ struct SpendView: View {
         }
     }
 
+    // MARK: - Budget Tracker Card
+
+    private var budgetTrackerCard: some View {
+        AJCard {
+            VStack(spacing: 0) {
+                HStack {
+                    Text("BUDGET TRACKER")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    Button { showBudgetSetter = true } label: {
+                        Text("Edit")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.ajOrange)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(Color.ajOrange.opacity(0.15))
+                                    .overlay(Capsule().stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
+                            )
+                    }
+                }
+                .padding(.bottom, 14)
+
+                let hasAnyBudget = SpendCategory.allCases.contains { appState.categoryBudgets[$0.rawValue] != nil }
+
+                if !hasAnyBudget {
+                    VStack(spacing: 8) {
+                        Text("💰")
+                            .font(.system(size: 32))
+                        Text("No limits set yet")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.white.opacity(0.6))
+                        Text("Tap Edit to set monthly limits per category")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.35))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                } else {
+                    let spending = appState.spendingByCategory
+                    VStack(spacing: 12) {
+                        ForEach(SpendCategory.allCases) { cat in
+                            if let limit = appState.categoryBudgets[cat.rawValue], limit > 0 {
+                                let spent = spending[cat] ?? 0
+                                let ratio = min(spent / limit, 1.0)
+                                let barColor: Color = ratio < 0.70 ? .green : ratio < 0.90 ? .yellow : .red
+                                VStack(spacing: 6) {
+                                    HStack(spacing: 8) {
+                                        Text(cat.icon).font(.system(size: 16))
+                                        Text(cat.rawValue)
+                                            .font(.system(size: 13, weight: .semibold))
+                                            .foregroundColor(.white)
+                                        Spacer()
+                                        Text("$\(Int(spent)) / $\(Int(limit))")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundColor(barColor)
+                                    }
+                                    GeometryReader { geo in
+                                        ZStack(alignment: .leading) {
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(Color.white.opacity(0.08))
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(LinearGradient(
+                                                    colors: [barColor.opacity(0.9), barColor],
+                                                    startPoint: .leading, endPoint: .trailing
+                                                ))
+                                                .frame(width: max(4, geo.size.width * CGFloat(ratio)))
+                                                .animation(.spring(response: 0.5), value: ratio)
+                                        }
+                                    }
+                                    .frame(height: 6)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private var filteredTransactions: [SpendEntry] {
         let all = Array(appState.monthlyTransactions.reversed().prefix(50))
         guard !searchText.isEmpty else { return Array(all.prefix(15)) }
@@ -897,6 +988,104 @@ struct SpendRoastSheet: View {
                 }
                 .padding(.horizontal, 28)
                 Spacer()
+            }
+        }
+    }
+}
+
+// MARK: - Budget Setter Sheet
+
+struct BudgetSetterSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+    @State private var drafts: [String: String] = [:]
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(red: 0.07, green: 0.035, blue: 0.01).ignoresSafeArea()
+                ScrollView {
+                    VStack(spacing: 12) {
+                        Text("Set a monthly limit for each category. Leave blank to skip tracking that category.")
+                            .font(.system(size: 13))
+                            .foregroundColor(.white.opacity(0.45))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 8)
+                            .padding(.top, 4)
+
+                        ForEach(SpendCategory.allCases) { cat in
+                            HStack(spacing: 14) {
+                                Text(cat.icon)
+                                    .font(.system(size: 24))
+                                    .frame(width: 36)
+                                Text(cat.rawValue)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundColor(.white)
+                                Spacer()
+                                HStack(spacing: 4) {
+                                    Text("$")
+                                        .font(.system(size: 15, weight: .bold))
+                                        .foregroundColor(.white.opacity(0.5))
+                                    TextField("0", text: Binding(
+                                        get: { drafts[cat.rawValue] ?? "" },
+                                        set: { drafts[cat.rawValue] = $0 }
+                                    ))
+                                    .keyboardType(.numberPad)
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .multilineTextAlignment(.trailing)
+                                    .frame(width: 70)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(Color.white.opacity(0.08))
+                                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.12), lineWidth: 1))
+                                )
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color(red: 0.12, green: 0.06, blue: 0.015))
+                            )
+                        }
+                    }
+                    .padding(16)
+                }
+            }
+            .navigationTitle("Monthly Budgets")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                        .foregroundColor(.white.opacity(0.6))
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        var updated = appState.categoryBudgets
+                        for cat in SpendCategory.allCases {
+                            if let raw = drafts[cat.rawValue], let val = Double(raw), val > 0 {
+                                updated[cat.rawValue] = val
+                            } else if drafts[cat.rawValue] == "" {
+                                updated.removeValue(forKey: cat.rawValue)
+                            }
+                        }
+                        appState.categoryBudgets = updated
+                        appState.saveBudget()
+                        dismiss()
+                    }
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundColor(.ajOrange)
+                }
+            }
+        }
+        .onAppear {
+            for cat in SpendCategory.allCases {
+                if let val = appState.categoryBudgets[cat.rawValue] {
+                    drafts[cat.rawValue] = String(Int(val))
+                }
             }
         }
     }
