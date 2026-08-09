@@ -628,200 +628,156 @@ struct QuickAddTransactionView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
 
-    @State private var amountText      = ""
-    @State private var selectedCategory: SpendCategory = .food
-    @State private var note            = ""
+    @State private var amountText        = ""
+    @State private var selectedCategory  : SpendCategory = .food
+    @State private var note              = ""
     @FocusState private var amountFocused: Bool
 
     var amount: Double { Double(amountText) ?? 0 }
-
-    private let categoryColumns = [GridItem(.adaptive(minimum: 72))]
+    var hasAmount: Bool { amount > 0 }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                AJRichBackground()
-                ScrollView {
-                    VStack(spacing: 22) {
+        ZStack(alignment: .bottom) {
+            AJRichBackground()
 
-                        // Amount
-                        AJCard {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("AMOUNT")
-                                    .font(.system(size: 10, weight: .black))
+            VStack(spacing: 0) {
+
+                // ── Drag handle ──
+                Capsule()
+                    .fill(Color.white.opacity(0.20))
+                    .frame(width: 38, height: 4)
+                    .padding(.top, 10)
+                    .padding(.bottom, 18)
+
+                // ── Big amount display ──
+                HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    Text("$")
+                        .font(.system(size: 54, weight: .black))
+                        .foregroundColor(hasAmount ? .ajOrange : .white.opacity(0.22))
+                    TextField("0", text: $amountText)
+                        .font(.system(size: 54, weight: .black))
+                        .foregroundColor(hasAmount ? .white : .white.opacity(0.22))
+                        .tint(.ajOrange)
+                        .keyboardType(.decimalPad)
+                        .focused($amountFocused)
+                        .fixedSize()
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 14)
+
+                // ── Quick-amount pills ──
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach([5, 10, 20, 50, 100], id: \.self) { v in
+                            Button {
+                                amountText = "\(v)"
+                                amountFocused = false
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            } label: {
+                                Text("$\(v)")
+                                    .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.ajOrange)
-                                    .tracking(2)
-                                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                                    Text("$")
-                                        .font(.system(size: 40, weight: .black))
-                                        .foregroundColor(.ajOrange)
-                                    TextField("0.00", text: $amountText)
-                                        .font(.system(size: 40, weight: .black))
-                                        .foregroundColor(.white)
-                                        .tint(.ajOrange)
-                                        .keyboardType(.decimalPad)
-                                        .focused($amountFocused)
-                                }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                    .background(
+                                        Capsule()
+                                            .fill(Color.ajOrange.opacity(0.14))
+                                            .overlay(Capsule().stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                                    )
                             }
                         }
-
-                        // Quick amounts
-                        HStack(spacing: 8) {
-                            ForEach([5, 10, 25, 50, 100], id: \.self) { preset in
-                                Button { amountText = String(preset) } label: {
-                                    Text("$\(preset)")
-                                        .font(.system(size: 13, weight: .bold))
-                                        .foregroundColor(.ajOrange)
-                                        .padding(.horizontal, 12)
-                                        .padding(.vertical, 7)
-                                        .background(
-                                            Capsule()
-                                                .fill(Color.ajOrange.opacity(0.12))
-                                                .overlay(Capsule().stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
-                                        )
-                                }
-                            }
-                        }
-
-                        // Category picker
-                        AJCard {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Text("CATEGORY")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundColor(.ajOrange)
-                                    .tracking(2)
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 72))], spacing: 10) {
-                                    ForEach(SpendCategory.allCases) { cat in
-                                        Button {
-                                            selectedCategory = cat
-                                        } label: {
-                                            VStack(spacing: 4) {
-                                                Text(cat.icon).font(.system(size: 22))
-                                                Text(cat.rawValue)
-                                                    .font(.system(size: 10, weight: .semibold))
-                                                    .foregroundColor(selectedCategory == cat ? cat.color : .white.opacity(0.55))
-                                                    .lineLimit(1)
-                                            }
-                                            .frame(maxWidth: .infinity)
-                                            .padding(.vertical, 10)
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 10)
-                                                    .fill(selectedCategory == cat ? cat.color.opacity(0.18) : Color.white.opacity(0.05))
-                                                    .overlay(
-                                                        RoundedRectangle(cornerRadius: 10)
-                                                            .stroke(selectedCategory == cat ? cat.color.opacity(0.6) : Color.clear, lineWidth: 1.5)
-                                                    )
-                                            )
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
-                                }
-                            }
-                        }
-
-                        // Note
-                        AJCard {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("NOTE (OPTIONAL)")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundColor(.white.opacity(0.45))
-                                    .tracking(2)
-                                TextField("What was this for?", text: $note)
-                                    .font(.system(size: 15))
-                                    .foregroundColor(.white)
-                                    .tint(.ajOrange)
-                            }
-                        }
-
-                        // Active Goals mini-view
-                        let activeGoals = appState.activeGoals
-                        if !activeGoals.isEmpty {
-                            AJCard {
-                                VStack(alignment: .leading, spacing: 10) {
-                                    Text("YOUR GOALS")
-                                        .font(.system(size: 10, weight: .black))
-                                        .foregroundColor(.ajGold)
-                                        .tracking(2)
-                                    ForEach(activeGoals.prefix(3)) { goal in
-                                        VStack(alignment: .leading, spacing: 5) {
-                                            HStack {
-                                                Text(goal.emoji).font(.system(size: 15))
-                                                Text(goal.name)
-                                                    .font(.system(size: 13, weight: .semibold))
-                                                    .foregroundColor(.white)
-                                                    .lineLimit(1)
-                                                Spacer()
-                                                Text("\(goal.progressPercentage)%")
-                                                    .font(.system(size: 12, weight: .black))
-                                                    .foregroundColor(.ajGold)
-                                            }
-                                            GeometryReader { g in
-                                                ZStack(alignment: .leading) {
-                                                    Capsule().fill(Color.white.opacity(0.10))
-                                                    Capsule()
-                                                        .fill(LinearGradient(colors: [.ajOrange, .ajGold], startPoint: .leading, endPoint: .trailing))
-                                                        .frame(width: max(g.size.width * CGFloat(goal.progress), 4))
-                                                }
-                                            }
-                                            .frame(height: 5)
-                                            HStack {
-                                                Text("$\(String(format: "%.0f", goal.currentAmount)) saved")
-                                                    .font(.system(size: 10))
-                                                    .foregroundColor(.white.opacity(0.45))
-                                                Spacer()
-                                                Text("$\(String(format: "%.0f", goal.remaining)) left")
-                                                    .font(.system(size: 10))
-                                                    .foregroundColor(.white.opacity(0.45))
-                                            }
-                                        }
-                                        if goal.id != activeGoals.prefix(3).last?.id {
-                                            Divider().background(Color.white.opacity(0.08))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Log button
-                        Button {
-                            guard amount > 0 else { return }
-                            let tx = SpendEntry(
-                                amount: amount,
-                                category: selectedCategory,
-                                note: note
-                            )
-                            appState.addTransaction(tx)
-                            dismiss()
-                        } label: {
-                            Text(amount > 0 ? "Log $\(String(format: "%.2f", amount)) \(selectedCategory.icon)" : "Enter an amount")
-                                .font(.system(size: 17, weight: .black))
-                                .foregroundColor(amount > 0 ? .black : .white.opacity(0.4))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 18)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(amount > 0
-                                            ? LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)
-                                            : LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.05)], startPoint: .leading, endPoint: .trailing))
-                                        .shadow(color: amount > 0 ? Color.ajOrange.opacity(0.35) : .clear, radius: 10, y: 4)
-                                )
-                        }
-                        .disabled(amount <= 0)
                     }
-                    .padding(20)
+                    .padding(.horizontal, 20)
                 }
-            }
-            .navigationTitle("Quick Add")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }.foregroundColor(.ajOrange)
+                .padding(.bottom, 18)
+
+                // ── Horizontal category scroll ──
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(SpendCategory.allCases) { cat in
+                            Button {
+                                selectedCategory = cat
+                                amountFocused = false
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            } label: {
+                                VStack(spacing: 5) {
+                                    Text(cat.icon).font(.system(size: 26))
+                                    Text(cat.rawValue)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundColor(selectedCategory == cat ? cat.color : .white.opacity(0.40))
+                                        .lineLimit(1)
+                                }
+                                .frame(width: 64)
+                                .padding(.vertical, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(selectedCategory == cat ? cat.color.opacity(0.18) : Color.white.opacity(0.06))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14)
+                                                .stroke(selectedCategory == cat ? cat.color.opacity(0.65) : Color.clear, lineWidth: 1.5)
+                                        )
+                                )
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 20)
                 }
-                ToolbarItem(placement: .keyboard) {
-                    Button("Done") { amountFocused = false }
+                .padding(.bottom, 16)
+
+                // ── Inline note field ──
+                HStack(spacing: 10) {
+                    Image(systemName: "text.bubble")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.35))
+                    TextField("Add a note (optional)", text: $note)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                        .tint(.ajOrange)
                 }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.white.opacity(0.07))
+                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                )
+                .padding(.horizontal, 20)
+                .padding(.bottom, 16)
+
+                // ── Log button — always visible ──
+                Button {
+                    guard hasAmount else { return }
+                    appState.addTransaction(SpendEntry(amount: amount, category: selectedCategory, note: note))
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        Text(selectedCategory.icon).font(.system(size: 20))
+                        Text(hasAmount
+                            ? "Log  $\(String(format: "%.2f", amount))"
+                            : "Enter an amount")
+                            .font(.system(size: 17, weight: .black))
+                            .foregroundColor(hasAmount ? .black : .white.opacity(0.30))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 17)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(hasAmount
+                                ? LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)
+                                : LinearGradient(colors: [Color.white.opacity(0.09), Color.white.opacity(0.05)], startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: hasAmount ? Color.ajOrange.opacity(0.45) : .clear, radius: 14, y: 5)
+                    )
+                }
+                .disabled(!hasAmount)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 32)
             }
         }
+        .presentationDetents([.height(470), .large])
+        .presentationDragIndicator(.hidden)
         .onAppear { amountFocused = true }
     }
 }
