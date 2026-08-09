@@ -514,14 +514,8 @@ struct SpendView: View {
                             .foregroundColor(.white.opacity(0.4))
                     }
                     Spacer()
-                    if total > 0 {
-                        AJPieChartView(data: nonZero)
-                            .frame(width: 88, height: 88)
-                    } else {
-                        Text("🥧")
-                            .font(.system(size: 52))
-                            .opacity(0.25)
-                    }
+                    MonthlySpendBarsView(transactions: appState.monthlyTransactions)
+                        .frame(width: 88, height: 72)
                 }
 
                 if !nonZero.isEmpty {
@@ -1250,6 +1244,59 @@ struct BudgetSetterSheet: View {
                     drafts[cat.rawValue] = String(Int(val))
                 }
             }
+        }
+    }
+}
+
+// MARK: - Monthly Spend Bar Chart
+
+struct MonthlySpendBarsView: View {
+    let transactions: [SpendEntry]
+
+    private struct DayAmount: Identifiable {
+        let id: Int
+        let amount: Double
+    }
+
+    private var data: [DayAmount] {
+        let cal = Calendar.current
+        let now = Date()
+        let daysInMonth = cal.range(of: .day, in: .month, for: now)?.count ?? 30
+        return (1...daysInMonth).map { day in
+            let amt = transactions
+                .filter { !$0.isSaving && cal.component(.day, from: $0.date) == day }
+                .reduce(0) { $0 + $1.amount }
+            return DayAmount(id: day, amount: amt)
+        }
+    }
+
+    var body: some View {
+        let items  = data
+        let today  = Calendar.current.component(.day, from: Date())
+        let maxAmt = items.filter { $0.id <= today }.map(\.amount).max() ?? 1
+
+        GeometryReader { geo in
+            HStack(alignment: .bottom, spacing: 1.5) {
+                ForEach(items) { item in
+                    let isFuture = item.id > today
+                    let isToday  = item.id == today
+                    let barH: CGFloat = isFuture
+                        ? 2
+                        : item.amount == 0 ? 3
+                        : max(4, geo.size.height * CGFloat(item.amount / maxAmt))
+
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            isFuture        ? Color.white.opacity(0.06) :
+                            isToday         ? Color.ajOrange :
+                            item.amount > 0 ? Color.ajOrange.opacity(0.55) :
+                                              Color.white.opacity(0.10)
+                        )
+                        .frame(height: barH)
+                        .animation(.spring(response: 0.45, dampingFraction: 0.75), value: item.amount)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
         }
     }
 }
