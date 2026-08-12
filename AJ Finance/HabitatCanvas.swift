@@ -15,7 +15,8 @@ struct HabitatBackLayer: View {
                 let W = sz.width, H = sz.height
                 let px = parallaxX * 0.14
                 switch habitat {
-                case .meadow, .flowerGarden:   drawMeadowBack(ctx, W: W, H: H, px: px)
+                case .meadow:                  drawMeadowBack(ctx, W: W, H: H, px: px)
+                case .flowerGarden:            drawFlowerGardenBack(ctx, W: W, H: H, px: px)
                 case .forest:                  drawForestBack(ctx, W: W, H: H, px: px)
                 case .jungle:                  drawJungleBack(ctx, W: W, H: H, px: px)
                 case .savanna:                 drawSavannaBack(ctx, W: W, H: H, px: px)
@@ -42,12 +43,28 @@ struct HabitatBackLayer: View {
     private func drawMeadowBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.60
 
-        // Far rolling hills — three overlapping layers
+        // Sun glow in upper left
+        var sunGlow = Path(ellipseIn: CGRect(x: W*0.08 - px*0.03 - H*0.14, y: H*0.04, width: H*0.28, height: H*0.28))
+        ctx.fill(sunGlow, with: .color(Color(red: 1.0, green: 0.95, blue: 0.60).opacity(0.18)))
+        var sun = Path(ellipseIn: CGRect(x: W*0.10 - px*0.03 - H*0.07, y: H*0.06, width: H*0.14, height: H*0.14))
+        ctx.fill(sun, with: .color(Color(red: 1.0, green: 0.92, blue: 0.40).opacity(0.80)))
+
+        // God rays from sun
+        let rayAngles: [CGFloat] = [-0.25, -0.10, 0.08, 0.22, 0.38]
+        for ang in rayAngles {
+            var ray = Path()
+            let ox = W*0.10 - px*0.03
+            ray.move(to: CGPoint(x: ox, y: H*0.13))
+            ray.addLine(to: CGPoint(x: ox + ang * W*0.80, y: H*0.70))
+            ctx.stroke(ray, with: .color(Color(red: 1.0, green: 0.96, blue: 0.70).opacity(0.07)), lineWidth: 22)
+        }
+
+        // Far rolling hills — gradient shading, three overlapping layers
         for i in 0..<3 {
             let fi = CGFloat(i)
-            let alpha: CGFloat = 0.35 + fi * 0.12
             let yShift: CGFloat = fi * H * 0.04
-            let green = Color(red: 0.26 + fi*0.08, green: 0.62 + fi*0.06, blue: 0.22 + fi*0.04)
+            let topGreen = Color(red: 0.28 + fi*0.08, green: 0.68 + fi*0.04, blue: 0.22 + fi*0.02)
+            let botGreen  = Color(red: 0.20 + fi*0.06, green: 0.50 + fi*0.04, blue: 0.14 + fi*0.02)
             var hills = Path()
             hills.move(to: CGPoint(x: 0, y: H))
             hills.addLine(to: CGPoint(x: 0, y: groundY + yShift))
@@ -65,7 +82,17 @@ struct HabitatBackLayer: View {
                            control2: CGPoint(x: W*0.96, y: groundY - H*0.06 + yShift))
             hills.addLine(to: CGPoint(x: W, y: H))
             hills.closeSubpath()
-            ctx.fill(hills, with: .color(green.opacity(alpha)))
+            ctx.fill(hills, with: .color(topGreen.opacity(0.40 + fi*0.10)))
+            ctx.fill(hills, with: .linearGradient(
+                Gradient(colors: [.white.opacity(0.18), .clear]),
+                startPoint: CGPoint(x: W*0.5, y: groundY - H*0.14 + yShift),
+                endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.05 + yShift)
+            ))
+            ctx.fill(hills, with: .linearGradient(
+                Gradient(colors: [.clear, botGreen.opacity(0.28)]),
+                startPoint: CGPoint(x: W*0.5, y: groundY + yShift),
+                endPoint:   CGPoint(x: W*0.5, y: H)
+            ))
         }
 
         // Oak tree silhouettes (far background)
@@ -87,9 +114,113 @@ struct HabitatBackLayer: View {
         drawBarn(ctx, cx: W*0.80 - px*0.5, baseY: groundY + H*0.01, W: W, H: H)
     }
 
+    // MARK: - Flower Garden (distinct from meadow)
+    private func drawFlowerGardenBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
+        let groundY = H * 0.60
+
+        // Warm golden sun upper right
+        var sunGlow = Path(ellipseIn: CGRect(x: W*0.80 - px*0.02 - H*0.16, y: H*0.03, width: H*0.32, height: H*0.32))
+        ctx.fill(sunGlow, with: .color(Color(red: 1.0, green: 0.88, blue: 0.60).opacity(0.16)))
+        var sun = Path(ellipseIn: CGRect(x: W*0.82 - px*0.02 - H*0.07, y: H*0.05, width: H*0.14, height: H*0.14))
+        ctx.fill(sun, with: .color(Color(red: 1.0, green: 0.90, blue: 0.40).opacity(0.85)))
+
+        // Soft rainbow arc
+        let rbColors: [Color] = [
+            Color(red: 1.0, green: 0.30, blue: 0.30), Color(red: 1.0, green: 0.70, blue: 0.10),
+            Color(red: 0.90, green: 1.0, blue: 0.10), Color(red: 0.20, green: 0.88, blue: 0.30),
+            Color(red: 0.20, green: 0.52, blue: 1.00), Color(red: 0.65, green: 0.20, blue: 0.90),
+        ]
+        for (i, rc) in rbColors.enumerated() {
+            let off = CGFloat(i) * H * 0.016
+            var arc = Path()
+            arc.addArc(center: CGPoint(x: W*0.50, y: H*0.85),
+                       radius: W*0.36 + off,
+                       startAngle: .degrees(205), endAngle: .degrees(335), clockwise: false)
+            ctx.stroke(arc, with: .color(rc.opacity(0.38)), lineWidth: 5)
+        }
+
+        // Lavender/pink rolling hills — gradient
+        let hillColors: [(Color, Color)] = [
+            (Color(red: 0.72, green: 0.54, blue: 0.84), Color(red: 0.52, green: 0.34, blue: 0.68)),
+            (Color(red: 0.52, green: 0.74, blue: 0.46), Color(red: 0.34, green: 0.54, blue: 0.28)),
+            (Color(red: 0.42, green: 0.66, blue: 0.38), Color(red: 0.24, green: 0.48, blue: 0.20)),
+        ]
+        for (i, (topC, botC)) in hillColors.enumerated() {
+            let fi = CGFloat(i)
+            let yShift = fi * H * 0.04
+            var hills = Path()
+            hills.move(to: CGPoint(x: 0, y: H))
+            hills.addLine(to: CGPoint(x: 0, y: groundY + yShift))
+            hills.addCurve(to: CGPoint(x: W*0.28 - px*(1+fi*0.1), y: groundY - H*0.12 + yShift),
+                           control1: CGPoint(x: W*0.10, y: groundY + yShift),
+                           control2: CGPoint(x: W*0.18, y: groundY - H*0.16 + yShift))
+            hills.addCurve(to: CGPoint(x: W*0.58 - px*(1+fi*0.1), y: groundY - H*0.06 + yShift),
+                           control1: CGPoint(x: W*0.38, y: groundY - H*0.02 + yShift),
+                           control2: CGPoint(x: W*0.46, y: groundY - H*0.08 + yShift))
+            hills.addCurve(to: CGPoint(x: W*0.84 - px*(1+fi*0.1), y: groundY - H*0.14 + yShift),
+                           control1: CGPoint(x: W*0.68, y: groundY - H*0.04 + yShift),
+                           control2: CGPoint(x: W*0.76, y: groundY - H*0.18 + yShift))
+            hills.addCurve(to: CGPoint(x: W, y: groundY - H*0.06 + yShift),
+                           control1: CGPoint(x: W*0.92, y: groundY - H*0.10 + yShift),
+                           control2: CGPoint(x: W*0.97, y: groundY - H*0.06 + yShift))
+            hills.addLine(to: CGPoint(x: W, y: H))
+            hills.closeSubpath()
+            ctx.fill(hills, with: .color(topC.opacity(0.40 + fi*0.10)))
+            ctx.fill(hills, with: .linearGradient(
+                Gradient(colors: [.white.opacity(0.20), .clear]),
+                startPoint: CGPoint(x: W*0.5, y: groundY - H*0.14 + yShift),
+                endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.04 + yShift)
+            ))
+            ctx.fill(hills, with: .linearGradient(
+                Gradient(colors: [.clear, botC.opacity(0.25)]),
+                startPoint: CGPoint(x: W*0.5, y: groundY + yShift),
+                endPoint:   CGPoint(x: W*0.5, y: H)
+            ))
+        }
+
+        // Tall flower clusters instead of oak trees
+        let flowerClusterXs: [CGFloat] = [0.06, 0.22, 0.46, 0.70, 0.90]
+        let flowerClusterColors: [Color] = [.pink, Color(red: 0.90, green: 0.40, blue: 0.80),
+                                            Color(red: 1.0, green: 0.78, blue: 0.20), .pink,
+                                            Color(red: 0.70, green: 0.44, blue: 0.92)]
+        for (i, fx) in flowerClusterXs.enumerated() {
+            let fc = W*fx - px*0.6
+            let fy = groundY + H*0.01
+            var stem = Path(CGRect(x: fc - 3, y: fy - H*0.14, width: 6, height: H*0.14))
+            ctx.fill(stem, with: .color(Color(red: 0.22, green: 0.55, blue: 0.14).opacity(0.75)))
+            var bloom = Path(ellipseIn: CGRect(x: fc - H*0.06, y: fy - H*0.20, width: H*0.12, height: H*0.09))
+            ctx.fill(bloom, with: .color(flowerClusterColors[i % flowerClusterColors.count].opacity(0.80)))
+            var bloom2 = Path(ellipseIn: CGRect(x: fc - H*0.04, y: fy - H*0.23, width: H*0.08, height: H*0.06))
+            ctx.fill(bloom2, with: .color(.white.opacity(0.30)))
+        }
+
+        // White picket fence
+        drawFence(ctx, y: groundY + H*0.03, W: W, px: px, color: .white.opacity(0.85))
+
+        // Fluffy pink-tinted clouds
+        drawCloud(ctx, cx: W*0.18 - px*0.08, cy: H*0.20, r: H*0.038, color: Color(red: 1.0, green: 0.88, blue: 0.92).opacity(0.85))
+        drawCloud(ctx, cx: W*0.56 - px*0.06, cy: H*0.14, r: H*0.030, color: .white.opacity(0.78))
+    }
+
     // MARK: - Forest
     private func drawForestBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
+
+        // Dappled light shaft from above (god rays)
+        let godRayOffsets: [(CGFloat, CGFloat)] = [(0.30, 0.06), (0.52, 0.10), (0.72, 0.07)]
+        for (cx, alpha) in godRayOffsets {
+            var ray = Path()
+            ray.move(to: CGPoint(x: W*cx - px*0.02 - 18, y: 0))
+            ray.addLine(to: CGPoint(x: W*cx - px*0.02 + 18, y: 0))
+            ray.addLine(to: CGPoint(x: W*cx - px*0.02 + 52, y: H*0.75))
+            ray.addLine(to: CGPoint(x: W*cx - px*0.02 - 52, y: H*0.75))
+            ray.closeSubpath()
+            ctx.fill(ray, with: .linearGradient(
+                Gradient(colors: [Color(red: 0.88, green: 1.0, blue: 0.72).opacity(alpha), .clear]),
+                startPoint: CGPoint(x: W*cx, y: 0),
+                endPoint:   CGPoint(x: W*cx, y: H*0.75)
+            ))
+        }
 
         // Deep forest — three treeline layers with depth
         let layers: [(CGFloat, CGFloat, Color)] = [
@@ -101,7 +232,7 @@ struct HabitatBackLayer: View {
             drawPineTreeline(ctx, y: H*gY, W: W, px: px, color: color.opacity(alpha))
         }
 
-        // Mossy hills
+        // Mossy hills — gradient from bright crest to shadowed base
         var mossBg = Path()
         mossBg.move(to: CGPoint(x: 0, y: H))
         mossBg.addLine(to: CGPoint(x: 0, y: groundY))
@@ -114,6 +245,16 @@ struct HabitatBackLayer: View {
         mossBg.addLine(to: CGPoint(x: W, y: H))
         mossBg.closeSubpath()
         ctx.fill(mossBg, with: .color(Color(red: 0.12, green: 0.30, blue: 0.10).opacity(0.65)))
+        ctx.fill(mossBg, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.22, green: 0.52, blue: 0.16).opacity(0.28), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.08),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.10)
+        ))
+        ctx.fill(mossBg, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.04, green: 0.12, blue: 0.04).opacity(0.35)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
         // Tree trunks in midground
         let trunkXs: [CGFloat] = [0.05, 0.22, 0.48, 0.71, 0.90]
@@ -125,14 +266,33 @@ struct HabitatBackLayer: View {
         // Fallen log
         drawLog(ctx, lx: W*0.30 - px*0.5, ly: groundY + H*0.04, W: W)
 
-        // Misty atmosphere
-        var mist = Path(CGRect(x: 0, y: groundY - H*0.08, width: W, height: H*0.12))
-        ctx.fill(mist, with: .color(.white.opacity(0.06)))
+        // Layered mist — gradient fade
+        var mist = Path(CGRect(x: 0, y: groundY - H*0.10, width: W, height: H*0.14))
+        ctx.fill(mist, with: .linearGradient(
+            Gradient(colors: [.clear, .white.opacity(0.09), .clear]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.10),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.04)
+        ))
     }
 
     // MARK: - Jungle
     private func drawJungleBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.60
+
+        // Jungle god rays — wide shafts of filtered light
+        for (cx, w, alpha): (CGFloat, CGFloat, CGFloat) in [(W*0.22, 60, 0.08), (W*0.50, 44, 0.06), (W*0.74, 50, 0.07)] {
+            var ray = Path()
+            ray.move(to: CGPoint(x: cx - w*0.4, y: 0))
+            ray.addLine(to: CGPoint(x: cx + w*0.4, y: 0))
+            ray.addLine(to: CGPoint(x: cx + w, y: H*0.78))
+            ray.addLine(to: CGPoint(x: cx - w, y: H*0.78))
+            ray.closeSubpath()
+            ctx.fill(ray, with: .linearGradient(
+                Gradient(colors: [Color(red: 0.70, green: 1.0, blue: 0.60).opacity(alpha), .clear]),
+                startPoint: CGPoint(x: cx, y: 0),
+                endPoint:   CGPoint(x: cx, y: H*0.78)
+            ))
+        }
 
         // Layered tropical canopy
         let layers: [(CGFloat, CGFloat, Color)] = [
@@ -144,7 +304,7 @@ struct HabitatBackLayer: View {
             drawJungleCanopy(ctx, y: H*gY, W: W, px: px, color: color.opacity(alpha))
         }
 
-        // Hill base
+        // Hill base — gradient shading
         var hill = Path()
         hill.move(to: CGPoint(x: 0, y: H))
         hill.addLine(to: CGPoint(x: 0, y: groundY))
@@ -157,9 +317,27 @@ struct HabitatBackLayer: View {
         hill.addLine(to: CGPoint(x: W, y: H))
         hill.closeSubpath()
         ctx.fill(hill, with: .color(Color(red: 0.06, green: 0.28, blue: 0.06).opacity(0.70)))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.16, green: 0.50, blue: 0.14).opacity(0.30), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.08)
+        ))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.02, green: 0.10, blue: 0.02).opacity(0.30)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
         // Waterfall on right side
         drawWaterfall(ctx, cx: W*0.88 - px*0.3, topY: H*0.28, bottomY: groundY + H*0.04, W: W)
+
+        // Dense ground mist — fades upward
+        var mist = Path(CGRect(x: 0, y: groundY - H*0.05, width: W, height: H*0.10))
+        ctx.fill(mist, with: .linearGradient(
+            Gradient(colors: [.clear, .white.opacity(0.12), .white.opacity(0.06)]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.05),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.05)
+        ))
 
         // Clouds — misty
         drawCloud(ctx, cx: W*0.30 - px*0.05, cy: H*0.22, r: H*0.035, color: .white.opacity(0.30))
@@ -170,11 +348,24 @@ struct HabitatBackLayer: View {
     private func drawSavannaBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.64
 
-        // Flat golden horizon
-        var horizon = Path(CGRect(x: 0, y: groundY - H*0.04, width: W, height: H*0.10))
-        ctx.fill(horizon, with: .color(Color(red: 0.86, green: 0.66, blue: 0.22).opacity(0.45)))
+        // Large setting sun with layered glow
+        let sunCX = W*0.44 - px*0.02
+        let sunCY = groundY - H*0.16
+        for (r, alpha): (CGFloat, CGFloat) in [(H*0.22, 0.08), (H*0.16, 0.14), (H*0.10, 0.22), (H*0.07, 0.80)] {
+            var sunLayer = Path(ellipseIn: CGRect(x: sunCX - r, y: sunCY - r, width: r*2, height: r*2))
+            ctx.fill(sunLayer, with: .color(Color(red: 1.0, green: 0.74 + (1-alpha)*0.2, blue: 0.10).opacity(alpha)))
+        }
 
-        // Gentle rolling savanna hills (very flat)
+        // Flat golden horizon — gradient
+        var horizon = Path(CGRect(x: 0, y: groundY - H*0.06, width: W, height: H*0.14))
+        ctx.fill(horizon, with: .linearGradient(
+            Gradient(colors: [Color(red: 1.0, green: 0.72, blue: 0.20).opacity(0.45),
+                              Color(red: 0.86, green: 0.58, blue: 0.14).opacity(0.20)]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.06),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.08)
+        ))
+
+        // Savanna hills — gradient from ochre top to warm brown base
         var hills = Path()
         hills.move(to: CGPoint(x: 0, y: H))
         hills.addLine(to: CGPoint(x: 0, y: groundY))
@@ -187,43 +378,82 @@ struct HabitatBackLayer: View {
         hills.addLine(to: CGPoint(x: W, y: H))
         hills.closeSubpath()
         ctx.fill(hills, with: .color(Color(red: 0.70, green: 0.52, blue: 0.16).opacity(0.55)))
+        ctx.fill(hills, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.92, green: 0.74, blue: 0.28).opacity(0.30), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.05),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.06)
+        ))
+        ctx.fill(hills, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.52, green: 0.34, blue: 0.08).opacity(0.28)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
-        // Acacia tree silhouettes (wide flat canopy on thin trunk)
+        // Acacia tree silhouettes
         drawAcacia(ctx, cx: W*0.18 - px*0.5, baseY: groundY, h: H*0.24, W: W)
         drawAcacia(ctx, cx: W*0.62 - px*0.5, baseY: groundY, h: H*0.20, W: W)
         drawAcacia(ctx, cx: W*0.88 - px*0.5, baseY: groundY, h: H*0.18, W: W)
 
-        // Sun glow at horizon
-        var sun = Path(ellipseIn: CGRect(x: W*0.42 - px*0.02 - H*0.08, y: groundY - H*0.18, width: H*0.16, height: H*0.16))
-        ctx.fill(sun, with: .color(Color(red: 1.0, green: 0.80, blue: 0.20).opacity(0.72)))
-
-        // Dust haze at ground
-        var dust = Path(CGRect(x: 0, y: groundY - H*0.02, width: W, height: H*0.06))
-        ctx.fill(dust, with: .color(Color(red: 0.90, green: 0.72, blue: 0.30).opacity(0.18)))
+        // Heat shimmer / dust haze at ground — gradient
+        var dust = Path(CGRect(x: 0, y: groundY - H*0.03, width: W, height: H*0.08))
+        ctx.fill(dust, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.96, green: 0.80, blue: 0.40).opacity(0.22), .clear]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.03),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.05)
+        ))
     }
 
     // MARK: - Ocean
     private func drawOceanBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
-        // Deep ocean — no hills, just water gradient layers
-        for i in 0..<4 {
-            let fi = CGFloat(i)
-            let y = H * (0.45 + fi * 0.06)
-            let alpha: CGFloat = 0.14 + fi * 0.06
-            var band = Path(CGRect(x: 0, y: y, width: W, height: H * 0.07))
-            ctx.fill(band, with: .color(Color(red: 0.02, green: 0.18 + fi*0.04, blue: 0.60 + fi*0.04).opacity(alpha)))
+        // Full ocean depth gradient — shallow aqua at top to deep blue at bottom
+        var depthBg = Path(CGRect(x: 0, y: 0, width: W, height: H))
+        ctx.fill(depthBg, with: .linearGradient(
+            Gradient(colors: [
+                Color(red: 0.10, green: 0.52, blue: 0.90).opacity(0.60),
+                Color(red: 0.02, green: 0.24, blue: 0.72).opacity(0.72),
+                Color(red: 0.00, green: 0.08, blue: 0.48).opacity(0.85)
+            ]),
+            startPoint: CGPoint(x: 0, y: 0),
+            endPoint:   CGPoint(x: 0, y: H)
+        ))
+
+        // Caustic light patterns — shimmering patches near top
+        for i in 0..<6 {
+            let cx = W * (0.08 + CGFloat(i) * 0.16) - px * 0.3
+            var caustic = Path(ellipseIn: CGRect(x: cx - W*0.06, y: H*0.08 + CGFloat(i%3)*H*0.04, width: W*0.12, height: H*0.03))
+            ctx.fill(caustic, with: .color(Color(red: 0.60, green: 0.90, blue: 1.0).opacity(0.10)))
         }
 
-        // Coral reef silhouettes at midground
+        // Water depth bands — layered
+        for i in 0..<5 {
+            let fi = CGFloat(i)
+            let y = H * (0.30 + fi * 0.08)
+            var band = Path(CGRect(x: 0, y: y, width: W, height: H * 0.05))
+            ctx.fill(band, with: .linearGradient(
+                Gradient(colors: [Color(red: 0.20, green: 0.60, blue: 0.90).opacity(0.08 + fi*0.02), .clear]),
+                startPoint: CGPoint(x: 0, y: y),
+                endPoint:   CGPoint(x: 0, y: y + H*0.05)
+            ))
+        }
+
+        // Coral reef silhouettes — with warm orange glow tint
         let coralXs: [(CGFloat, CGFloat)] = [(0.10, H*0.18), (0.30, H*0.14), (0.55, H*0.20), (0.75, H*0.16), (0.92, H*0.12)]
         for (cx, ch) in coralXs {
             drawCoralSilhouette(ctx, cx: W*cx - px*0.5, baseY: H*0.78, h: ch, W: W)
         }
+        // Coral glow
+        for (cx, ch) in coralXs {
+            var glow = Path(ellipseIn: CGRect(x: W*cx - px*0.5 - ch*0.5, y: H*0.78 - ch, width: ch, height: ch*0.6))
+            ctx.fill(glow, with: .color(Color(red: 1.0, green: 0.50, blue: 0.20).opacity(0.08)))
+        }
 
-        // Bubbles — light circles
+        // Bubbles — chains rising
         let bubbleXs: [CGFloat] = [0.12, 0.28, 0.44, 0.60, 0.76, 0.90]
         for bx in bubbleXs {
-            var b = Path(ellipseIn: CGRect(x: W*bx - px*0.3 - 4, y: H*0.38, width: 8, height: 8))
-            ctx.stroke(b, with: .color(.white.opacity(0.25)), lineWidth: 1)
+            for j in 0..<3 {
+                var b = Path(ellipseIn: CGRect(x: W*bx - px*0.3 - 4, y: H*(0.28 + CGFloat(j)*0.12), width: 8, height: 8))
+                ctx.stroke(b, with: .color(.white.opacity(0.20)), lineWidth: 1)
+            }
         }
     }
 
@@ -231,7 +461,10 @@ struct HabitatBackLayer: View {
     private func drawArcticBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
 
-        // Distant snowy mountains — three layers
+        // Aurora — draw first (behind everything)
+        drawAurora(ctx, W: W, H: H, px: px)
+
+        // Distant snowy mountains — three layers with gradient shading
         let mtLayers: [(CGFloat, CGFloat, Color)] = [
             (0.40, 0.50, Color(red: 0.60, green: 0.76, blue: 0.98)),
             (0.52, 0.65, Color(red: 0.72, green: 0.86, blue: 1.00)),
@@ -241,7 +474,7 @@ struct HabitatBackLayer: View {
             drawMountainRange(ctx, peakY: H*peakY, groundY: H*0.78, W: W, px: px * 0.5, color: color.opacity(alpha))
         }
 
-        // Snow-covered hills
+        // Snow-covered hills — gradient from bright white crest to icy blue shadow
         var snowHill = Path()
         snowHill.move(to: CGPoint(x: 0, y: H))
         snowHill.addLine(to: CGPoint(x: 0, y: groundY))
@@ -257,16 +490,34 @@ struct HabitatBackLayer: View {
         snowHill.addLine(to: CGPoint(x: W, y: H))
         snowHill.closeSubpath()
         ctx.fill(snowHill, with: .color(.white.opacity(0.82)))
+        ctx.fill(snowHill, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.35), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.06)
+        ))
+        ctx.fill(snowHill, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.60, green: 0.82, blue: 1.0).opacity(0.30)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
-        // Aurora streaks
-        drawAurora(ctx, W: W, H: H, px: px)
+        // Icicle fringe along hill crest
+        for ix in stride(from: W*0.04, to: W*0.96, by: W*0.08) {
+            let ilen = H * CGFloat.random(in: 0.018...0.038)
+            var icicle = Path()
+            icicle.move(to: CGPoint(x: ix - px*0.2 - 3, y: groundY - H*0.07))
+            icicle.addLine(to: CGPoint(x: ix - px*0.2 + 3, y: groundY - H*0.07))
+            icicle.addLine(to: CGPoint(x: ix - px*0.2, y: groundY - H*0.07 + ilen))
+            icicle.closeSubpath()
+            ctx.fill(icicle, with: .color(Color(red: 0.82, green: 0.94, blue: 1.0).opacity(0.70)))
+        }
     }
 
     // MARK: - Bamboo / Cherry Blossom
     private func drawBambooBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
 
-        // Misty bamboo hills
+        // Misty bamboo hills — gradient from leafy top to earthy base
         var hill = Path()
         hill.move(to: CGPoint(x: 0, y: H))
         hill.addLine(to: CGPoint(x: 0, y: groundY))
@@ -279,6 +530,28 @@ struct HabitatBackLayer: View {
         hill.addLine(to: CGPoint(x: W, y: H))
         hill.closeSubpath()
         ctx.fill(hill, with: .color(Color(red: 0.12, green: 0.38, blue: 0.14).opacity(0.55)))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.28, green: 0.60, blue: 0.22).opacity(0.28), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.12),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.06)
+        ))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.08, green: 0.22, blue: 0.08).opacity(0.25)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.08),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
+
+        // Cherry blossom petals falling (static background layer)
+        let petalPositions: [(CGFloat, CGFloat, CGFloat)] = [
+            (0.08, 0.30, 0.0), (0.22, 0.18, -15.0), (0.40, 0.42, 10.0),
+            (0.58, 0.26, -8.0), (0.74, 0.36, 20.0), (0.88, 0.22, -12.0),
+            (0.15, 0.50, 5.0),  (0.66, 0.54, -18.0)
+        ]
+        for (fx, fy, rot) in petalPositions {
+            var petal = Path(ellipseIn: CGRect(x: W*fx - px*0.3 - 5, y: H*fy - 4, width: 10, height: 7))
+            ctx.fill(petal, with: .color(Color(red: 1.0, green: 0.72, blue: 0.82).opacity(0.65)))
+            _ = rot // rotation not directly available in Canvas path, use offset
+        }
 
         // Pagoda silhouette
         drawPagoda(ctx, cx: W*0.78 - px*0.5, baseY: groundY, H: H)
@@ -290,18 +563,38 @@ struct HabitatBackLayer: View {
                             color: Color(red: 0.16, green: 0.48, blue: 0.16).opacity(0.55))
         }
 
-        // Mist layer
-        var mist = Path(CGRect(x: 0, y: groundY - H*0.06, width: W, height: H*0.10))
-        ctx.fill(mist, with: .color(.white.opacity(0.14)))
+        // Mist layer — gradient fade
+        var mist = Path(CGRect(x: 0, y: groundY - H*0.08, width: W, height: H*0.14))
+        ctx.fill(mist, with: .linearGradient(
+            Gradient(colors: [.clear, .white.opacity(0.18), .white.opacity(0.08)]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.08),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.06)
+        ))
     }
 
     // MARK: - Beach
     private func drawBeachBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.60
 
-        // Ocean horizon (flat, at groundY)
-        var ocean = Path(CGRect(x: 0, y: groundY - H*0.02, width: W, height: H*0.08))
-        ctx.fill(ocean, with: .color(Color(red: 0.10, green: 0.52, blue: 0.90).opacity(0.55)))
+        // Ocean — deep gradient from sky-blue at horizon to teal below
+        var ocean = Path(CGRect(x: 0, y: 0, width: W, height: groundY + H*0.06))
+        ctx.fill(ocean, with: .linearGradient(
+            Gradient(colors: [
+                Color(red: 0.48, green: 0.82, blue: 0.96).opacity(0.55),
+                Color(red: 0.10, green: 0.52, blue: 0.90).opacity(0.75),
+                Color(red: 0.04, green: 0.32, blue: 0.72).opacity(0.85)
+            ]),
+            startPoint: CGPoint(x: 0, y: 0),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.06)
+        ))
+
+        // Sun glimmer on water surface
+        var glimmer = Path(CGRect(x: 0, y: groundY - H*0.08, width: W, height: H*0.08))
+        ctx.fill(glimmer, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 1.0, green: 0.96, blue: 0.70).opacity(0.22), .clear]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.08),
+            endPoint:   CGPoint(x: 0, y: groundY)
+        ))
 
         // Wave lines
         for i in 0..<3 {
@@ -319,7 +612,7 @@ struct HabitatBackLayer: View {
             ctx.stroke(wave, with: .color(.white.opacity(0.30 - fi*0.08)), lineWidth: 1.5)
         }
 
-        // Sand dunes — gentle humps
+        // Sand dunes — gradient from warm highlight to deeper sand shadow
         var dunes = Path()
         dunes.move(to: CGPoint(x: 0, y: H))
         dunes.addLine(to: CGPoint(x: 0, y: groundY + H*0.04))
@@ -335,6 +628,16 @@ struct HabitatBackLayer: View {
         dunes.addLine(to: CGPoint(x: W, y: H))
         dunes.closeSubpath()
         ctx.fill(dunes, with: .color(Color(red: 0.92, green: 0.82, blue: 0.56).opacity(0.75)))
+        ctx.fill(dunes, with: .linearGradient(
+            Gradient(colors: [Color(red: 1.0, green: 0.94, blue: 0.70).opacity(0.35), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.08)
+        ))
+        ctx.fill(dunes, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.68, green: 0.56, blue: 0.28).opacity(0.25)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
         // Clouds
         drawCloud(ctx, cx: W*0.18 - px*0.06, cy: H*0.16, r: H*0.038, color: .white.opacity(0.80))
@@ -343,7 +646,7 @@ struct HabitatBackLayer: View {
 
     // MARK: - Mountain
     private func drawMountainBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
-        // Multiple mountain ranges with depth
+        // Multiple mountain ranges with depth — gradient shading
         let ranges: [(CGFloat, CGFloat, Color)] = [
             (0.22, 0.60, Color(red: 0.32, green: 0.42, blue: 0.68)),
             (0.35, 0.70, Color(red: 0.44, green: 0.52, blue: 0.72)),
@@ -353,23 +656,64 @@ struct HabitatBackLayer: View {
             drawMountainRange(ctx, peakY: H*peakY, groundY: H*0.78, W: W, px: px * 0.5, color: color.opacity(alpha))
         }
 
+        // Light face highlight on nearest range (left-lit)
+        var lightFace = Path()
+        lightFace.move(to: CGPoint(x: W*0.18 - px*0.4, y: H*0.78))
+        lightFace.addLine(to: CGPoint(x: W*0.50 - px*0.4, y: H*0.50))
+        lightFace.addLine(to: CGPoint(x: W*0.54 - px*0.4, y: H*0.78))
+        lightFace.closeSubpath()
+        ctx.fill(lightFace, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.20), .clear]),
+            startPoint: CGPoint(x: W*0.34, y: H*0.50),
+            endPoint:   CGPoint(x: W*0.50, y: H*0.78)
+        ))
+
         // Snow caps on nearest range
         drawSnowCaps(ctx, W: W, H: H, px: px)
 
-        // Pine treeline across mid
+        // Pine treeline across mid — with gradient
         drawPineTreeline(ctx, y: H*0.64, W: W, px: px*0.7, color: Color(red: 0.08, green: 0.28, blue: 0.10).opacity(0.80))
 
         // Log cabin
         drawCabin(ctx, cx: W*0.32 - px*0.5, baseY: H*0.66, H: H)
 
-        // Mountain mist
-        var mist = Path(CGRect(x: 0, y: H*0.56, width: W, height: H*0.10))
-        ctx.fill(mist, with: .color(.white.opacity(0.08)))
+        // Mountain mist — gradient bands
+        for band in 0..<3 {
+            let by = H*(0.54 + CGFloat(band)*0.04)
+            var mist = Path(CGRect(x: 0, y: by, width: W, height: H*0.04))
+            ctx.fill(mist, with: .linearGradient(
+                Gradient(colors: [.clear, .white.opacity(0.07 - CGFloat(band)*0.015), .clear]),
+                startPoint: CGPoint(x: 0, y: by),
+                endPoint:   CGPoint(x: 0, y: by + H*0.04)
+            ))
+        }
     }
 
     // MARK: - Woodland
     private func drawWoodlandBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
+
+        // Moon glow — draw first so trees layer over it
+        let moonX = W*0.72 - px*0.05
+        // Moon beam column
+        var moonBeam = Path(CGRect(x: moonX - H*0.18, y: H*0.14, width: H*0.36, height: H*0.60))
+        ctx.fill(moonBeam, with: .linearGradient(
+            Gradient(colors: [Color(red: 1.0, green: 0.96, blue: 0.80).opacity(0.12), .clear]),
+            startPoint: CGPoint(x: moonX, y: H*0.14),
+            endPoint:   CGPoint(x: moonX, y: H*0.74)
+        ))
+        var moonGlow = Path(ellipseIn: CGRect(x: moonX - H*0.13, y: H*0.02, width: H*0.26, height: H*0.26))
+        ctx.fill(moonGlow, with: .color(Color(red: 1.0, green: 0.96, blue: 0.80).opacity(0.14)))
+        var moon = Path(ellipseIn: CGRect(x: moonX - H*0.06, y: H*0.08, width: H*0.12, height: H*0.12))
+        ctx.fill(moon, with: .color(Color(red: 1.0, green: 0.96, blue: 0.80).opacity(0.88)))
+
+        // Stars (subtle dots)
+        let starXs: [(CGFloat, CGFloat)] = [(0.08,0.06),(0.20,0.10),(0.34,0.04),(0.48,0.08),(0.58,0.12),
+                                             (0.82,0.06),(0.92,0.10),(0.14,0.18),(0.42,0.16),(0.65,0.05)]
+        for (sx, sy) in starXs {
+            var star = Path(ellipseIn: CGRect(x: W*sx - px*0.02 - 2, y: H*sy - 2, width: 4, height: 4))
+            ctx.fill(star, with: .color(.white.opacity(0.55)))
+        }
 
         // Dark night treeline — far layer
         drawPineTreeline(ctx, y: H*0.46, W: W, px: px*0.3, color: Color(red: 0.02, green: 0.10, blue: 0.04).opacity(0.80))
@@ -382,13 +726,16 @@ struct HabitatBackLayer: View {
                               color: Color(red: 0.04, green: 0.16, blue: 0.06).opacity(0.90))
         }
 
-        // Moon glow in sky
-        var moon = Path(ellipseIn: CGRect(x: W*0.72 - px*0.05 - H*0.06, y: H*0.08, width: H*0.12, height: H*0.12))
-        ctx.fill(moon, with: .color(Color(red: 1.0, green: 0.96, blue: 0.80).opacity(0.88)))
-        var moonGlow = Path(ellipseIn: CGRect(x: W*0.72 - px*0.05 - H*0.10, y: H*0.04, width: H*0.20, height: H*0.20))
-        ctx.fill(moonGlow, with: .color(Color(red: 1.0, green: 0.96, blue: 0.80).opacity(0.15)))
+        // Firefly glow spots
+        let fireflySpots: [(CGFloat, CGFloat)] = [(0.14,0.60),(0.28,0.55),(0.44,0.62),(0.60,0.57),(0.76,0.63),(0.88,0.58)]
+        for (fx, fy) in fireflySpots {
+            var glow = Path(ellipseIn: CGRect(x: W*fx - px*0.3 - H*0.018, y: H*fy - H*0.018, width: H*0.036, height: H*0.036))
+            ctx.fill(glow, with: .color(Color(red: 0.72, green: 1.0, blue: 0.30).opacity(0.14)))
+            var dot = Path(ellipseIn: CGRect(x: W*fx - px*0.3 - 3, y: H*fy - 3, width: 6, height: 6))
+            ctx.fill(dot, with: .color(Color(red: 0.80, green: 1.0, blue: 0.40).opacity(0.75)))
+        }
 
-        // Forest floor hill
+        // Forest floor hill — gradient from dark green to near-black
         var hill = Path()
         hill.move(to: CGPoint(x: 0, y: H))
         hill.addLine(to: CGPoint(x: 0, y: groundY))
@@ -401,13 +748,23 @@ struct HabitatBackLayer: View {
         hill.addLine(to: CGPoint(x: W, y: H))
         hill.closeSubpath()
         ctx.fill(hill, with: .color(Color(red: 0.06, green: 0.18, blue: 0.06).opacity(0.65)))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.14, green: 0.36, blue: 0.12).opacity(0.22), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.08)
+        ))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.01, green: 0.04, blue: 0.01).opacity(0.35)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
     }
 
     // MARK: - Pond
     private func drawPondBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.60
 
-        // Green hills around pond
+        // Green hills — gradient shading
         var hill = Path()
         hill.move(to: CGPoint(x: 0, y: H))
         hill.addLine(to: CGPoint(x: 0, y: groundY))
@@ -420,17 +777,44 @@ struct HabitatBackLayer: View {
         hill.addLine(to: CGPoint(x: W, y: H))
         hill.closeSubpath()
         ctx.fill(hill, with: .color(Color(red: 0.22, green: 0.54, blue: 0.20).opacity(0.60)))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.38, green: 0.74, blue: 0.32).opacity(0.26), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.08)
+        ))
+        ctx.fill(hill, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.10, green: 0.32, blue: 0.08).opacity(0.25)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.10),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
-        // Willow tree (left)
+        // Willow trees
         drawWillow(ctx, cx: W*0.12 - px*0.4, baseY: groundY + H*0.02, h: H*0.30, W: W)
-
-        // Willow tree (right)
         drawWillow(ctx, cx: W*0.88 - px*0.4, baseY: groundY + H*0.02, h: H*0.28, W: W)
 
-        // Pond water surface
+        // Pond water — deep gradient + reflection shimmer
         var pond = Path(ellipseIn: CGRect(x: W*0.25 - px*0.3, y: groundY + H*0.04, width: W*0.50, height: H*0.08))
         ctx.fill(pond, with: .color(Color(red: 0.20, green: 0.60, blue: 0.80).opacity(0.50)))
-        ctx.stroke(pond, with: .color(.white.opacity(0.20)), lineWidth: 1.5)
+        ctx.fill(pond, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.60, green: 0.88, blue: 1.0).opacity(0.35), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.04),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.08)
+        ))
+        ctx.fill(pond, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.04, green: 0.28, blue: 0.52).opacity(0.30)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.12)
+        ))
+        ctx.stroke(pond, with: .color(.white.opacity(0.25)), lineWidth: 1.5)
+
+        // Lily pad dots on pond
+        let lilyXs: [CGFloat] = [0.32, 0.44, 0.58, 0.68]
+        for lx in lilyXs {
+            var lily = Path(ellipseIn: CGRect(x: W*lx - px*0.3 - 10, y: groundY + H*0.07, width: 20, height: 12))
+            ctx.fill(lily, with: .color(Color(red: 0.14, green: 0.52, blue: 0.14).opacity(0.80)))
+            var lilyFlower = Path(ellipseIn: CGRect(x: W*lx - px*0.3 - 5, y: groundY + H*0.065, width: 10, height: 7))
+            ctx.fill(lilyFlower, with: .color(Color(red: 1.0, green: 0.88, blue: 0.90).opacity(0.70)))
+        }
     }
 
     // MARK: - River
@@ -440,7 +824,7 @@ struct HabitatBackLayer: View {
         // Forest banks on both sides
         drawPineTreeline(ctx, y: H*0.52, W: W, px: px*0.4, color: Color(red: 0.08, green: 0.30, blue: 0.10).opacity(0.70))
 
-        // Bank hills
+        // Bank hills — gradient shading
         var leftBank = Path()
         leftBank.move(to: CGPoint(x: 0, y: H))
         leftBank.addLine(to: CGPoint(x: 0, y: groundY))
@@ -450,6 +834,11 @@ struct HabitatBackLayer: View {
         leftBank.addLine(to: CGPoint(x: W*0.30, y: H))
         leftBank.closeSubpath()
         ctx.fill(leftBank, with: .color(Color(red: 0.18, green: 0.46, blue: 0.14).opacity(0.60)))
+        ctx.fill(leftBank, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.34, green: 0.68, blue: 0.26).opacity(0.25), .clear]),
+            startPoint: CGPoint(x: 0, y: groundY - H*0.08),
+            endPoint:   CGPoint(x: 0, y: groundY + H*0.10)
+        ))
 
         var rightBank = Path()
         rightBank.move(to: CGPoint(x: W, y: H))
@@ -460,10 +849,25 @@ struct HabitatBackLayer: View {
         rightBank.addLine(to: CGPoint(x: W*0.70, y: H))
         rightBank.closeSubpath()
         ctx.fill(rightBank, with: .color(Color(red: 0.18, green: 0.46, blue: 0.14).opacity(0.60)))
+        ctx.fill(rightBank, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.34, green: 0.68, blue: 0.26).opacity(0.25), .clear]),
+            startPoint: CGPoint(x: W, y: groundY - H*0.06),
+            endPoint:   CGPoint(x: W, y: groundY + H*0.10)
+        ))
 
-        // River channel
+        // River channel — gradient depth
         var river = Path(CGRect(x: W*0.28 - px*0.2, y: groundY - H*0.02, width: W*0.44, height: H*0.12))
         ctx.fill(river, with: .color(Color(red: 0.12, green: 0.52, blue: 0.80).opacity(0.55)))
+        ctx.fill(river, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.50, green: 0.84, blue: 1.0).opacity(0.30), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.02),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.04)
+        ))
+        ctx.fill(river, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.04, green: 0.24, blue: 0.52).opacity(0.28)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.04),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.10)
+        ))
 
         // Waterfall on left side
         drawWaterfall(ctx, cx: W*0.10 - px*0.3, topY: H*0.32, bottomY: groundY + H*0.02, W: W)
@@ -471,32 +875,53 @@ struct HabitatBackLayer: View {
 
     // MARK: - Burrow (underground)
     private func drawBurrowBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
-        // Earth ceiling with root texture
-        var ceiling = Path(CGRect(x: 0, y: 0, width: W, height: H*0.22))
+        // Earth ceiling — gradient from dark earth at top to lighter open burrow
+        var ceiling = Path(CGRect(x: 0, y: 0, width: W, height: H*0.24))
         ctx.fill(ceiling, with: .color(Color(red: 0.38, green: 0.24, blue: 0.10).opacity(0.90)))
+        ctx.fill(ceiling, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.52, green: 0.36, blue: 0.16).opacity(0.40), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: 0),
+            endPoint:   CGPoint(x: W*0.5, y: H*0.24)
+        ))
 
         // Root lines hanging from ceiling
         let rootXs: [CGFloat] = [0.08, 0.20, 0.36, 0.52, 0.68, 0.80, 0.92]
-        for rx in rootXs {
-            let len = H * CGFloat.random(in: 0.06...0.14)
+        let rootLens: [CGFloat] = [0.10, 0.08, 0.13, 0.07, 0.11, 0.09, 0.12]
+        for (i, rx) in rootXs.enumerated() {
+            let len = H * rootLens[i]
             var root = Path()
             root.move(to: CGPoint(x: W*rx - px*0.1, y: 0))
-            root.addCurve(to: CGPoint(x: W*rx + CGFloat.random(in: -15...15) - px*0.1, y: len),
+            root.addCurve(to: CGPoint(x: W*rx + (i%2==0 ? 8 : -8) - px*0.1, y: len),
                           control1: CGPoint(x: W*rx + 6, y: len*0.3),
                           control2: CGPoint(x: W*rx - 4, y: len*0.7))
             ctx.stroke(root, with: .color(Color(red: 0.28, green: 0.16, blue: 0.06).opacity(0.80)), lineWidth: 2.5)
         }
 
-        // Tunnel arch walls
-        var archLeft = Path(CGRect(x: 0, y: 0, width: W*0.10, height: H))
+        // Tunnel arch walls — gradient toward center (lighter = lamplight)
+        var archLeft = Path(CGRect(x: 0, y: 0, width: W*0.12, height: H))
         ctx.fill(archLeft, with: .color(Color(red: 0.32, green: 0.20, blue: 0.08).opacity(0.90)))
-        var archRight = Path(CGRect(x: W*0.90, y: 0, width: W*0.10, height: H))
+        ctx.fill(archLeft, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.22, green: 0.14, blue: 0.06).opacity(0.40)]),
+            startPoint: CGPoint(x: W*0.12, y: H*0.5),
+            endPoint:   CGPoint(x: 0, y: H*0.5)
+        ))
+        var archRight = Path(CGRect(x: W*0.88, y: 0, width: W*0.12, height: H))
         ctx.fill(archRight, with: .color(Color(red: 0.32, green: 0.20, blue: 0.08).opacity(0.90)))
+        ctx.fill(archRight, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.22, green: 0.14, blue: 0.06).opacity(0.40)]),
+            startPoint: CGPoint(x: W*0.88, y: H*0.5),
+            endPoint:   CGPoint(x: W, y: H*0.5)
+        ))
 
-        // Cozy lantern glow spots
-        for (lx, ly) in [(W*0.14, H*0.45), (W*0.86, H*0.45)] {
-            var glow = Path(ellipseIn: CGRect(x: lx - H*0.08, y: ly - H*0.08, width: H*0.16, height: H*0.16))
-            ctx.fill(glow, with: .color(Color(red: 1.0, green: 0.72, blue: 0.20).opacity(0.22)))
+        // Cozy lantern glow spots — multi-layer warm radial
+        for (lx, ly): (CGFloat, CGFloat) in [(W*0.14, H*0.45), (W*0.86, H*0.45)] {
+            for (r, alpha): (CGFloat, CGFloat) in [(H*0.18, 0.08), (H*0.12, 0.14), (H*0.07, 0.25)] {
+                var glow = Path(ellipseIn: CGRect(x: lx - r, y: ly - r, width: r*2, height: r*2))
+                ctx.fill(glow, with: .color(Color(red: 1.0, green: 0.72, blue: 0.20).opacity(alpha)))
+            }
+            // Lantern dot
+            var lamp = Path(ellipseIn: CGRect(x: lx - 8, y: ly - 8, width: 16, height: 16))
+            ctx.fill(lamp, with: .color(Color(red: 1.0, green: 0.88, blue: 0.50).opacity(0.90)))
         }
 
         // Earth floor texture bumps
@@ -509,27 +934,59 @@ struct HabitatBackLayer: View {
 
     // MARK: - Cloudland / Space
     private func drawCloudlandBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
-        // Nebula wisps
-        let nebulaColors: [Color] = [
-            Color(red: 0.58, green: 0.22, blue: 0.90).opacity(0.14),
-            Color(red: 0.22, green: 0.48, blue: 0.92).opacity(0.12),
-            Color(red: 0.90, green: 0.22, blue: 0.58).opacity(0.10),
+        // Deep space background gradient
+        var spaceBg = Path(CGRect(x: 0, y: 0, width: W, height: H))
+        ctx.fill(spaceBg, with: .linearGradient(
+            Gradient(colors: [
+                Color(red: 0.04, green: 0.02, blue: 0.18).opacity(0.70),
+                Color(red: 0.10, green: 0.04, blue: 0.30).opacity(0.50),
+                Color(red: 0.18, green: 0.08, blue: 0.44).opacity(0.30)
+            ]),
+            startPoint: CGPoint(x: 0, y: 0),
+            endPoint:   CGPoint(x: 0, y: H)
+        ))
+
+        // Stars — scattered dots
+        let starData: [(CGFloat, CGFloat, CGFloat)] = [
+            (0.05,0.04,0.80),(0.14,0.12,0.60),(0.26,0.06,0.90),(0.38,0.09,0.55),(0.50,0.03,0.75),
+            (0.62,0.07,0.85),(0.74,0.11,0.65),(0.86,0.05,0.90),(0.94,0.14,0.70),(0.10,0.22,0.50),
+            (0.30,0.18,0.80),(0.55,0.20,0.60),(0.78,0.16,0.75),(0.90,0.22,0.55),(0.20,0.28,0.70)
         ]
-        for (i, nc) in nebulaColors.enumerated() {
-            let fi = CGFloat(i)
-            var nebula = Path(ellipseIn: CGRect(x: W*(0.20+fi*0.22) - px*0.05, y: H*(0.12+fi*0.08), width: W*0.40, height: H*0.24))
-            ctx.fill(nebula, with: .color(nc))
+        for (sx, sy, alpha) in starData {
+            var star = Path(ellipseIn: CGRect(x: W*sx - px*0.01 - 2, y: H*sy - 2, width: 4, height: 4))
+            ctx.fill(star, with: .color(.white.opacity(alpha)))
+        }
+
+        // Nebula wisps — gradient filled
+        let nebulaData: [(CGFloat, CGFloat, Color)] = [
+            (0.20, 0.12, Color(red: 0.58, green: 0.22, blue: 0.90)),
+            (0.42, 0.20, Color(red: 0.22, green: 0.48, blue: 0.92)),
+            (0.64, 0.14, Color(red: 0.90, green: 0.22, blue: 0.58)),
+        ]
+        for (nx, ny, nc) in nebulaData {
+            var nebula = Path(ellipseIn: CGRect(x: W*nx - px*0.05, y: H*ny, width: W*0.36, height: H*0.22))
+            ctx.fill(nebula, with: .color(nc.opacity(0.12)))
+            ctx.fill(nebula, with: .linearGradient(
+                Gradient(colors: [nc.opacity(0.08), .clear]),
+                startPoint: CGPoint(x: W*nx, y: H*ny),
+                endPoint:   CGPoint(x: W*nx + W*0.36, y: H*ny + H*0.22)
+            ))
         }
 
         // Floating island platforms
         let islandXs: [(CGFloat, CGFloat)] = [(0.22, 0.52), (0.62, 0.44), (0.82, 0.58)]
         for (ix, iy) in islandXs {
             drawFloatingIsland(ctx, cx: W*ix - px*0.3, cy: H*iy, W: W)
+            // Glow under each island
+            var islandGlow = Path(ellipseIn: CGRect(x: W*ix - px*0.3 - W*0.10, y: H*iy + W*0.025, width: W*0.20, height: H*0.04))
+            ctx.fill(islandGlow, with: .color(Color(red: 0.58, green: 0.30, blue: 0.90).opacity(0.18)))
         }
 
-        // Crystal formations at ground level
+        // Crystal formations — with glow
         let crystalXs: [CGFloat] = [0.08, 0.22, 0.44, 0.66, 0.84]
         for cx in crystalXs {
+            var cGlow = Path(ellipseIn: CGRect(x: W*cx - px*0.5 - H*0.05, y: H*0.64, width: H*0.10, height: H*0.10))
+            ctx.fill(cGlow, with: .color(Color(red: 0.68, green: 0.44, blue: 0.98).opacity(0.14)))
             drawCrystal(ctx, cx: W*cx - px*0.5, baseY: H*0.72, H: H,
                         color: Color(red: 0.68, green: 0.44, blue: 0.98).opacity(0.75))
         }
@@ -537,29 +994,52 @@ struct HabitatBackLayer: View {
 
     // MARK: - Volcano
     private func drawVolcanoBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
-        // Volcano cone silhouette
+        // Sky glow from lava — red-orange at horizon
+        var skyGlow = Path(CGRect(x: 0, y: H*0.40, width: W, height: H*0.30))
+        ctx.fill(skyGlow, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 1.0, green: 0.28, blue: 0.02).opacity(0.22), .clear]),
+            startPoint: CGPoint(x: 0, y: H*0.40),
+            endPoint:   CGPoint(x: 0, y: H*0.70)
+        ))
+
+        // Volcano cone silhouette — gradient: darker base, glow at summit
         var cone = Path()
         cone.move(to: CGPoint(x: W*0.50 - px*0.2, y: H*0.12))
         cone.addLine(to: CGPoint(x: W*0.20 - px*0.2, y: H*0.68))
         cone.addLine(to: CGPoint(x: W*0.80 - px*0.2, y: H*0.68))
         cone.closeSubpath()
         ctx.fill(cone, with: .color(Color(red: 0.18, green: 0.08, blue: 0.06).opacity(0.88)))
+        ctx.fill(cone, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.08, green: 0.02, blue: 0.01).opacity(0.40)]),
+            startPoint: CGPoint(x: W*0.5, y: H*0.20),
+            endPoint:   CGPoint(x: W*0.5, y: H*0.68)
+        ))
 
-        // Lava glow in crater
-        var crater = Path(ellipseIn: CGRect(x: W*0.42 - px*0.2, y: H*0.10, width: W*0.16, height: H*0.06))
-        ctx.fill(crater, with: .color(Color(red: 1.0, green: 0.38, blue: 0.02).opacity(0.80)))
+        // Lava glow in crater — layered
+        for (r, alpha): (CGFloat, CGFloat) in [(H*0.08, 0.18), (H*0.05, 0.40), (H*0.032, 0.85)] {
+            var craterGlow = Path(ellipseIn: CGRect(x: W*0.50 - px*0.2 - r, y: H*0.10 - r*0.3, width: r*2, height: r*0.9))
+            ctx.fill(craterGlow, with: .color(Color(red: 1.0, green: 0.44 + (1-alpha)*0.3, blue: 0.02).opacity(alpha)))
+        }
 
-        // Lava streams down sides
+        // Lava streams down sides — glow + core
         for side: CGFloat in [-1, 1] {
             var lava = Path()
             lava.move(to: CGPoint(x: W*0.50 - px*0.2, y: H*0.14))
             lava.addCurve(to: CGPoint(x: W*(0.50 + side*0.22) - px*0.2, y: H*0.62),
                           control1: CGPoint(x: W*(0.50 + side*0.06) - px*0.2, y: H*0.30),
                           control2: CGPoint(x: W*(0.50 + side*0.16) - px*0.2, y: H*0.48))
-            ctx.stroke(lava, with: .color(Color(red: 1.0, green: 0.40, blue: 0.02).opacity(0.65)), lineWidth: 6)
+            ctx.stroke(lava, with: .color(Color(red: 1.0, green: 0.40, blue: 0.02).opacity(0.28)), lineWidth: 14)
+            ctx.stroke(lava, with: .color(Color(red: 1.0, green: 0.60, blue: 0.10).opacity(0.65)), lineWidth: 6)
+            ctx.stroke(lava, with: .color(Color(red: 1.0, green: 0.88, blue: 0.40).opacity(0.40)), lineWidth: 2)
         }
 
-        // Dark rock ground hills
+        // Ash clouds above crater
+        for (ax, ay): (CGFloat, CGFloat) in [(W*0.50 - px*0.2, H*0.06), (W*0.44 - px*0.2, H*0.10), (W*0.56 - px*0.2, H*0.08)] {
+            var ash = Path(ellipseIn: CGRect(x: ax - H*0.06, y: ay - H*0.04, width: H*0.12, height: H*0.08))
+            ctx.fill(ash, with: .color(Color(red: 0.28, green: 0.20, blue: 0.18).opacity(0.50)))
+        }
+
+        // Dark rock ground hills — gradient
         var rock = Path()
         rock.move(to: CGPoint(x: 0, y: H))
         rock.addLine(to: CGPoint(x: 0, y: H*0.65))
@@ -572,17 +1052,33 @@ struct HabitatBackLayer: View {
         rock.addLine(to: CGPoint(x: W, y: H))
         rock.closeSubpath()
         ctx.fill(rock, with: .color(Color(red: 0.14, green: 0.06, blue: 0.04).opacity(0.88)))
+        ctx.fill(rock, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.60, green: 0.20, blue: 0.04).opacity(0.18), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: H*0.58),
+            endPoint:   CGPoint(x: W*0.5, y: H*0.70)
+        ))
     }
 
     // MARK: - Hot Springs
     private func drawHotSpringsBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
 
-        // Tropical mountains
+        // Tropical mountains — gradient shading
         drawMountainRange(ctx, peakY: H*0.28, groundY: H*0.72, W: W, px: px*0.3,
                           color: Color(red: 0.12, green: 0.38, blue: 0.14).opacity(0.65))
 
-        // Rock platform around springs
+        // Mist atmosphere — steam rising from springs
+        for band in 0..<4 {
+            let by = groundY - H*0.10 + CGFloat(band) * H*0.08
+            var mistBand = Path(CGRect(x: W*0.20, y: by, width: W*0.60, height: H*0.06))
+            ctx.fill(mistBand, with: .linearGradient(
+                Gradient(colors: [.clear, .white.opacity(0.10 - CGFloat(band)*0.02), .clear]),
+                startPoint: CGPoint(x: W*0.20, y: by),
+                endPoint:   CGPoint(x: W*0.80, y: by)
+            ))
+        }
+
+        // Rock platform — gradient from warm highlight to shadow base
         var platform = Path()
         platform.move(to: CGPoint(x: 0, y: H))
         platform.addLine(to: CGPoint(x: 0, y: groundY + H*0.02))
@@ -596,32 +1092,48 @@ struct HabitatBackLayer: View {
         platform.addLine(to: CGPoint(x: W, y: H))
         platform.closeSubpath()
         ctx.fill(platform, with: .color(Color(red: 0.46, green: 0.38, blue: 0.30).opacity(0.75)))
+        ctx.fill(platform, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.68, green: 0.58, blue: 0.48).opacity(0.28), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.06)
+        ))
+        ctx.fill(platform, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.28, green: 0.20, blue: 0.14).opacity(0.25)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.08),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
 
-        // Spring pool
+        // Spring pool — gradient from hot teal to deep blue + steam shimmer
         var pool = Path(ellipseIn: CGRect(x: W*0.28 - px*0.3, y: groundY + H*0.03, width: W*0.44, height: H*0.07))
         ctx.fill(pool, with: .color(Color(red: 0.20, green: 0.72, blue: 0.80).opacity(0.60)))
+        ctx.fill(pool, with: .linearGradient(
+            Gradient(colors: [Color(red: 0.70, green: 0.96, blue: 1.0).opacity(0.40), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.03),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.07)
+        ))
+        ctx.fill(pool, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.04, green: 0.38, blue: 0.52).opacity(0.30)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.10)
+        ))
+        ctx.stroke(pool, with: .color(.white.opacity(0.20)), lineWidth: 1.5)
+
+        // Steam wisps rising from pool
+        let wispXs: [CGFloat] = [0.34, 0.44, 0.50, 0.58, 0.66]
+        for wx in wispXs {
+            for j in 0..<3 {
+                let wy = groundY + H*0.02 - CGFloat(j) * H*0.06
+                var wisp = Path(ellipseIn: CGRect(x: W*wx - px*0.3 - H*0.03, y: wy - H*0.03, width: H*0.06, height: H*0.05))
+                ctx.fill(wisp, with: .color(.white.opacity(0.12 - CGFloat(j)*0.03)))
+            }
+        }
     }
 
     // MARK: - Candy
     private func drawCandyBack(_ ctx: GraphicsContext, W: CGFloat, H: CGFloat, px: CGFloat) {
         let groundY = H * 0.62
 
-        // Candy mountain silhouettes
-        var cm1 = Path()
-        cm1.move(to: CGPoint(x: W*0.10 - px*0.3, y: groundY))
-        cm1.addLine(to: CGPoint(x: W*0.30 - px*0.3, y: H*0.22))
-        cm1.addLine(to: CGPoint(x: W*0.50 - px*0.3, y: groundY))
-        cm1.closeSubpath()
-        ctx.fill(cm1, with: .color(Color(red: 0.92, green: 0.48, blue: 0.72).opacity(0.65)))
-
-        var cm2 = Path()
-        cm2.move(to: CGPoint(x: W*0.50 - px*0.2, y: groundY))
-        cm2.addLine(to: CGPoint(x: W*0.70 - px*0.2, y: H*0.18))
-        cm2.addLine(to: CGPoint(x: W*0.90 - px*0.2, y: groundY))
-        cm2.closeSubpath()
-        ctx.fill(cm2, with: .color(Color(red: 0.72, green: 0.44, blue: 0.94).opacity(0.60)))
-
-        // Rainbow arc
+        // Rainbow arc — vivid, thicker bands
         let rainbowColors: [Color] = [
             Color(red: 1.0, green: 0.22, blue: 0.22), Color(red: 1.0, green: 0.64, blue: 0.00),
             Color(red: 1.0, green: 0.96, blue: 0.00), Color(red: 0.20, green: 0.82, blue: 0.20),
@@ -631,12 +1143,48 @@ struct HabitatBackLayer: View {
             let offset = CGFloat(i) * H * 0.018
             var arc = Path()
             arc.addArc(center: CGPoint(x: W*0.50, y: H*0.82),
-                       radius: W*0.40 + offset,
-                       startAngle: .degrees(200), endAngle: .degrees(340), clockwise: false)
-            ctx.stroke(arc, with: .color(rc.opacity(0.55)), lineWidth: 5)
+                       radius: W*0.38 + offset,
+                       startAngle: .degrees(198), endAngle: .degrees(342), clockwise: false)
+            ctx.stroke(arc, with: .color(rc.opacity(0.60)), lineWidth: 6)
         }
 
-        // Sugar-coated ground hills
+        // Candy mountain 1 — pink gradient
+        var cm1 = Path()
+        cm1.move(to: CGPoint(x: W*0.10 - px*0.3, y: groundY))
+        cm1.addLine(to: CGPoint(x: W*0.30 - px*0.3, y: H*0.22))
+        cm1.addLine(to: CGPoint(x: W*0.50 - px*0.3, y: groundY))
+        cm1.closeSubpath()
+        ctx.fill(cm1, with: .color(Color(red: 0.92, green: 0.48, blue: 0.72).opacity(0.65)))
+        ctx.fill(cm1, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.28), .clear]),
+            startPoint: CGPoint(x: W*0.22 - px*0.3, y: H*0.22),
+            endPoint:   CGPoint(x: W*0.36 - px*0.3, y: groundY)
+        ))
+
+        // Candy mountain 2 — purple gradient
+        var cm2 = Path()
+        cm2.move(to: CGPoint(x: W*0.50 - px*0.2, y: groundY))
+        cm2.addLine(to: CGPoint(x: W*0.70 - px*0.2, y: H*0.18))
+        cm2.addLine(to: CGPoint(x: W*0.90 - px*0.2, y: groundY))
+        cm2.closeSubpath()
+        ctx.fill(cm2, with: .color(Color(red: 0.72, green: 0.44, blue: 0.94).opacity(0.60)))
+        ctx.fill(cm2, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.25), .clear]),
+            startPoint: CGPoint(x: W*0.62 - px*0.2, y: H*0.18),
+            endPoint:   CGPoint(x: W*0.76 - px*0.2, y: groundY)
+        ))
+
+        // Snow / sugar caps on mountains
+        for (cx, py): (CGFloat, CGFloat) in [(W*0.30 - px*0.3, H*0.22), (W*0.70 - px*0.2, H*0.18)] {
+            var cap = Path()
+            cap.move(to: CGPoint(x: cx, y: py))
+            cap.addLine(to: CGPoint(x: cx - W*0.06, y: py + H*0.06))
+            cap.addLine(to: CGPoint(x: cx + W*0.06, y: py + H*0.06))
+            cap.closeSubpath()
+            ctx.fill(cap, with: .color(.white.opacity(0.88)))
+        }
+
+        // Sugar-coated ground hills — gradient
         var candy = Path()
         candy.move(to: CGPoint(x: 0, y: H))
         candy.addLine(to: CGPoint(x: 0, y: groundY))
@@ -649,6 +1197,27 @@ struct HabitatBackLayer: View {
         candy.addLine(to: CGPoint(x: W, y: H))
         candy.closeSubpath()
         ctx.fill(candy, with: .color(Color(red: 0.96, green: 0.80, blue: 0.92).opacity(0.70)))
+        ctx.fill(candy, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.30), .clear]),
+            startPoint: CGPoint(x: W*0.5, y: groundY - H*0.06),
+            endPoint:   CGPoint(x: W*0.5, y: groundY + H*0.06)
+        ))
+        ctx.fill(candy, with: .linearGradient(
+            Gradient(colors: [.clear, Color(red: 0.72, green: 0.44, blue: 0.70).opacity(0.22)]),
+            startPoint: CGPoint(x: W*0.5, y: groundY + H*0.08),
+            endPoint:   CGPoint(x: W*0.5, y: H)
+        ))
+
+        // Candy canes along hill edge
+        for cx in stride(from: W*0.06, to: W*0.94, by: W*0.18) {
+            let caneH = H * 0.08
+            var stick = Path(CGRect(x: cx - px*0.4 - 3, y: groundY - caneH, width: 6, height: caneH))
+            ctx.fill(stick, with: .color(.white.opacity(0.80)))
+            var stripe = Path(CGRect(x: cx - px*0.4 - 3, y: groundY - caneH, width: 6, height: 8))
+            ctx.fill(stripe, with: .color(Color(red: 0.95, green: 0.20, blue: 0.30).opacity(0.85)))
+            var stripe2 = Path(CGRect(x: cx - px*0.4 - 3, y: groundY - caneH + 16, width: 6, height: 8))
+            ctx.fill(stripe2, with: .color(Color(red: 0.95, green: 0.20, blue: 0.30).opacity(0.85)))
+        }
     }
 
     // MARK: - Shape Helpers

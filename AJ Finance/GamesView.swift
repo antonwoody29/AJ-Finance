@@ -192,48 +192,61 @@ struct GameCard: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(color.opacity(0.20))
-                        .frame(width: 64, height: 64)
-                    Text(emoji)
-                        .font(.system(size: 34))
-                }
+            TimelineView(.animation) { tl in
+                let t = CGFloat(tl.date.timeIntervalSinceReferenceDate)
+                let pulse = 0.5 + 0.5 * sin(t * 1.3)
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title)
-                        .font(.system(size: 17, weight: .black))
-                        .foregroundColor(.white)
-                    Text(subtitle)
-                        .font(.system(size: 12, weight: .semibold))
+                HStack(spacing: 16) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(
+                                colors: [color.opacity(0.30 + pulse * 0.08), color.opacity(0.12)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ))
+                            .frame(width: 64, height: 64)
+                        Text(emoji)
+                            .font(.system(size: 34))
+                    }
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(title)
+                            .font(.system(size: 17, weight: .black))
+                            .foregroundColor(.white)
+                        Text(subtitle)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(color)
+                        Text(detail)
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.5))
+                            .lineLimit(2)
+                        Text(coinReward)
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.ajGold)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "play.fill")
+                        .font(.system(size: 18))
                         .foregroundColor(color)
-                    Text(detail)
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.5))
-                        .lineLimit(2)
-                    Text(coinReward)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.ajGold)
+                        .frame(width: 36, height: 36)
+                        .background(Circle().fill(color.opacity(0.18 + pulse * 0.10)))
+                        .overlay(Circle().stroke(color.opacity(0.45 + pulse * 0.30), lineWidth: 1.5))
                 }
-
-                Spacer()
-
-                Image(systemName: "play.fill")
-                    .font(.system(size: 18))
-                    .foregroundColor(color)
-                    .frame(width: 36, height: 36)
-                    .background(Circle().fill(color.opacity(0.15)))
-            }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color.ajCard)
-                    .overlay(
+                .padding(16)
+                .background(
+                    ZStack {
                         RoundedRectangle(cornerRadius: 18)
-                            .stroke(color.opacity(0.30), lineWidth: 1)
-                    )
-            )
+                            .fill(LinearGradient(
+                                colors: [color.opacity(0.13), Color.ajCard],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ))
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(color.opacity(0.30 + pulse * 0.22), lineWidth: 1.5)
+                    }
+                )
+                .shadow(color: color.opacity(0.18 + pulse * 0.10), radius: 14, y: 5)
+            }
         }
         .buttonStyle(.plain)
         .scaleEffect(pressed ? 0.97 : 1.0)

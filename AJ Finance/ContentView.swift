@@ -341,57 +341,46 @@ struct HamburgerMenuView: View {
         ScrollView {
             VStack(spacing: 20) {
 
-                // Profile card with Life Meter
-                VStack(spacing: 12) {
-                    LifeMeterView()
-
-                    Text(appState.userName.isEmpty ? "AJ Lyfe" : appState.userName)
-                        .font(.system(size: 20, weight: .black))
-                        .foregroundColor(.white)
-
-                    HStack(spacing: 12) {
-                        Label("\(appState.gems) 💎", systemImage: "")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.ajGold)
-
-                        Text("·")
-                            .foregroundColor(.white.opacity(0.3))
-
-                        Text(appState.evolutionEmoji + " " + appState.evolutionTitle)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-
-                        if appState.isAJLyfePlus {
-                            Text("·")
-                                .foregroundColor(.white.opacity(0.3))
-                            Text("👑 Plus")
-                                .font(.system(size: 13, weight: .black))
+                // Compact profile header
+                HStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(appState.userName.isEmpty ? "AJ Lyfe" : appState.userName)
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundColor(.white)
+                        HStack(spacing: 8) {
+                            Text("\(appState.gems) 💎")
+                                .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.ajGold)
+                            Text(appState.evolutionEmoji + " " + appState.evolutionTitle)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.60))
+                            if appState.isAJLyfePlus {
+                                Text("👑 Plus")
+                                    .font(.system(size: 12, weight: .black))
+                                    .foregroundColor(.ajGold)
+                            }
+                        }
+                    }
+                    Spacer()
+                    HStack(spacing: 14) {
+                        VStack(spacing: 2) {
+                            Text("🔥 \(appState.streak)")
+                                .font(.system(size: 13, weight: .black)).foregroundColor(.ajOrange)
+                            Text("streak").font(.system(size: 9)).foregroundColor(.white.opacity(0.40))
+                        }
+                        VStack(spacing: 2) {
+                            Text("⭐ Lv\(appState.level)")
+                                .font(.system(size: 13, weight: .black)).foregroundColor(.ajGold)
+                            Text("level").font(.system(size: 9)).foregroundColor(.white.opacity(0.40))
                         }
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
                 .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.white.opacity(0.06))
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.ajOrange.opacity(0.08), Color(red: 0.55, green: 0.18, blue: 0.95).opacity(0.06)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                )
-                            )
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [Color.white.opacity(0.18), Color.white.opacity(0.05)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    }
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.10), lineWidth: 1))
                 )
 
                 // This Month tracker
@@ -486,10 +475,6 @@ struct HamburgerMenuView: View {
 
                 // Menu items
                 VStack(spacing: 0) {
-                    menuRow(icon: "🎯", title: "Goals", subtitle: goalsSubtitle) {
-                        showGoals = true
-                    }
-                    Divider().background(Color.white.opacity(0.08)).padding(.leading, 60)
                     menuRow(icon: "💎", title: "Store", subtitle: "Gems, crates, Lucky Wheel") {
                         showStore = true
                     }
@@ -508,12 +493,6 @@ struct HamburgerMenuView: View {
                 }
                 .background(RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.06)))
 
-                // Quick stats row
-                HStack(spacing: 12) {
-                    statPill("🔥 \(appState.streak)", "Day streak")
-                    statPill("🛡️ \(appState.streakShields)", "Shields")
-                    statPill("⭐ Lv\(appState.level)", "Level")
-                }
             }
             .padding(.horizontal, 20)
             .padding(.top, 16)

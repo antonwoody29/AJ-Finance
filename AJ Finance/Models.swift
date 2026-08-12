@@ -16,51 +16,103 @@ extension Color {
 // MARK: - Rich Background
 
 struct AJRichBackground: View {
+
+    private struct Particle: Identifiable {
+        let id: Int
+        let x: CGFloat
+        let size: CGFloat
+        let speed: CGFloat
+        let phase: CGFloat
+        let drift: CGFloat
+        let opacity: CGFloat
+        let symbol: String
+    }
+
+    private static let symbols = ["✦", "✦", "✦", "◆", "✦", "✧", "◆", "✦"]
+
+    private let particles: [Particle] = (0..<22).map { i in
+        Particle(
+            id: i,
+            x: CGFloat.random(in: 0...1),
+            size: CGFloat.random(in: 6...16),
+            speed: CGFloat.random(in: 10...24),
+            phase: CGFloat.random(in: 0...1),
+            drift: CGFloat.random(in: 8...22),
+            opacity: CGFloat.random(in: 0.08...0.22),
+            symbol: AJRichBackground.symbols[i % AJRichBackground.symbols.count]
+        )
+    }
+
     var body: some View {
-        ZStack {
-            Color.ajDark
+        TimelineView(.animation) { tl in
+            let t = CGFloat(tl.date.timeIntervalSinceReferenceDate)
+            let breathe = 0.5 + 0.5 * sin(t * 0.6)
+            GeometryReader { geo in
+                ZStack {
+                    Color.ajDark
 
-            // 🔥 Bold orange fire — top right (brand anchor)
-            RadialGradient(
-                colors: [Color.ajOrange.opacity(0.38), Color.ajOrange.opacity(0.08), .clear],
-                center: UnitPoint(x: 0.92, y: 0.0),
-                startRadius: 0, endRadius: 380
-            )
+                    // 🔥 Orange fire — top right, animated breathe
+                    RadialGradient(
+                        colors: [Color.ajOrange.opacity(0.30 + breathe * 0.12), Color.ajOrange.opacity(0.06), .clear],
+                        center: UnitPoint(x: 0.92, y: 0.0),
+                        startRadius: 0, endRadius: 380
+                    )
 
-            // ⚡ Electric violet — bottom left (drama + depth)
-            RadialGradient(
-                colors: [Color(red: 0.42, green: 0.06, blue: 0.90).opacity(0.42), .clear],
-                center: UnitPoint(x: 0.0, y: 1.0),
-                startRadius: 0, endRadius: 460
-            )
+                    // ⚡ Electric violet — bottom left, phase-shifted breathe
+                    RadialGradient(
+                        colors: [Color(red: 0.42, green: 0.06, blue: 0.90).opacity(0.32 + (1 - breathe) * 0.14), .clear],
+                        center: UnitPoint(x: 0.0, y: 1.0),
+                        startRadius: 0, endRadius: 460
+                    )
 
-            // 🌊 Deep teal — bottom right (cool contrast)
-            RadialGradient(
-                colors: [Color(red: 0.0, green: 0.58, blue: 0.68).opacity(0.22), .clear],
-                center: UnitPoint(x: 1.0, y: 0.88),
-                startRadius: 0, endRadius: 320
-            )
+                    // 🌊 Deep teal — bottom right
+                    RadialGradient(
+                        colors: [Color(red: 0.0, green: 0.58, blue: 0.68).opacity(0.18 + breathe * 0.08), .clear],
+                        center: UnitPoint(x: 1.0, y: 0.88),
+                        startRadius: 0, endRadius: 320
+                    )
 
-            // 🟠 Amber ember — left mid (warmth bridge)
-            RadialGradient(
-                colors: [Color(red: 0.70, green: 0.28, blue: 0.0).opacity(0.20), .clear],
-                center: UnitPoint(x: 0.0, y: 0.42),
-                startRadius: 0, endRadius: 260
-            )
+                    // 🟠 Amber ember — left mid, drifting
+                    RadialGradient(
+                        colors: [Color(red: 0.70, green: 0.28, blue: 0.0).opacity(0.16 + breathe * 0.08), .clear],
+                        center: UnitPoint(x: 0.0, y: 0.38 + breathe * 0.08),
+                        startRadius: 0, endRadius: 260
+                    )
 
-            // 🌙 Center vignette — pulls eye inward
-            RadialGradient(
-                colors: [.clear, Color.black.opacity(0.30)],
-                center: .center,
-                startRadius: 120, endRadius: 500
-            )
+                    // 🌙 Center vignette
+                    RadialGradient(
+                        colors: [.clear, Color.black.opacity(0.28)],
+                        center: .center,
+                        startRadius: 120, endRadius: 500
+                    )
 
-            // ✨ Top edge shimmer
-            LinearGradient(
-                colors: [Color.white.opacity(0.07), .clear],
-                startPoint: .top,
-                endPoint: UnitPoint(x: 0.5, y: 0.09)
-            )
+                    // ✨ Top shimmer wave
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.06 + breathe * 0.04), .clear],
+                        startPoint: .top,
+                        endPoint: UnitPoint(x: 0.5, y: 0.12)
+                    )
+
+                    // Floating sparkle particles
+                    ForEach(particles) { p in
+                        let elapsed = t / p.speed
+                        let rawY = 1.0 - (elapsed + p.phase).truncatingRemainder(dividingBy: 1.0)
+                        let sway = sin(t * 0.5 + CGFloat(p.id) * 1.2) * p.drift
+                        let fadeIn  = rawY < 0.10 ? rawY / 0.10 : 1.0
+                        let fadeOut = rawY > 0.90 ? (1.0 - rawY) / 0.10 : 1.0
+                        let twinkle = 0.6 + 0.4 * sin(t * 1.8 + CGFloat(p.id) * 0.9)
+
+                        Text(p.symbol)
+                            .font(.system(size: p.size))
+                            .foregroundColor(.ajOrange)
+                            .opacity(Double(p.opacity * fadeIn * fadeOut * twinkle))
+                            .position(
+                                x: p.x * geo.size.width + sway,
+                                y: rawY * geo.size.height
+                            )
+                    }
+                }
+            }
         }
         .ignoresSafeArea()
     }
@@ -1518,6 +1570,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
     case kinkajou       = "Kinkajou"
     case mongoose       = "Mongoose"
     case dingo          = "Dingo"
+    // Named personal companions
+    case dezCheeze          = "DEZ Cheeze"
+    case elijahSeahawk      = "Elijah"
+    case rashaadRam         = "Rashaad"
+    case jamalRaven         = "Jamal"
+    case jabrilRainbowDolphin = "Jabril"
+    case ericaLadybug       = "Erica"
+    case jaylenOtter        = "Jaylen"
+    case reginaldHippo      = "Reginald"
+    case danileTomatoTree   = "Danile"
+    case amarTrex           = "Amar"
+    case carmenCheetah      = "Carmen"
+    case beverlyButterfly   = "Beverly"
+    case kimeyDragonfly     = "Kimey"
     var id: String { rawValue }
 
     var emoji: String {
@@ -1618,7 +1684,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "❄️"
         case .kinkajou:       return "🍯"
         case .mongoose:       return "💨"
-        case .dingo:          return "🌅"
+        case .dingo:              return "🌅"
+        case .dezCheeze:          return "🧀"
+        case .elijahSeahawk:      return "🦅"
+        case .rashaadRam:         return "🐏"
+        case .jamalRaven:         return "🐦‍⬛"
+        case .jabrilRainbowDolphin: return "🌈"
+        case .ericaLadybug:       return "🐞"
+        case .jaylenOtter:        return "🦦"
+        case .reginaldHippo:      return "🦛"
+        case .danileTomatoTree:   return "🍅"
+        case .amarTrex:           return "🦖"
+        case .carmenCheetah:      return "⚡"
+        case .beverlyButterfly:   return "🦋"
+        case .kimeyDragonfly:     return "🪲"
         }
     }
 
@@ -1734,7 +1813,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return Color(red: 0.58, green: 0.58, blue: 0.62)
         case .kinkajou:       return Color(red: 0.72, green: 0.52, blue: 0.24)
         case .mongoose:       return Color(red: 0.64, green: 0.54, blue: 0.40)
-        case .dingo:          return Color(red: 0.82, green: 0.60, blue: 0.28)
+        case .dingo:              return Color(red: 0.82, green: 0.60, blue: 0.28)
+        case .dezCheeze:          return Color(red: 0.98, green: 0.82, blue: 0.16)
+        case .elijahSeahawk:      return Color(red: 0.22, green: 0.48, blue: 0.78)
+        case .rashaadRam:         return Color(red: 0.14, green: 0.24, blue: 0.70)
+        case .jamalRaven:         return Color(red: 0.14, green: 0.10, blue: 0.20)
+        case .jabrilRainbowDolphin: return Color(red: 0.60, green: 0.88, blue: 0.98)
+        case .ericaLadybug:       return Color(red: 0.90, green: 0.14, blue: 0.14)
+        case .jaylenOtter:        return Color(red: 0.48, green: 0.34, blue: 0.20)
+        case .reginaldHippo:      return Color(red: 0.60, green: 0.52, blue: 0.74)
+        case .danileTomatoTree:   return Color(red: 0.22, green: 0.62, blue: 0.18)
+        case .amarTrex:           return Color(red: 0.24, green: 0.56, blue: 0.18)
+        case .carmenCheetah:      return Color(red: 0.98, green: 0.84, blue: 0.40)
+        case .beverlyButterfly:   return Color(red: 0.96, green: 0.48, blue: 0.82)
+        case .kimeyDragonfly:     return Color(red: 0.28, green: 0.82, blue: 0.54)
         }
     }
 
@@ -1836,7 +1928,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return .arctic
         case .kinkajou:       return .jungle
         case .mongoose:       return .savanna
-        case .dingo:          return .savanna
+        case .dingo:              return .savanna
+        case .dezCheeze:          return .candy
+        case .elijahSeahawk:      return .mountain
+        case .rashaadRam:         return .mountain
+        case .jamalRaven:         return .woodland
+        case .jabrilRainbowDolphin: return .ocean
+        case .ericaLadybug:       return .flowerGarden
+        case .jaylenOtter:        return .river
+        case .reginaldHippo:      return .hotSprings
+        case .danileTomatoTree:   return .flowerGarden
+        case .amarTrex:           return .volcano
+        case .carmenCheetah:      return .savanna
+        case .beverlyButterfly:   return .flowerGarden
+        case .kimeyDragonfly:     return .pond
         }
     }
 
@@ -1938,7 +2043,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Built for the long haul ❄️"
         case .kinkajou:       return "Sweet rewards for patient work 🍯"
         case .mongoose:       return "Too quick for financial danger 💨"
-        case .dingo:          return "Wild instincts, calculated moves 🌅"
+        case .dingo:              return "Wild instincts, calculated moves 🌅"
+        case .dezCheeze:          return "Aged to perfection, saving sharp 🧀"
+        case .elijahSeahawk:      return "Soaring above the competition 🦅"
+        case .rashaadRam:         return "Charging through every obstacle 🐏"
+        case .jamalRaven:         return "Dark horse energy, purple reign 🐦‍⬛"
+        case .jabrilRainbowDolphin: return "Riding rainbow waves to wealth 🌈"
+        case .ericaLadybug:       return "Lucky charm, power packed 🐞"
+        case .jaylenOtter:        return "Smooth moves, deeper pockets 🦦"
+        case .reginaldHippo:      return "Regal energy, heavyweight savings 🦛"
+        case .danileTomatoTree:   return "Rooted in growth, bearing fruit 🍅"
+        case .amarTrex:           return "Apex predator of the bag 🦖"
+        case .carmenCheetah:      return "Clock-fast moves, no time to lose ⚡"
+        case .beverlyButterfly:   return "Transformation is the ultimate glow-up 🦋"
+        case .kimeyDragonfly:     return "Good luck follows every move 🪲"
         }
     }
 
@@ -2040,7 +2158,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Endurance Long-Haul Saver"
         case .kinkajou:       return "Sweetness Accumulator"
         case .mongoose:       return "Danger-Dodge Saver"
-        case .dingo:          return "Instinct-Led Accumulator"
+        case .dingo:              return "Instinct-Led Accumulator"
+        case .dezCheeze:          return "Aged Wealth Accumulator"
+        case .elijahSeahawk:      return "High-Flying Goal Hawk"
+        case .rashaadRam:         return "Charging Force Builder"
+        case .jamalRaven:         return "Shadow Wealth Operative"
+        case .jabrilRainbowDolphin: return "Rainbow Portfolio Diversifier"
+        case .ericaLadybug:       return "Lucky Strike Saver"
+        case .jaylenOtter:        return "Flow State Money Builder"
+        case .reginaldHippo:      return "Royal Reserve Keeper"
+        case .danileTomatoTree:   return "Patient Growth Cultivator"
+        case .amarTrex:           return "Dominant Wealth Hunter"
+        case .carmenCheetah:      return "Blazing Speed Saver"
+        case .beverlyButterfly:   return "Transformation Wealth Builder"
+        case .kimeyDragonfly:     return "Lucky Fortune Chaser"
         }
     }
 
@@ -2175,7 +2306,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Built for blizzards and built for the long haul — your savings better be just as tough ❄️"
         case .kinkajou:       return "The sweetest life goes to those who work for it in the dark — stack now, celebrate later 🍯"
         case .mongoose:       return "Cobras fear me and so does financial stress — I move FAST and I save FASTER 💨"
-        case .dingo:          return "Australia's wild dog doesn't wait to be fed — GO GET YOUR BAG and save every cent of it 🌅"
+        case .dingo:              return "Australia's wild dog doesn't wait to be fed — GO GET YOUR BAG and save every cent of it 🌅"
+        case .dezCheeze:          return "DEZ don't age like fine wine — we age like FINE CHEESE and get SHARPER every year — go stack that bag 🧀"
+        case .elijahSeahawk:      return "Seahawks don't land — we SOAR. Get your bag in the air and keep it FLYING 🦅"
+        case .rashaadRam:         return "Rams don't stop, rams don't wait — we PUT OUR HEAD DOWN AND CHARGE at every savings goal 🐏"
+        case .jamalRaven:         return "Ravens move in silence, but when we strike on a goal? The whole flock eats. SAVE THAT BAG 🐦‍⬛"
+        case .jabrilRainbowDolphin: return "Rainbow dolphin don't swim in broke water — we ride the wave straight to financial FREEDOM 🌈"
+        case .ericaLadybug:       return "They say ladybugs bring luck but WE bring DISCIPLINE and that's way more powerful — save that bag Erica! 🐞"
+        case .jaylenOtter:        return "Jaylen don't just float — we PLAY SMART in the current and let the savings stack like we stack W's 🦦"
+        case .reginaldHippo:      return "Reginald don't move fast — Reginald moves RIGHT. Heavy bags only, no broke energy allowed 🦛"
+        case .danileTomatoTree:   return "Danile takes time to grow but when we ripen? We bring EVERYTHING. Plant your savings seeds NOW 🍅"
+        case .amarTrex:           return "Amar is the APEX. Nothing in this financial jungle gets past us — DOMINATE that savings goal 🦖"
+        case .carmenCheetah:      return "Carmen is CLOCKED IN and clocked FAST — no time for broke behavior, we sprint to every bag ⚡"
+        case .beverlyButterfly:   return "Beverly went through the whole cocoon process for THIS moment — your financial glow-up is happening NOW 🦋"
+        case .kimeyDragonfly:     return "Kimey brings good luck but the real luck? Is having the DISCIPLINE to save every day — let's GO 🪲"
         }
     }
 
@@ -2277,7 +2421,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Strong and steady through every season — your savings are just as powerful! ❄️"
         case .kinkajou:       return "Hang in there and keep saving — sweet rewards are coming your way! 🍯"
         case .mongoose:       return "Quick and clever — you dodge every excuse and save like a champion! 💨"
-        case .dingo:          return "Wild and free — and smart enough to save for every adventure! 🌅"
+        case .dingo:              return "Wild and free — and smart enough to save for every adventure! 🌅"
+        case .dezCheeze:          return "DEZ Cheeze says save your coins before they melt away! 🧀"
+        case .elijahSeahawk:      return "Elijah says fly high with your savings goal! 🦅"
+        case .rashaadRam:         return "Rashaad says charge toward your goal — nothing can stop you! 🐏"
+        case .jamalRaven:         return "Jamal says smart movers save silently and win loudly! 🐦‍⬛"
+        case .jabrilRainbowDolphin: return "Jabril brings rainbow energy to every save — keep it colorful! 🌈"
+        case .ericaLadybug:       return "Erica says every ladybug spot is a coin saved — keep going! 🐞"
+        case .jaylenOtter:        return "Jaylen says play smart and save smarter every single day! 🦦"
+        case .reginaldHippo:      return "Reginald says royal savers take big steps toward big dreams! 🦛"
+        case .danileTomatoTree:   return "Danile says keep watering your savings and watch them grow! 🍅"
+        case .amarTrex:           return "Amar says be the biggest saver in the room — roar for that goal! 🦖"
+        case .carmenCheetah:      return "Carmen says fast savers win the race — keep sprinting! ⚡"
+        case .beverlyButterfly:   return "Beverly says every save is a step in your beautiful transformation! 🦋"
+        case .kimeyDragonfly:     return "Kimey says good luck finds those who show up and save every day! 🪲"
         }
     }
 
@@ -2371,7 +2528,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "🥩"
         case .kinkajou:       return "🍯"
         case .mongoose:       return "🦂"
-        case .dingo:          return "🥩"
+        case .dingo:              return "🥩"
+        case .dezCheeze:          return "🧀"
+        case .elijahSeahawk:      return "🐟"
+        case .rashaadRam:         return "🌾"
+        case .jamalRaven:         return "🫐"
+        case .jabrilRainbowDolphin: return "🌈"
+        case .ericaLadybug:       return "🍃"
+        case .jaylenOtter:        return "🐠"
+        case .reginaldHippo:      return "🍉"
+        case .danileTomatoTree:   return "🍅"
+        case .amarTrex:           return "🥩"
+        case .carmenCheetah:      return "🥩"
+        case .beverlyButterfly:   return "🌸"
+        case .kimeyDragonfly:     return "🌿"
         }
     }
 
@@ -2473,7 +2643,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Arctic Salmon"
         case .kinkajou:       return "Wild Honey"
         case .mongoose:       return "Desert Cobra"
-        case .dingo:          return "Outback Prey"
+        case .dingo:              return "Outback Prey"
+        case .dezCheeze:          return "Aged Gouda Block"
+        case .elijahSeahawk:      return "Pacific Salmon"
+        case .rashaadRam:         return "Mountain Grass"
+        case .jamalRaven:         return "Wild Blueberries"
+        case .jabrilRainbowDolphin: return "Rainbow Reef Fish"
+        case .ericaLadybug:       return "Garden Leaves"
+        case .jaylenOtter:        return "River Trout"
+        case .reginaldHippo:      return "Royal Watermelon"
+        case .danileTomatoTree:   return "Garden Tomatoes"
+        case .amarTrex:           return "Prehistoric Steak"
+        case .carmenCheetah:      return "Speed Gazelle Steak"
+        case .beverlyButterfly:   return "Flower Nectar"
+        case .kimeyDragonfly:     return "Lucky Pond Flies"
         }
     }
 
@@ -2591,7 +2774,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "The long-distance champion. Runs through financial blizzards that stop everyone else and still finishes first."
         case .kinkajou:       return "The nocturnal accumulator. Works the night shift on wealth-building while everyone else sleeps. Sweet life earned."
         case .mongoose:       return "The fear killer. Faces financial danger head-on, defeats it in seconds, and moves on without hesitation."
-        case .dingo:          return "The outback survivor. Feral instincts honed for modern financial warfare. Hunts every opportunity relentlessly."
+        case .dingo:              return "The outback survivor. Feral instincts honed for modern financial warfare. Hunts every opportunity relentlessly."
+        case .dezCheeze:          return "Gets sharper with age. Aged wealth accumulator with pungent results nobody can ignore."
+        case .elijahSeahawk:      return "Never stops climbing. Locks onto the target from high altitude and dives with precision."
+        case .rashaadRam:         return "Unstoppable force. Lowers the head and charges every financial obstacle until it moves."
+        case .jamalRaven:         return "Silent shadow operator. Moves in darkness, builds in silence, emerges with everything."
+        case .jabrilRainbowDolphin: return "Joy and intelligence combined. Rides the brightest waves to the biggest financial wins."
+        case .ericaLadybug:       return "Lucky AND disciplined. Small but spotted in the right places at exactly the right time."
+        case .jaylenOtter:        return "Flow state specialist. Moves with the current, finds the smart angle, never forces the bag."
+        case .reginaldHippo:      return "Heavyweight royalty. Commands respect, occupies space, and the savings account reflects it."
+        case .danileTomatoTree:   return "Patient cultivator. Grows slowly but when the fruit comes? It comes FULL and rich."
+        case .amarTrex:           return "Apex energy. The financial jungle has a king and it's Amar — dominant, loud, unstoppable."
+        case .carmenCheetah:      return "Clockwork speed. Carmen never wastes a second — fastest to the savings, fastest to every goal."
+        case .beverlyButterfly:   return "Transformation master. Beverly started somewhere humble and is emerging more beautiful every day."
+        case .kimeyDragonfly:     return "Good luck embodied. Kimey shows up and things get better — because Kimey put in the work first."
         }
     }
 
@@ -2693,7 +2889,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "❄️ Blue ice crystal tag"
         case .kinkajou:       return "🍯 Honeycomb locket"
         case .mongoose:       return "⚡ Lightning-fast fang charm"
-        case .dingo:          return "🌅 Outback sunrise compass"
+        case .dingo:              return "🌅 Outback sunrise compass"
+        case .dezCheeze:          return "🧀 Block of aged gouda"
+        case .elijahSeahawk:      return "🦅 Talon strike badge"
+        case .rashaadRam:         return "🐏 Ram horn charm"
+        case .jamalRaven:         return "🌙 Purple raven feather"
+        case .jabrilRainbowDolphin: return "🌈 Rainbow dorsal fin crest"
+        case .ericaLadybug:       return "🐞 Lucky spot charm"
+        case .jaylenOtter:        return "🪨 Smooth river stone"
+        case .reginaldHippo:      return "👑 Royal hippo crown"
+        case .danileTomatoTree:   return "🍅 Ripe tomato pendant"
+        case .amarTrex:           return "🦖 Rex claw fossil"
+        case .carmenCheetah:      return "⚡ Gold lightning stripe"
+        case .beverlyButterfly:   return "🦋 Stained glass wing pin"
+        case .kimeyDragonfly:     return "🪲 Lucky jade dragonfly"
         }
     }
 
@@ -2795,7 +3004,20 @@ enum AnimalType: String, CaseIterable, Codable, Identifiable {
         case .husky:          return "Snow shake then ice-blue eye glow reveal"
         case .kinkajou:       return "Branch hang swing then honey drop celebration"
         case .mongoose:       return "Lightning-fast spin then triumphant cobra-dodge pose"
-        case .dingo:          return "Outback howl and wild victory sprint loop"
+        case .dingo:              return "Outback howl and wild victory sprint loop"
+        case .dezCheeze:          return "Melt and reform into golden cheese crown reveal"
+        case .elijahSeahawk:      return "Sky dive lock-on then triumphant wing spread"
+        case .rashaadRam:         return "Full charge sprint then horn-up victory stand"
+        case .jamalRaven:         return "Shadow fade then full raven wing unfold"
+        case .jabrilRainbowDolphin: return "Rainbow breach leap and prismatic splash landing"
+        case .ericaLadybug:       return "Lucky spot flash then wings open victory flutter"
+        case .jaylenOtter:        return "River flow slide then belly-up happy float"
+        case .reginaldHippo:      return "Royal water emerge and heavyweight victory stomp"
+        case .danileTomatoTree:   return "Bloom from sprout then ripen into full fruit glow"
+        case .amarTrex:           return "Ground shake stomp then full roar victory pose"
+        case .carmenCheetah:      return "Speed blur dash then gold lightning flash stop"
+        case .beverlyButterfly:   return "Cocoon wrap then full wing color burst emerge"
+        case .kimeyDragonfly:     return "Lucky shimmer hover then fortune glow victory spin"
         }
     }
 }
@@ -3354,12 +3576,12 @@ let allOutfits: [OutfitItem] = [
     OutfitItem(id: "shirt_tee",         name: "Graphic Tee",    emoji: "👕", slot: .shirt, rarity: .common,    cost: 45,  itemDescription: "Classic drip. Zero interest."),
     OutfitItem(id: "shirt_hoodie",      name: "Hoodie",          emoji: "🧥", slot: .shirt, rarity: .common,    cost: 80,  itemDescription: "Cozy savings mode: activated."),
     OutfitItem(id: "shirt_suit",        name: "Power Suit",      emoji: "🤵", slot: .shirt, rarity: .rare,      cost: 220, itemDescription: "Dress for the bag you want."),
-    OutfitItem(id: "shirt_jersey",      name: "Sports Jersey",   emoji: "🏅", slot: .shirt, rarity: .common,    cost: 60,  itemDescription: "MVP energy. All day."),
-    OutfitItem(id: "shirt_denim",       name: "Denim Jacket",    emoji: "🫙", slot: .shirt, rarity: .rare,      cost: 150, itemDescription: "Vintage fit. Fresh stack."),
-    OutfitItem(id: "shirt_leather",     name: "Leather Jacket",  emoji: "🖤", slot: .shirt, rarity: .rare,      cost: 180, itemDescription: "Bad and building wealth."),
-    OutfitItem(id: "shirt_flannel",     name: "Flannel Shirt",   emoji: "🪵", slot: .shirt, rarity: .common,    cost: 55,  itemDescription: "Lumberjack budget. 0 debt."),
-    OutfitItem(id: "shirt_turtleneck",  name: "Turtleneck",      emoji: "🐢", slot: .shirt, rarity: .common,    cost: 70,  itemDescription: "Intellectual investor energy."),
-    OutfitItem(id: "shirt_windbreaker", name: "Windbreaker",     emoji: "💨", slot: .shirt, rarity: .rare,      cost: 130, itemDescription: "Moves fast. Just like your savings."),
+    OutfitItem(id: "shirt_jersey",      name: "Sports Jersey",   emoji: "🏆", slot: .shirt, rarity: .common,    cost: 60,  itemDescription: "MVP energy. All day."),
+    OutfitItem(id: "shirt_denim",       name: "Denim Jacket",    emoji: "🧥", slot: .shirt, rarity: .rare,      cost: 150, itemDescription: "Vintage fit. Fresh stack."),
+    OutfitItem(id: "shirt_leather",     name: "Leather Jacket",  emoji: "🥷", slot: .shirt, rarity: .rare,      cost: 180, itemDescription: "Bad and building wealth."),
+    OutfitItem(id: "shirt_flannel",     name: "Flannel Shirt",   emoji: "👔", slot: .shirt, rarity: .common,    cost: 55,  itemDescription: "Lumberjack budget. 0 debt."),
+    OutfitItem(id: "shirt_turtleneck",  name: "Turtleneck",      emoji: "🧣", slot: .shirt, rarity: .common,    cost: 70,  itemDescription: "Intellectual investor energy."),
+    OutfitItem(id: "shirt_windbreaker", name: "Windbreaker",     emoji: "🧥", slot: .shirt, rarity: .rare,      cost: 130, itemDescription: "Moves fast. Just like your savings."),
     OutfitItem(id: "shirt_polo",        name: "Polo Shirt",      emoji: "🎽", slot: .shirt, rarity: .common,    cost: 50,  itemDescription: "Old money, new bag."),
     // Tee color variants
     OutfitItem(id: "shirt_tee_red",    name: "Red Tee",         emoji: "👕", slot: .shirt, rarity: .common, cost: 45, itemDescription: "Hot like your credit score."),
@@ -3371,26 +3593,26 @@ let allOutfits: [OutfitItem] = [
     OutfitItem(id: "shirt_hoodie_black", name: "Black Hoodie",  emoji: "🧥", slot: .shirt, rarity: .common, cost: 80, itemDescription: "Dark mode. Bright future."),
     OutfitItem(id: "shirt_hoodie_green", name: "Green Hoodie",  emoji: "🧥", slot: .shirt, rarity: .common, cost: 80, itemDescription: "Forest vibes, compound interest."),
     // Turtleneck color variants
-    OutfitItem(id: "shirt_turtleneck_black", name: "Black Turtleneck", emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Steve Jobs energy. Budget genius."),
-    OutfitItem(id: "shirt_turtleneck_navy",  name: "Navy Turtleneck",  emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Deep ocean, deep pockets."),
-    OutfitItem(id: "shirt_turtleneck_green", name: "Forest Turtleneck",emoji: "🐢", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Nature money mindset."),
+    OutfitItem(id: "shirt_turtleneck_black", name: "Black Turtleneck", emoji: "🧣", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Steve Jobs energy. Budget genius."),
+    OutfitItem(id: "shirt_turtleneck_navy",  name: "Navy Turtleneck",  emoji: "🧣", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Deep ocean, deep pockets."),
+    OutfitItem(id: "shirt_turtleneck_green", name: "Forest Turtleneck",emoji: "🧣", slot: .shirt, rarity: .common, cost: 70, itemDescription: "Nature money mindset."),
     // Jersey color variants
-    OutfitItem(id: "shirt_jersey_blue",  name: "Blue Jersey",   emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blue chip energy."),
-    OutfitItem(id: "shirt_jersey_black", name: "Black Jersey",  emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blackout season. Stack season."),
-    OutfitItem(id: "shirt_jersey_white", name: "White Jersey",  emoji: "🏅", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Clean kit. Cleaner finances."),
+    OutfitItem(id: "shirt_jersey_blue",  name: "Blue Jersey",   emoji: "🏆", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blue chip energy."),
+    OutfitItem(id: "shirt_jersey_black", name: "Black Jersey",  emoji: "🏆", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Blackout season. Stack season."),
+    OutfitItem(id: "shirt_jersey_white", name: "White Jersey",  emoji: "🏆", slot: .shirt, rarity: .common, cost: 60, itemDescription: "Clean kit. Cleaner finances."),
     // Polo color variants
     OutfitItem(id: "shirt_polo_white",  name: "White Polo",     emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "Classic clean. No cap."),
     OutfitItem(id: "shirt_polo_navy",   name: "Navy Polo",      emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "Yacht club budget."),
     OutfitItem(id: "shirt_polo_red",    name: "Red Polo",       emoji: "🎽", slot: .shirt, rarity: .common, cost: 50, itemDescription: "On the course. On the grind."),
     // Bomber color variants
-    OutfitItem(id: "shirt_bomber_black", name: "Black Bomber",  emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Midnight altitude."),
-    OutfitItem(id: "shirt_bomber_navy",  name: "Navy Bomber",   emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Navy ops. Savings secured."),
-    OutfitItem(id: "shirt_bomber_tan",   name: "Tan Bomber",    emoji: "✈️", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Desert camo for your bank account."),
-    OutfitItem(id: "shirt_varsity",     name: "Varsity Jacket",  emoji: "🏆", slot: .shirt, rarity: .rare,      cost: 160, itemDescription: "Letter earned. Bag secured."),
-    OutfitItem(id: "shirt_trench",      name: "Trench Coat",     emoji: "🕵️", slot: .shirt, rarity: .rare,      cost: 200, itemDescription: "Undercover rich."),
+    OutfitItem(id: "shirt_bomber_black", name: "Black Bomber",  emoji: "🧥", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Midnight altitude."),
+    OutfitItem(id: "shirt_bomber_navy",  name: "Navy Bomber",   emoji: "🧥", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Navy ops. Savings secured."),
+    OutfitItem(id: "shirt_bomber_tan",   name: "Tan Bomber",    emoji: "🧥", slot: .shirt, rarity: .rare, cost: 175, itemDescription: "Desert camo for your bank account."),
+    OutfitItem(id: "shirt_varsity",     name: "Varsity Jacket",  emoji: "🎖️", slot: .shirt, rarity: .rare,      cost: 160, itemDescription: "Letter earned. Bag secured."),
+    OutfitItem(id: "shirt_trench",      name: "Trench Coat",     emoji: "🧥", slot: .shirt, rarity: .rare,      cost: 200, itemDescription: "Undercover rich."),
     OutfitItem(id: "shirt_hawaiian",    name: "Hawaiian Shirt",  emoji: "🌺", slot: .shirt, rarity: .common,    cost: 45,  itemDescription: "Vacation mode. Budget intact."),
-    OutfitItem(id: "shirt_vest",        name: "Sweater Vest",    emoji: "🧩", slot: .shirt, rarity: .common,    cost: 65,  itemDescription: "Preppy saver energy."),
-    OutfitItem(id: "shirt_bomber",      name: "Bomber Jacket",   emoji: "✈️", slot: .shirt, rarity: .rare,      cost: 175, itemDescription: "High altitude savings."),
+    OutfitItem(id: "shirt_vest",        name: "Sweater Vest",    emoji: "🦺", slot: .shirt, rarity: .common,    cost: 65,  itemDescription: "Preppy saver energy."),
+    OutfitItem(id: "shirt_bomber",      name: "Bomber Jacket",   emoji: "🧥", slot: .shirt, rarity: .rare,      cost: 175, itemDescription: "High altitude savings."),
     // Girl shirts - pink/purple color variants
     OutfitItem(id: "shirt_tee_pink",      name: "Pink Tee",        emoji: "👕", slot: .shirt, rarity: .common, cost: 45,  itemDescription: "Cute in pink."),
     OutfitItem(id: "shirt_tee_purple",    name: "Purple Tee",      emoji: "👕", slot: .shirt, rarity: .common, cost: 45,  itemDescription: "Lavender money energy."),
@@ -3414,13 +3636,13 @@ let allOutfits: [OutfitItem] = [
     OutfitItem(id: "dress_pink_wrap",     name: "Pink Wrap Dress",   emoji: "🌸", slot: .shirt, rarity: .common,    cost: 90,  itemDescription: "Wrapped up in savings."),
     // Tracksuits
     OutfitItem(id: "tracksuit_pink",   name: "Pink Tracksuit",   emoji: "🩷", slot: .shirt, rarity: .common, cost: 95,  itemDescription: "Stay fly while you save."),
-    OutfitItem(id: "tracksuit_black",  name: "Black Tracksuit",  emoji: "🖤", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "All black everything."),
-    OutfitItem(id: "tracksuit_navy",   name: "Navy Tracksuit",   emoji: "👟", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Classic navy drip."),
-    OutfitItem(id: "tracksuit_red",    name: "Red Tracksuit",    emoji: "❤️", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Hot like your savings rate."),
-    OutfitItem(id: "tracksuit_green",  name: "Green Tracksuit",  emoji: "💚", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Money-colored fit."),
-    OutfitItem(id: "tracksuit_white",  name: "White Tracksuit",  emoji: "🤍", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Clean like your budget."),
-    OutfitItem(id: "tracksuit_purple", name: "Purple Tracksuit", emoji: "💜", slot: .shirt, rarity: .common, cost: 95,  itemDescription: "Royalty vibes."),
-    OutfitItem(id: "tracksuit_orange",       name: "Orange Tracksuit",   emoji: "🧡", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Bold moves only."),
+    OutfitItem(id: "tracksuit_black",  name: "Black Tracksuit",  emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "All black everything."),
+    OutfitItem(id: "tracksuit_navy",   name: "Navy Tracksuit",   emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Classic navy drip."),
+    OutfitItem(id: "tracksuit_red",    name: "Red Tracksuit",    emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Hot like your savings rate."),
+    OutfitItem(id: "tracksuit_green",  name: "Green Tracksuit",  emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Money-colored fit."),
+    OutfitItem(id: "tracksuit_white",  name: "White Tracksuit",  emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Clean like your budget."),
+    OutfitItem(id: "tracksuit_purple", name: "Purple Tracksuit", emoji: "🏃", slot: .shirt, rarity: .common, cost: 95,  itemDescription: "Royalty vibes."),
+    OutfitItem(id: "tracksuit_orange",       name: "Orange Tracksuit",   emoji: "🏃", slot: .shirt, rarity: .common, cost: 90,  itemDescription: "Bold moves only."),
     // Pride outfits
     OutfitItem(id: "shirt_pride_tee",        name: "Pride Tee",          emoji: "🌈", slot: .shirt, rarity: .rare,   cost: 150, itemDescription: "Six stripes, infinite drip."),
     OutfitItem(id: "shirt_pride_hoodie",     name: "Pride Hoodie",       emoji: "🌈", slot: .shirt, rarity: .rare,   cost: 180, itemDescription: "Cozy, colorful, and unapologetically you."),
@@ -3756,4 +3978,18 @@ struct SeasonalEvent: Identifiable {
         guard let endDate = cal.date(from: end) else { return 0 }
         return max(0, cal.dateComponents([.day], from: Date(), to: endDate).day ?? 0)
     }
+}
+
+// MARK: - Portfolio
+
+enum PortfolioAssetKind: String, Codable { case crypto, stock }
+
+struct PortfolioHolding: Identifiable, Codable {
+    var id       = UUID()
+    var symbol   : String
+    var name     : String
+    var kind     : PortfolioAssetKind
+    var cryptoId : String?   // coingecko coin id for price lookup
+    var quantity : Double
+    var avgCost  : Double    // USD per unit at purchase
 }

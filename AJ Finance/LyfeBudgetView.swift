@@ -14,14 +14,13 @@ struct LyfeBudgetView: View {
     @Environment(AppState.self) private var appState
     @State private var addRequest: CategoryAddRequest? = nil
     @State private var showConfirmSheet = false
-    @State private var expandedCategories: Set<ExpenseCategory> = Set(ExpenseCategory.allCases)
+    @State private var expandedCategories: Set<ExpenseCategory> = []
     @State private var incomeText: String = ""
     @FocusState private var incomeFocused: Bool
 
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                headerBanner
                 incomeCard
                 ForEach(ExpenseCategory.allCases) { cat in
                     expenseCategoryCard(cat)
@@ -77,31 +76,41 @@ struct LyfeBudgetView: View {
 
     private var incomeCard: some View {
         AJCard {
-            VStack(alignment: .leading, spacing: 12) {
-                Text("MONTHLY INCOME")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundColor(.ajOrange)
-                    .tracking(2)
-
-                HStack(alignment: .center, spacing: 4) {
+            HStack(spacing: 14) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("MONTHLY INCOME")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Text("Take-home pay after taxes")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.38))
+                }
+                Spacer()
+                HStack(alignment: .center, spacing: 2) {
                     Text("$")
-                        .font(.system(size: 36, weight: .black))
+                        .font(.system(size: 20, weight: .black))
                         .foregroundColor(.ajOrange)
                     TextField("0", text: $incomeText)
-                        .font(.system(size: 36, weight: .black))
+                        .font(.system(size: 20, weight: .black))
                         .foregroundColor(.white)
                         .tint(.ajOrange)
                         .keyboardType(.numberPad)
                         .focused($incomeFocused)
+                        .multilineTextAlignment(.trailing)
+                        .frame(minWidth: 60, maxWidth: 120)
                         .onChange(of: incomeText) { _, new in
                             appState.monthlyIncome = Double(new.filter(\.isNumber)) ?? 0
                             appState.saveBudget()
                         }
                 }
-
-                Text("Take-home pay after taxes — every dollar deserves a job 💼")
-                    .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.38))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.06))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                )
             }
         }
     }

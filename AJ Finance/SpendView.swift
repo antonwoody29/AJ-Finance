@@ -11,6 +11,7 @@ struct SpendView: View {
     @State private var searchText         = ""
     @State private var showRecurring      = false
     @State private var showBudgetSetter   = false
+    @State private var trendRange: TrendRange = .weeks
 
     var body: some View {
         ZStack {
@@ -18,14 +19,8 @@ struct SpendView: View {
             ScrollView {
                 VStack(spacing: 20) {
 
-                    // Subscription graveyard shortcut
-                    subscriptionCard
-
-                    // Trip budget shortcut — always visible
-                    tripBudgetCard
-
-                    // Recurring bills shortcut — always visible
-                    recurringBillsCard
+                    // Compact shortcuts row
+                    shortcutsRow
 
                     // No-spend streak — always visible
                     noSpendStreakCard
@@ -46,17 +41,11 @@ struct SpendView: View {
                         // Weekly AI recap
                         WeeklyRecapCard(transactions: appState.transactions)
 
-                        // Monthly recap story
-                        monthlyRecapCard
-
-                        // Month comparison
-                        comparisonCard
-
                         // Category breakdown
                         categoryBreakdownCard
 
-                        // Streak calendar
-                        StreakCalendarCard(transactions: appState.transactions)
+                        // Spending trends chart
+                        spendingTrendsCard
 
                         // Transaction history
                         transactionHistoryCard
@@ -130,6 +119,40 @@ struct SpendView: View {
         .onChange(of: appState.pendingSpendRoast) { _, roast in
             if roast != nil { showRoast = true }
         }
+    }
+
+    private var shortcutsRow: some View {
+        HStack(spacing: 10) {
+            shortcutBtn(icon: "☠️", label: "Subs",  color: .ajOrangeRed) { showSubGraveyard = true }
+            shortcutBtn(icon: "🔄", label: "Bills", color: .ajOrange)    { showRecurring    = true }
+            shortcutBtn(icon: "✈️", label: "Trips", color: Color(red: 0.4, green: 0.76, blue: 1.0)) { showTrips = true }
+        }
+    }
+
+    private func shortcutBtn(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 6) {
+                Text(icon).font(.system(size: 28))
+                Text(label)
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.white.opacity(0.90))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(LinearGradient(
+                            colors: [color.opacity(0.24), color.opacity(0.07)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(color.opacity(0.65), lineWidth: 1.5)
+                }
+                .shadow(color: color.opacity(0.30), radius: 10, y: 3)
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var recurringBillsCard: some View {
@@ -361,6 +384,71 @@ struct SpendView: View {
         (icon: "📖", title: "Your Month's Story",       desc: "AJ narrates your financial journey each month"),
         (icon: "🏆", title: "Receipt Badges",           desc: "Earn achievements just for logging consistently"),
     ]
+
+    // MARK: - Spending Trends Card
+
+    private var spendingTrendsCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text("SPENDING TRENDS")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    HStack(spacing: 1) {
+                        trendRangeBtn("8W", isSelected: trendRange == .weeks)  { trendRange = .weeks }
+                        trendRangeBtn("6M", isSelected: trendRange == .months) { trendRange = .months }
+                    }
+                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.07)))
+                }
+
+                SpendingTrendsChart(transactions: appState.transactions, range: trendRange)
+                    .frame(height: 155)
+
+                // Category legend — top spending categories across all time
+                let topCats: [(SpendCategory, Double)] = SpendCategory.allCases.compactMap { cat in
+                    let amt = appState.transactions.filter { !$0.isSaving && $0.category == cat }.reduce(0) { $0 + $1.amount }
+                    return amt > 0 ? (cat, amt) : nil
+                }.sorted { $0.1 > $1.1 }
+
+                if !topCats.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 12) {
+                            ForEach(Array(topCats.prefix(6)), id: \.0.id) { cat, _ in
+                                HStack(spacing: 5) {
+                                    Circle().fill(cat.color).frame(width: 6, height: 6)
+                                    Text(cat.rawValue)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundColor(.white.opacity(0.60))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func trendRangeBtn(_ label: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 11, weight: .black))
+                .foregroundColor(isSelected ? .black : .white.opacity(0.50))
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(
+                    Group {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
+                        } else {
+                            RoundedRectangle(cornerRadius: 7).fill(Color.clear)
+                        }
+                    }
+                )
+        }
+        .buttonStyle(.plain)
+    }
 
     // MARK: - Monthly Recap Story
 
@@ -1242,6 +1330,137 @@ struct BudgetSetterSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Trend Range
+
+enum TrendRange { case weeks, months }
+
+// MARK: - Spending Trends Chart
+
+struct SpendingTrendsChart: View {
+    let transactions: [SpendEntry]
+    let range: TrendRange
+
+    private struct Bucket: Identifiable {
+        let id: Int
+        let label: String
+        var totals: [SpendCategory: Double]
+        var total: Double { totals.values.reduce(0, +) }
+    }
+
+    private var buckets: [Bucket] {
+        let cal = Calendar.current
+        let now = Date()
+        let fmt = DateFormatter()
+        var result: [Bucket] = []
+
+        if range == .weeks {
+            fmt.dateFormat = "M/d"
+            for i in (0..<8).reversed() {
+                guard let anchor   = cal.date(byAdding: .weekOfYear, value: -i, to: now),
+                      let interval = cal.dateInterval(of: .weekOfYear, for: anchor)
+                else { continue }
+                let start = interval.start
+                let end   = interval.end
+                var totals: [SpendCategory: Double] = [:]
+                for tx in transactions where !tx.isSaving && tx.date >= start && tx.date < end {
+                    totals[tx.category, default: 0] += tx.amount
+                }
+                let label = i == 0 ? "Now" : fmt.string(from: start)
+                result.append(Bucket(id: i, label: label, totals: totals))
+            }
+        } else {
+            fmt.dateFormat = "MMM"
+            for i in (0..<6).reversed() {
+                guard let anchor = cal.date(byAdding: .month, value: -i, to: now) else { continue }
+                var totals: [SpendCategory: Double] = [:]
+                for tx in transactions where !tx.isSaving && cal.isDate(tx.date, equalTo: anchor, toGranularity: .month) {
+                    totals[tx.category, default: 0] += tx.amount
+                }
+                result.append(Bucket(id: i, label: fmt.string(from: anchor), totals: totals))
+            }
+        }
+        return result
+    }
+
+    var body: some View {
+        let bkts   = buckets
+        let maxAmt = max(1, bkts.map(\.total).max() ?? 1)
+
+        GeometryReader { geo in
+            let chartH  = geo.size.height * 0.82
+            let labelH  = geo.size.height * 0.18
+            let count   = CGFloat(max(bkts.count, 1))
+            let spacing = CGFloat(3)
+            let barW    = (geo.size.width - (count - 1) * spacing) / count
+
+            VStack(spacing: 0) {
+                HStack(alignment: .bottom, spacing: spacing) {
+                    ForEach(bkts) { bucket in
+                        let isLast = bucket.id == bkts.first?.id
+                        let barH   = max(4, chartH * CGFloat(bucket.total / maxAmt))
+                        VStack(spacing: 0) {
+                            Spacer()
+                            if bucket.total == 0 {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.white.opacity(0.07))
+                                    .frame(height: 4)
+                            } else {
+                                TrendsStackedBar(totals: bucket.totals, total: bucket.total,
+                                                 height: barH, highlight: isLast)
+                            }
+                        }
+                        .frame(width: barW, height: chartH)
+                    }
+                }
+                .frame(height: chartH)
+
+                HStack(spacing: spacing) {
+                    ForEach(bkts) { bucket in
+                        Text(bucket.label)
+                            .font(.system(size: 7.5, weight: .semibold))
+                            .foregroundColor(bucket.id == bkts.first?.id ? Color.ajOrange : Color.white.opacity(0.30))
+                            .frame(width: barW)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.5)
+                    }
+                }
+                .frame(height: labelH)
+            }
+        }
+    }
+}
+
+private struct TrendsStackedBar: View {
+    let totals   : [SpendCategory: Double]
+    let total    : Double
+    let height   : CGFloat
+    let highlight: Bool
+
+    private var segments: [(SpendCategory, Double)] {
+        SpendCategory.allCases.compactMap { cat in
+            guard let amt = totals[cat], amt > 0 else { return nil }
+            return (cat, amt)
+        }.sorted { $0.1 < $1.1 }   // smallest at top, largest at bottom
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(segments.enumerated()), id: \.offset) { _, pair in
+                pair.0.color
+                    .opacity(highlight ? 1.0 : 0.72)
+                    .frame(height: max(2, height * CGFloat(pair.1 / total)))
+            }
+        }
+        .frame(height: height)
+        .clipShape(RoundedRectangle(cornerRadius: 4))
+        .overlay(
+            highlight
+                ? RoundedRectangle(cornerRadius: 4).stroke(Color.white.opacity(0.30), lineWidth: 1)
+                : nil
+        )
     }
 }
 

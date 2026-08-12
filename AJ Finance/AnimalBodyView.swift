@@ -735,6 +735,95 @@ struct CharConfig {
                          iris: Color(red:0.44,green:0.28,blue:0.08),
                          ear: .pointy, tail: .long,
                          cheekBlush: true, muzzle: true)
+        // Named personal companions — each gets a distinct visual identity
+        case .dezCheeze:
+            return .init(body: Color(red:0.98,green:0.82,blue:0.16),
+                         belly: Color(red:1.0,green:0.94,blue:0.60),
+                         accent: Color(red:0.80,green:0.56,blue:0.04),
+                         iris: Color(red:0.30,green:0.18,blue:0.02),
+                         ear: .round, tail: .round, marking: .spots,
+                         cheekBlush: true)
+        case .elijahSeahawk:
+            return .init(body: Color(red:0.22,green:0.48,blue:0.78),
+                         belly: Color(red:0.78,green:0.88,blue:1.0),
+                         accent: Color(red:0.06,green:0.16,blue:0.48),
+                         iris: Color(red:0.90,green:0.60,blue:0.10),
+                         ear: .pointy, tail: .long, marking: .stripes)
+        case .rashaadRam:
+            return .init(body: Color(red:0.14,green:0.24,blue:0.70),
+                         belly: Color(red:0.70,green:0.76,blue:1.0),
+                         accent: Color(red:0.80,green:0.68,blue:0.20),
+                         iris: Color(red:0.70,green:0.52,blue:0.08),
+                         ear: .round, tail: .round,
+                         cheekBlush: true, muzzle: true)
+        case .jamalRaven:
+            return .init(body: Color(red:0.14,green:0.10,blue:0.22),
+                         belly: Color(red:0.36,green:0.18,blue:0.52),
+                         accent: Color(red:0.54,green:0.18,blue:0.80),
+                         iris: Color(red:0.68,green:0.12,blue:0.92),
+                         ear: .pointy, tail: .long, marking: .eyePatch)
+        case .jabrilRainbowDolphin:
+            return .init(body: Color(red:0.60,green:0.88,blue:0.98),
+                         belly: Color(red:0.98,green:0.96,blue:1.0),
+                         accent: Color(red:0.88,green:0.36,blue:0.96),
+                         iris: Color(red:0.20,green:0.72,blue:0.98),
+                         ear: .round, tail: .fluffy, marking: .spots,
+                         cheekBlush: true)
+        case .ericaLadybug:
+            return .init(body: Color(red:0.92,green:0.14,blue:0.14),
+                         belly: Color(red:1.0,green:0.78,blue:0.78),
+                         accent: Color(red:0.08,green:0.06,blue:0.10),
+                         iris: Color(red:0.08,green:0.06,blue:0.10),
+                         ear: .round, tail: .round, marking: .spots,
+                         cheekBlush: true)
+        case .jaylenOtter:
+            return .init(body: Color(red:0.48,green:0.34,blue:0.20),
+                         belly: Color(red:0.90,green:0.80,blue:0.68),
+                         accent: Color(red:0.28,green:0.18,blue:0.08),
+                         iris: Color(red:0.22,green:0.14,blue:0.06),
+                         ear: .round, tail: .long,
+                         cheekBlush: true, whiskers: true, muzzle: true)
+        case .reginaldHippo:
+            return .init(body: Color(red:0.60,green:0.52,blue:0.76),
+                         belly: Color(red:0.86,green:0.82,blue:0.94),
+                         accent: Color(red:0.38,green:0.28,blue:0.58),
+                         iris: Color(red:0.26,green:0.16,blue:0.44),
+                         ear: .round, tail: .round,
+                         cheekBlush: true, muzzle: true)
+        case .danileTomatoTree:
+            return .init(body: Color(red:0.22,green:0.62,blue:0.18),
+                         belly: Color(red:0.92,green:0.22,blue:0.12),
+                         accent: Color(red:0.14,green:0.40,blue:0.10),
+                         iris: Color(red:0.22,green:0.62,blue:0.18),
+                         ear: .round, tail: .round, marking: .spots,
+                         cheekBlush: true)
+        case .amarTrex:
+            return .init(body: Color(red:0.24,green:0.56,blue:0.18),
+                         belly: Color(red:0.68,green:0.86,blue:0.58),
+                         accent: Color(red:0.12,green:0.32,blue:0.08),
+                         iris: Color(red:0.94,green:0.56,blue:0.06),
+                         ear: .pointy, tail: .long, marking: .stripes)
+        case .carmenCheetah:
+            return .init(body: Color(red:0.98,green:0.84,blue:0.40),
+                         belly: Color(red:1.0,green:0.96,blue:0.82),
+                         accent: Color(red:0.16,green:0.10,blue:0.06),
+                         iris: Color(red:0.48,green:0.30,blue:0.06),
+                         ear: .round, tail: .long, marking: .spots,
+                         cheekBlush: true, whiskers: true, muzzle: true)
+        case .beverlyButterfly:
+            return .init(body: Color(red:0.96,green:0.48,blue:0.84),
+                         belly: Color(red:1.0,green:0.88,blue:0.96),
+                         accent: Color(red:0.56,green:0.12,blue:0.72),
+                         iris: Color(red:0.44,green:0.06,blue:0.62),
+                         ear: .round, tail: .fluffy, marking: .spots,
+                         cheekBlush: true)
+        case .kimeyDragonfly:
+            return .init(body: Color(red:0.28,green:0.82,blue:0.54),
+                         belly: Color(red:0.80,green:0.98,blue:0.88),
+                         accent: Color(red:0.10,green:0.54,blue:0.30),
+                         iris: Color(red:0.08,green:0.38,blue:0.20),
+                         ear: .round, tail: .long, marking: .spots,
+                         cheekBlush: true)
         }
     }
 }
@@ -753,6 +842,8 @@ struct AnimalBodyView: View {
     @State private var breathe:    Bool    = false
     @State private var blink:      Bool    = false
     @State private var eggWobble:  CGFloat = 0
+    @State private var tailWag:    CGFloat = 0
+    @State private var idleShimmer: CGFloat = 0
 
     var body: some View {
         Canvas { ctx, sz in
@@ -765,11 +856,13 @@ struct AnimalBodyView: View {
                            ? CGFloat(abs(sin(phase * 2))) * 3
                            : (breathe ? 1.8 : -1.8)
 
+            let wagOffset = (tailWag - 0.5) * u * 0.22
             switch evolutionStage {
             case 0: drawEgg(ctx: ctx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             case 1: drawBaby(ctx: ctx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
             default: drawAll(ctx: ctx, sz: sz, u: u, cfg: cfg,
-                             legSwing: legSwing, bob: bob, blink: blink)
+                             legSwing: legSwing, bob: bob, blink: blink,
+                             wagOffset: wagOffset, shimmer: idleShimmer)
             }
         }
         .rotationEffect(.degrees(Double(eggWobble)), anchor: .bottom)
@@ -777,6 +870,12 @@ struct AnimalBodyView: View {
         .onAppear {
             withAnimation(.easeInOut(duration: 1.9).repeatForever(autoreverses: true)) {
                 breathe = true
+            }
+            withAnimation(.easeInOut(duration: 0.68).repeatForever(autoreverses: true)) {
+                tailWag = 1.0
+            }
+            withAnimation(.easeInOut(duration: 2.6).repeatForever(autoreverses: true)) {
+                idleShimmer = 1.0
             }
             startWalk()
             scheduleBlink()
@@ -843,8 +942,20 @@ struct AnimalBodyView: View {
 
         // Egg shape (taller ellipse, narrower at top)
         let eW = u * 0.50, eH = u * 0.66
-        var egg = Path(ellipseIn: CGRect(x: cx - eW/2, y: cy - eH*0.56, width: eW, height: eH))
+        let eggRect = CGRect(x: cx - eW/2, y: cy - eH*0.56, width: eW, height: eH)
+        var egg = Path(ellipseIn: eggRect)
         ctx.fill(egg, with: .color(cfg.body))
+        // Gradient sheen on egg
+        ctx.fill(egg, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.32), .clear]),
+            startPoint: CGPoint(x: cx - eW*0.25, y: cy - eH*0.45),
+            endPoint:   CGPoint(x: cx + eW*0.10, y: cy + eH*0.10)
+        ))
+        ctx.fill(egg, with: .linearGradient(
+            Gradient(colors: [.clear, .black.opacity(0.14)]),
+            startPoint: CGPoint(x: cx, y: cy + eH*0.10),
+            endPoint:   CGPoint(x: cx, y: cy + eH*0.44)
+        ))
 
         // Inner belly tint
         var belly = Path(ellipseIn: CGRect(x: cx - u*0.16, y: cy - u*0.20, width: u*0.32, height: u*0.32))
@@ -870,9 +981,20 @@ struct AnimalBodyView: View {
         // Outline
         ctx.stroke(egg, with: .color(cfg.outline), lineWidth: u*0.032)
 
-        // Shine highlight
+        // Rim light on egg
+        var eggRim = Path()
+        eggRim.addArc(center: CGPoint(x: cx, y: cy - eH*0.06),
+                      radius: eW*0.48,
+                      startAngle: .degrees(210), endAngle: .degrees(320),
+                      clockwise: false)
+        ctx.stroke(eggRim, with: .color(.white.opacity(0.32)), lineWidth: u*0.013)
+
+        // Primary shine highlight
         var shine = Path(ellipseIn: CGRect(x: cx - u*0.11, y: cy - u*0.30, width: u*0.14, height: u*0.20))
-        ctx.fill(shine, with: .color(.white.opacity(0.32)))
+        ctx.fill(shine, with: .color(.white.opacity(0.38)))
+        // Secondary glint
+        var glint = Path(ellipseIn: CGRect(x: cx - u*0.055, y: cy - u*0.20, width: u*0.06, height: u*0.06))
+        ctx.fill(glint, with: .color(.white.opacity(0.55)))
 
         // Tiny sleeping face
         let faceY = cy + u * 0.04
@@ -1081,7 +1203,8 @@ struct AnimalBodyView: View {
     // MARK: - Master draw
 
     func drawAll(ctx: GraphicsContext, sz: CGSize, u: CGFloat,
-                 cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+                 cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool,
+                 wagOffset: CGFloat = 0, shimmer: CGFloat = 0) {
         let cx = sz.width / 2
 
         switch cfg.bodyKind {
@@ -1103,22 +1226,23 @@ struct AnimalBodyView: View {
         case .grasshopper:  drawGrasshopperBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .bee:          drawBeeBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
         case .spider:       drawSpiderBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, bob: bob, blink: blink)
-        case .longNeckDog:  drawLongNeckDogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
-        case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink)
+        case .longNeckDog:  drawLongNeckDogBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink, wagOffset: wagOffset)
+        case .standard:  drawStandardBody(ctx, cx: cx, sz: sz, u: u, cfg: cfg, legSwing: legSwing, bob: bob, blink: blink, wagOffset: wagOffset)
         }
     }
 
     // MARK: - Standard body (most animals)
 
     func drawStandardBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
-                          cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+                          cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool,
+                          wagOffset: CGFloat = 0) {
         // Proportions tuned for Pokémon-style: oversized head, small body, stubby legs
         let feetY = sz.height * 0.90
         let bodyY = sz.height * 0.65 + bob
         let headY = sz.height * 0.30 + bob
 
         // ── Tail ────────────────────────────────────────────────
-        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing * 0.25)
+        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing * 0.25 + wagOffset * (isWalking ? 0.2 : 1.0))
 
         // ── Special (wings, spikes behind body) ─────────────────
         if cfg.special == .wings  { drawWings(ctx,  cx: cx, bodyY: bodyY, u: u, cfg: cfg) }
@@ -1185,13 +1309,14 @@ struct AnimalBodyView: View {
     // MARK: - Long-neck dog body (Lux)
 
     func drawLongNeckDogBody(_ ctx: GraphicsContext, cx: CGFloat, sz: CGSize, u: CGFloat,
-                              cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool) {
+                              cfg: CharConfig, legSwing: CGFloat, bob: CGFloat, blink: Bool,
+                              wagOffset: CGFloat = 0) {
         let feetY = sz.height * 0.90
         let bodyY = sz.height * 0.66 + bob
         let headY = sz.height * 0.20 + bob   // head sits much higher for long neck effect
 
         // ── Tail ────────────────────────────────────────────────
-        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing * 0.25)
+        drawTail(ctx, cx: cx, bodyY: bodyY, u: u, cfg: cfg, swing: -legSwing * 0.25 + wagOffset * (isWalking ? 0.2 : 1.0))
 
         // ── Back leg ────────────────────────────────────────────
         drawLeg(ctx, x: cx + u*0.10, y: feetY, u: u, cfg: cfg, angle: -legSwing * 0.70, back: true)
@@ -1436,14 +1561,35 @@ struct AnimalBodyView: View {
     // MARK: - Body
 
     func drawBody(_ ctx: GraphicsContext, cx: CGFloat, cy: CGFloat, u: CGFloat, cfg: CharConfig) {
-        // Slightly smaller body than head — Pokémon-style
         let bw = u * 0.36, bh = u * 0.24
-        var body = Path(ellipseIn: CGRect(x: cx - bw/2, y: cy - bh/2, width: bw, height: bh))
-        ctx.fill(body, with: .color(cfg.body))
+        let bodyRect = CGRect(x: cx - bw/2, y: cy - bh/2, width: bw, height: bh)
+        var body = Path(ellipseIn: bodyRect)
 
+        // Base color
+        ctx.fill(body, with: .color(cfg.body))
+        // Light sheen — upper-left highlight
+        ctx.fill(body, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.30), .clear]),
+            startPoint: CGPoint(x: cx - bw*0.28, y: cy - bh*0.48),
+            endPoint:   CGPoint(x: cx + bw*0.05, y: cy + bh*0.15)
+        ))
+        // Bottom shadow
+        ctx.fill(body, with: .linearGradient(
+            Gradient(colors: [.clear, .black.opacity(0.18)]),
+            startPoint: CGPoint(x: cx, y: cy + bh*0.05),
+            endPoint:   CGPoint(x: cx, y: cy + bh*0.50)
+        ))
+
+        // Belly
         let vw = u * 0.22, vh = u * 0.17
-        var belly = Path(ellipseIn: CGRect(x: cx - vw/2, y: cy - vh/2 + u*0.02, width: vw, height: vh))
+        let bellyRect = CGRect(x: cx - vw/2, y: cy - vh/2 + u*0.02, width: vw, height: vh)
+        var belly = Path(ellipseIn: bellyRect)
         ctx.fill(belly, with: .color(cfg.belly))
+        ctx.fill(belly, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.28), .clear]),
+            startPoint: CGPoint(x: cx - vw*0.2, y: cy - vh*0.3),
+            endPoint:   CGPoint(x: cx, y: cy + vh*0.3)
+        ))
 
         ctx.stroke(body, with: .color(cfg.outline), lineWidth: u * 0.030)
     }
@@ -1452,16 +1598,44 @@ struct AnimalBodyView: View {
 
     func drawHead(_ ctx: GraphicsContext, hx: CGFloat, hy: CGFloat, u: CGFloat, cfg: CharConfig) {
         let r = u * 0.27
-        var head = Path(ellipseIn: CGRect(x: hx - r, y: hy - r * 1.02, width: r*2, height: r*2.04))
-        ctx.fill(head, with: .color(cfg.body))
+        let headRect = CGRect(x: hx - r, y: hy - r * 1.02, width: r*2, height: r*2.04)
+        var head = Path(ellipseIn: headRect)
 
-        // Muzzle protrusion — lighter snout dome for snout-having animals
+        // Base fill
+        ctx.fill(head, with: .color(cfg.body))
+        // Light sheen — upper-left
+        ctx.fill(head, with: .linearGradient(
+            Gradient(colors: [.white.opacity(0.30), .clear]),
+            startPoint: CGPoint(x: hx - r*0.55, y: hy - r*0.90),
+            endPoint:   CGPoint(x: hx + r*0.10, y: hy + r*0.25)
+        ))
+        // Bottom shadow for roundness
+        ctx.fill(head, with: .linearGradient(
+            Gradient(colors: [.clear, .black.opacity(0.14)]),
+            startPoint: CGPoint(x: hx, y: hy + r*0.20),
+            endPoint:   CGPoint(x: hx, y: hy + r*0.90)
+        ))
+
+        // Muzzle protrusion
         if cfg.muzzle {
             var muzzle = Path(ellipseIn: CGRect(x: hx - u*0.112, y: hy + u*0.018, width: u*0.224, height: u*0.152))
             ctx.fill(muzzle, with: .color(cfg.belly.opacity(0.90)))
+            ctx.fill(muzzle, with: .linearGradient(
+                Gradient(colors: [.white.opacity(0.22), .clear]),
+                startPoint: CGPoint(x: hx - u*0.06, y: hy + u*0.02),
+                endPoint:   CGPoint(x: hx + u*0.04, y: hy + u*0.09)
+            ))
         }
 
         ctx.stroke(head, with: .color(cfg.outline), lineWidth: u * 0.030)
+
+        // Rim light — thin bright arc on upper-left edge
+        var rim = Path()
+        rim.addArc(center: CGPoint(x: hx, y: hy - r*0.02),
+                   radius: r * 0.97,
+                   startAngle: .degrees(205), endAngle: .degrees(315),
+                   clockwise: false)
+        ctx.stroke(rim, with: .color(.white.opacity(0.38)), lineWidth: u*0.015)
     }
 
     // MARK: - Hamster cheek pouches

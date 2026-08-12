@@ -63,7 +63,7 @@ struct DailyCheckInView: View {
                     checkInContent
                 }
             }
-            .navigationTitle("Daily Check-In")
+            .navigationTitle("Weekly Check-In")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -151,7 +151,7 @@ struct DailyCheckInView: View {
             Spacer()
             Text("✅").font(.system(size: 80))
             Text("Checked In!").font(.system(size: 32, weight: .black)).foregroundColor(.white)
-            Text("+\(checkInGems)💎 earned\nDay \(appState.checkInStreak) streak")
+            Text("+\(checkInGems)💎 earned\nWeek \(appState.checkInStreak) streak")
                 .font(.system(size: 18, weight: .bold)).foregroundColor(.ajGold)
                 .multilineTextAlignment(.center)
             AJSpeechBubble(text: moodSpeech)
@@ -181,7 +181,7 @@ struct DailyCheckInView: View {
     private var streakBadge: some View {
         HStack(spacing: 8) {
             Text("🔥").font(.system(size: 18))
-            Text("Day \(appState.checkInStreak) Streak")
+            Text("Week \(appState.checkInStreak) Streak")
                 .font(.system(size: 14, weight: .black)).foregroundColor(.ajOrange)
             Text("·")
                 .foregroundColor(.white.opacity(0.3))

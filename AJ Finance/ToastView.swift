@@ -63,47 +63,66 @@ struct AJCard<Content: View>: View {
     }
 
     var body: some View {
-        content()
-            .padding(16)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.16, green: 0.08, blue: 0.02),
-                                    Color(red: 0.06, green: 0.028, blue: 0.008),
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+        TimelineView(.animation) { tl in
+            let t = CGFloat(tl.date.timeIntervalSinceReferenceDate)
+            let shimmer = 0.5 + 0.5 * sin(t * 1.1)
+
+            content()
+                .padding(16)
+                .background(
+                    ZStack {
+                        // Rich layered fill
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.18, green: 0.09, blue: 0.02),
+                                        Color(red: 0.08, green: 0.03, blue: 0.01),
+                                        Color(red: 0.04, green: 0.01, blue: 0.00),
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                    // Subtle inner orange glow on top edge
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.ajOrange.opacity(0.07), .clear],
-                                startPoint: .top,
-                                endPoint: UnitPoint(x: 0.5, y: 0.45)
+
+                        // Inner top glow — pulses subtly
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.ajOrange.opacity(0.06 + shimmer * 0.05), .clear],
+                                    startPoint: .top,
+                                    endPoint: UnitPoint(x: 0.5, y: 0.5)
+                                )
                             )
-                        )
-                    // Border: bright top-left fade to dim bottom-right
-                    RoundedRectangle(cornerRadius: 18)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    Color.white.opacity(0.18),
-                                    Color.ajOrange.opacity(0.10),
-                                    Color(red: 0.20, green: 0.10, blue: 0.02).opacity(0.5),
-                                    Color.clear,
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                }
-            )
+
+                        // Violet depth glow — bottom
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(
+                                LinearGradient(
+                                    colors: [.clear, Color(red: 0.3, green: 0.05, blue: 0.6).opacity(0.08)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+
+                        // Animated shimmer border
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.12 + shimmer * 0.10),
+                                        Color.ajOrange.opacity(0.20 + shimmer * 0.12),
+                                        Color(red: 0.4, green: 0.06, blue: 0.9).opacity(0.12),
+                                        Color.clear,
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.2
+                            )
+                    }
+                )
+        }
     }
 }
 

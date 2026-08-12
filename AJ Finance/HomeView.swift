@@ -12,13 +12,14 @@ struct HomeView: View {
     @Environment(AppState.self) private var appState
 
     // Sheets
-    @State private var showScanner        = false
-    @State private var showAddGoal        = false
-    @State private var showShop           = false
-    @State private var showStore          = false
-    @State private var showDailyFoodCheck = false
-    @State private var showMissions       = false
-    @State private var showQuickAdd       = false
+    @State private var showScanner          = false
+    @State private var showAddGoal          = false
+    @State private var showShop             = false
+    @State private var showStore            = false
+    @State private var showDailyFoodCheck   = false
+    @State private var showMissions         = false
+    @State private var showQuickAdd         = false
+    @State private var showWeeklyCheckIn    = false
 
     // Speech
     @State private var showSpeech    = true
@@ -314,6 +315,9 @@ struct HomeView: View {
         .sheet(isPresented: $showDailyFoodCheck) {
             DailyFoodCheckView().environment(appState)
         }
+        .sheet(isPresented: $showWeeklyCheckIn) {
+            DailyCheckInView().environment(appState)
+        }
         .sheet(isPresented: $showMissions) {
             NavigationStack {
                 ScrollView {
@@ -348,6 +352,11 @@ struct HomeView: View {
             if appState.needsDailyFoodCheck {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
                     showDailyFoodCheck = true
+                }
+            }
+            if appState.weeklyCheckInDue {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                    showWeeklyCheckIn = true
                 }
             }
         }
@@ -1196,11 +1205,6 @@ struct HomeView: View {
                 )
             }
 
-            // Daily check-in banner
-            if !appState.todayCheckInComplete {
-                CheckInBanner()
-            }
-
             // Missions peek
             if let firstPending = appState.dailyMissions.first(where: { !$0.isCompleted }) {
                 Button { showMissions = true } label: {
@@ -1340,24 +1344,32 @@ struct AmbientParticles: View {
     var isAlive: Bool
     var isNight: Bool
 
-    @State private var anim = [Bool](repeating: false, count: 14)
+    @State private var anim = [Bool](repeating: false, count: 22)
 
-    private struct PDef { var rx, ry, sz, fx, fy: CGFloat; var dur: Double }
+    private struct PDef { var rx, ry, sz, fx, fy: CGFloat; var dur: Double; var useAlt: Bool }
     private let defs: [PDef] = [
-        .init(rx:0.07, ry:0.09, sz:9,  fx: 10, fy:-12, dur:2.4),
-        .init(rx:0.22, ry:0.06, sz:7,  fx: -7, fy:-16, dur:3.2),
-        .init(rx:0.40, ry:0.13, sz:11, fx: 11, fy:-10, dur:2.8),
-        .init(rx:0.58, ry:0.07, sz:8,  fx: -8, fy:-14, dur:3.6),
-        .init(rx:0.75, ry:0.11, sz:10, fx:  8, fy:-11, dur:2.6),
-        .init(rx:0.91, ry:0.08, sz:7,  fx: -9, fy:-15, dur:3.1),
-        .init(rx:0.13, ry:0.26, sz:8,  fx:  6, fy: -9, dur:4.0),
-        .init(rx:0.33, ry:0.31, sz:9,  fx: -7, fy:-12, dur:2.9),
-        .init(rx:0.60, ry:0.23, sz:7,  fx:  9, fy:-10, dur:3.5),
-        .init(rx:0.82, ry:0.28, sz:10, fx: -5, fy:-13, dur:2.3),
-        .init(rx:0.04, ry:0.42, sz:8,  fx:  7, fy: -8, dur:3.8),
-        .init(rx:0.46, ry:0.38, sz:6,  fx: -6, fy:-11, dur:2.7),
-        .init(rx:0.93, ry:0.36, sz:9,  fx:  8, fy:-12, dur:4.1),
-        .init(rx:0.26, ry:0.45, sz:7,  fx: -7, fy: -9, dur:3.0),
+        .init(rx:0.07, ry:0.09, sz:10, fx: 10, fy:-14, dur:2.4, useAlt:false),
+        .init(rx:0.22, ry:0.06, sz:8,  fx: -8, fy:-18, dur:3.2, useAlt:true),
+        .init(rx:0.40, ry:0.13, sz:12, fx: 12, fy:-11, dur:2.8, useAlt:false),
+        .init(rx:0.58, ry:0.07, sz:9,  fx: -9, fy:-15, dur:3.6, useAlt:true),
+        .init(rx:0.75, ry:0.11, sz:11, fx:  9, fy:-12, dur:2.6, useAlt:false),
+        .init(rx:0.91, ry:0.08, sz:8,  fx:-10, fy:-16, dur:3.1, useAlt:true),
+        .init(rx:0.13, ry:0.26, sz:9,  fx:  7, fy:-10, dur:4.0, useAlt:false),
+        .init(rx:0.33, ry:0.31, sz:10, fx: -8, fy:-13, dur:2.9, useAlt:true),
+        .init(rx:0.60, ry:0.23, sz:8,  fx: 10, fy:-11, dur:3.5, useAlt:false),
+        .init(rx:0.82, ry:0.28, sz:11, fx: -6, fy:-14, dur:2.3, useAlt:true),
+        .init(rx:0.04, ry:0.42, sz:9,  fx:  8, fy: -9, dur:3.8, useAlt:false),
+        .init(rx:0.46, ry:0.38, sz:7,  fx: -7, fy:-12, dur:2.7, useAlt:true),
+        .init(rx:0.93, ry:0.36, sz:10, fx:  9, fy:-13, dur:4.1, useAlt:false),
+        .init(rx:0.26, ry:0.45, sz:8,  fx: -8, fy:-10, dur:3.0, useAlt:true),
+        .init(rx:0.15, ry:0.18, sz:7,  fx:  6, fy:-20, dur:3.4, useAlt:false),
+        .init(rx:0.50, ry:0.52, sz:9,  fx: -5, fy:-15, dur:2.5, useAlt:true),
+        .init(rx:0.70, ry:0.44, sz:8,  fx: 11, fy: -8, dur:3.9, useAlt:false),
+        .init(rx:0.88, ry:0.55, sz:7,  fx: -9, fy:-17, dur:2.2, useAlt:true),
+        .init(rx:0.35, ry:0.60, sz:10, fx:  7, fy:-11, dur:4.3, useAlt:false),
+        .init(rx:0.62, ry:0.65, sz:8,  fx: -6, fy:-13, dur:2.8, useAlt:true),
+        .init(rx:0.08, ry:0.72, sz:9,  fx:  8, fy:-10, dur:3.3, useAlt:false),
+        .init(rx:0.80, ry:0.70, sz:7,  fx:-10, fy:-12, dur:2.6, useAlt:true),
     ]
 
     private var particleEmoji: String {
@@ -1365,21 +1377,54 @@ struct AmbientParticles: View {
         case .jungle:       return "🍃"
         case .arctic:       return "❄️"
         case .forest:       return "🍂"
-        case .ocean:        return "✨"
+        case .ocean:        return "🫧"
         case .savanna:      return "🌾"
         case .cloudland:    return "⭐"
         case .bamboo:       return "🌸"
         case .meadow:       return "🦋"
         case .beach:        return "🌊"
         case .mountain:     return "❄️"
-        case .candy:        return "✨"
+        case .candy:        return "🍬"
         case .pond:         return "💧"
-        case .river:        return "🌊"
+        case .river:        return "💦"
         case .volcano:      return "🔥"
         case .hotSprings:   return "💨"
-        case .woodland:     return "✨"
+        case .woodland:     return "🍁"
         case .flowerGarden: return "🌸"
         case .burrow:       return "🌾"
+        }
+    }
+
+    private var altParticleEmoji: String {
+        switch habitat {
+        case .jungle:       return "🌿"
+        case .arctic:       return "⛄"
+        case .forest:       return "🍄"
+        case .ocean:        return "🐚"
+        case .savanna:      return "✨"
+        case .cloudland:    return "☁️"
+        case .bamboo:       return "🎋"
+        case .meadow:       return "🌼"
+        case .beach:        return "🐚"
+        case .mountain:     return "🌨️"
+        case .candy:        return "🍭"
+        case .pond:         return "🪷"
+        case .river:        return "🐟"
+        case .volcano:      return "✨"
+        case .hotSprings:   return "🌫️"
+        case .woodland:     return "🦔"
+        case .flowerGarden: return "🌺"
+        case .burrow:       return "🐇"
+        }
+    }
+
+    private var nightGlowColor: Color {
+        switch habitat {
+        case .ocean, .pond, .river: return Color(red: 0.20, green: 0.80, blue: 1.00)
+        case .volcano:              return Color(red: 1.00, green: 0.40, blue: 0.10)
+        case .candy:                return Color(red: 1.00, green: 0.60, blue: 0.90)
+        case .cloudland:            return Color(red: 0.80, green: 0.80, blue: 1.00)
+        default:                    return Color(red: 0.65, green: 1.00, blue: 0.35)
         }
     }
 
@@ -1393,16 +1438,16 @@ struct AmbientParticles: View {
 
                     if isNight {
                         Circle()
-                            .fill(Color(red: 0.65, green: 1.0, blue: 0.35)
-                                .opacity(anim[i] ? 0.88 : 0.06))
-                            .frame(width: 4.5, height: 4.5)
-                            .blur(radius: anim[i] ? 1.2 : 3.8)
+                            .fill(nightGlowColor.opacity(anim[i] ? 0.92 : 0.04))
+                            .frame(width: d.useAlt ? 3.5 : 5.0, height: d.useAlt ? 3.5 : 5.0)
+                            .blur(radius: anim[i] ? (d.useAlt ? 1.5 : 2.2) : 4.5)
                             .position(x: x, y: y)
                     } else {
-                        Text(particleEmoji)
+                        Text(d.useAlt ? altParticleEmoji : particleEmoji)
                             .font(.system(size: d.sz))
-                            .opacity(isAlive ? (anim[i] ? 0.52 : 0.16) : 0.03)
-                            .rotationEffect(.degrees(anim[i] ? Double(i) * 22 : 0))
+                            .opacity(isAlive ? (anim[i] ? 0.58 : 0.12) : 0.02)
+                            .rotationEffect(.degrees(anim[i] ? Double(i) * 18 : 0))
+                            .scaleEffect(anim[i] ? 1.08 : 0.88)
                             .position(x: x, y: y)
                     }
                 }
@@ -1411,7 +1456,7 @@ struct AmbientParticles: View {
         .allowsHitTesting(false)
         .onAppear {
             for i in 0..<defs.count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.14) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.11) {
                     withAnimation(.easeInOut(duration: defs[i].dur).repeatForever(autoreverses: true)) {
                         anim[i] = true
                     }

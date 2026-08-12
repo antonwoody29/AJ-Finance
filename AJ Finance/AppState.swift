@@ -52,6 +52,9 @@ final class AppState {
 
     // MARK: - Markets (UserDefaults)
     var cryptoWatchlistIds: [String] = []
+    var stockWatchlistIds: [String] = []
+    var watchlistAlerts: [String: WatchlistAlert] = [:]
+    var portfolioHoldings: [PortfolioHolding] = []
 
     // MARK: - Health & Gym
     var gymStreak: Int = 0
@@ -139,9 +142,17 @@ final class AppState {
     // MARK: - Spending Challenges
     var joinedChallenges: [SpendingChallenge] = []
 
-    // MARK: - Daily Check-In
+    // MARK: - Weekly Check-In
     var lastCheckInDate: Date? = nil
     var checkInStreak: Int = 0
+    var lastWeeklyCheckInDate: Date? = nil
+
+    var weeklyCheckInDue: Bool {
+        guard let last = lastWeeklyCheckInDate else { return true }
+        let cal = Calendar.current
+        return cal.component(.weekOfYear, from: last) != cal.component(.weekOfYear, from: Date()) ||
+               cal.component(.yearForWeekOfYear, from: last) != cal.component(.yearForWeekOfYear, from: Date())
+    }
 
     // MARK: - Spend Roast
     var pendingSpendRoast: String? = nil
@@ -1667,14 +1678,22 @@ final class AppState {
             checkInStreak = 1
         }
         lastCheckInDate = Date()
+        lastWeeklyCheckInDate = Date()
         let bonus = min(checkInStreak, 7) * 10
         gems += bonus
         earnXP(20)
-        showToast("✅ Daily check-in! +\(bonus)💎 (Day \(checkInStreak))", icon: "✅", color: .ajGreen)
+        showToast("✅ Weekly check-in! +\(bonus)💎 (Week \(checkInStreak))", icon: "✅", color: .ajGreen)
         saveFeatures()
     }
 
     // MARK: - Feature Persistence
+
+    func saveMarkets() {
+        let ud = UserDefaults.standard
+        ud.set(stockWatchlistIds, forKey: "aj_stockWatch")
+        if let d = try? JSONEncoder().encode(watchlistAlerts)   { ud.set(d, forKey: "aj_watchlistAlerts") }
+        if let d = try? JSONEncoder().encode(portfolioHoldings) { ud.set(d, forKey: "aj_portfolio") }
+    }
 
     func saveFeatures() {
         let ud = UserDefaults.standard
@@ -1685,6 +1704,7 @@ final class AppState {
         ud.set(netWorthMilestonesReached, forKey: "aj_netWorthMilestones")
         ud.set(checkInStreak, forKey: "aj_checkInStreak")
         if let d = lastCheckInDate { ud.set(d, forKey: "aj_lastCheckIn") }
+        if let d = lastWeeklyCheckInDate { ud.set(d, forKey: "aj_lastWeeklyCheckIn") }
     }
 
     // MARK: - Animal Life System
@@ -2432,6 +2452,7 @@ final class AppState {
         UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
         UserDefaults.standard.set(accountabilityMessages, forKey: "aj_messages")
         UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
+        saveMarkets()
         saveEvolutionState()
         saveFoodState()
         saveBudget()
@@ -2676,6 +2697,15 @@ final class AppState {
         goalsCompletedCount = UserDefaults.standard.integer(forKey: "aj_goalsCompleted")
         accountabilityMessages = UserDefaults.standard.stringArray(forKey: "aj_messages") ?? []
         cryptoWatchlistIds = UserDefaults.standard.stringArray(forKey: "aj_cryptoWatch") ?? []
+        stockWatchlistIds  = UserDefaults.standard.stringArray(forKey: "aj_stockWatch") ?? []
+        if let d = UserDefaults.standard.data(forKey: "aj_watchlistAlerts"),
+           let decoded = try? JSONDecoder().decode([String: WatchlistAlert].self, from: d) {
+            watchlistAlerts = decoded
+        }
+        if let d = UserDefaults.standard.data(forKey: "aj_portfolio"),
+           let decoded = try? JSONDecoder().decode([PortfolioHolding].self, from: d) {
+            portfolioHoldings = decoded
+        }
         gems              = UserDefaults.standard.integer(forKey: "aj_gems")
         rarePetTokens     = UserDefaults.standard.integer(forKey: "aj_rarePetTokens")
         unlockedCompanions = Set(UserDefaults.standard.stringArray(forKey: "aj_unlockedCompanions") ?? [])
@@ -2699,6 +2729,7 @@ final class AppState {
         netWorthMilestonesReached = ud.array(forKey: "aj_netWorthMilestones") as? [Int] ?? []
         checkInStreak  = ud.integer(forKey: "aj_checkInStreak")
         lastCheckInDate = ud.object(forKey: "aj_lastCheckIn") as? Date
+        lastWeeklyCheckInDate = ud.object(forKey: "aj_lastWeeklyCheckIn") as? Date
 
         // Budget
         monthlyIncome    = UserDefaults.standard.double(forKey: "aj_monthlyIncome")
