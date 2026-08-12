@@ -242,6 +242,8 @@ struct HealthView: View {
         }
         .navigationTitle("Life & Health")
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .onAppear { hk.requestAuthorization() }
         .sheet(isPresented: $showWeightLogger) { weightSheet }
         .sheet(isPresented: $showTargetLogger) { targetSheet }
@@ -270,10 +272,23 @@ struct HealthView: View {
             }
             .padding(16)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.ajCard)
-                    .overlay(RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.ajOrange.opacity(0.5), lineWidth: 1.5))
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(LinearGradient(
+                            colors: [Color.ajOrange.opacity(0.12), Color.black.opacity(0.28)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.ajOrange.opacity(0.55), Color.white.opacity(0.06)],
+                                startPoint: .top, endPoint: .bottom
+                            ),
+                            lineWidth: 1.5
+                        )
+                }
+                .shadow(color: Color.ajOrange.opacity(0.15), radius: 10, y: 4)
             )
         }
         .buttonStyle(.plain)

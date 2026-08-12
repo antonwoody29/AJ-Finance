@@ -215,6 +215,8 @@ struct MarketsView: View {
         }
         .navigationTitle("Markets")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button { Task { await refreshAll() } } label: {
@@ -717,11 +719,28 @@ struct MarketsView: View {
             .padding(16)
             .background(
                 ZStack {
+                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(isUp ? Color.ajGreen.opacity(0.08) : Color(red: 1, green: 0.3, blue: 0.3).opacity(0.08))
+                        .fill(LinearGradient(
+                            colors: [
+                                (isUp ? Color.ajGreen : Color(red: 1, green: 0.3, blue: 0.3)).opacity(0.14),
+                                Color.black.opacity(0.28)
+                            ],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(isUp ? Color.ajGreen.opacity(0.25) : Color(red: 1, green: 0.3, blue: 0.3).opacity(0.25), lineWidth: 1.5)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    (isUp ? Color.ajGreen : Color(red: 1, green: 0.3, blue: 0.3)).opacity(0.50),
+                                    Color.white.opacity(0.06)
+                                ],
+                                startPoint: .top, endPoint: .bottom
+                            ),
+                            lineWidth: 1.5
+                        )
                 }
+                .shadow(color: (isUp ? Color.ajGreen : Color(red: 1, green: 0.3, blue: 0.3)).opacity(0.12), radius: 10, y: 4)
             )
             .padding(.horizontal, 18)
             .padding(.top, 8)

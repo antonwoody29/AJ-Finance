@@ -635,17 +635,27 @@ struct AJSpeechBubble: View {
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 22)
-                    .fill(Color.black.opacity(0.72))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 22)
-                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(0.45), radius: 12, y: 4)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 22)
+                        .fill(LinearGradient(
+                            colors: [Color.white.opacity(0.12), Color.black.opacity(0.38)],
+                            startPoint: .top, endPoint: .bottom
+                        ))
+                    RoundedRectangle(cornerRadius: 22)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.38), Color.white.opacity(0.06)],
+                                startPoint: .top, endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+                }
+                .shadow(color: .black.opacity(0.45), radius: 12, y: 4)
             )
 
             BubbleTail()
-                .fill(Color.black.opacity(0.72))
+                .fill(Color.black.opacity(0.58))
                 .frame(width: 18, height: 11)
         }
     }

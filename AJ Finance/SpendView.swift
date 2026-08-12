@@ -103,6 +103,8 @@ struct SpendView: View {
         }
         .navigationTitle("Spending")
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showScanner)   { ReceiptScannerView() }
         .sheet(isPresented: $showTrips)    { NavigationStack { TripModeView() } }
         .sheet(isPresented: $showQuickAdd) { QuickAddTransactionView() }
@@ -175,8 +177,24 @@ struct SpendView: View {
                 Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.3)).font(.system(size: 13, weight: .semibold))
             }
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.ajCard)
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.25), lineWidth: 1)))
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [Color.ajOrange.opacity(0.10), Color.black.opacity(0.25)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.ajOrange.opacity(0.45), Color.white.opacity(0.06)],
+                                startPoint: .top, endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+                }
+            )
         }
         .buttonStyle(.plain)
     }
@@ -200,8 +218,24 @@ struct SpendView: View {
                 Image(systemName: "chevron.right").foregroundColor(.white.opacity(0.3)).font(.system(size: 13, weight: .semibold))
             }
             .padding(14)
-            .background(RoundedRectangle(cornerRadius: 14).fill(Color.ajCard)
-                .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrangeRed.opacity(0.3), lineWidth: 1)))
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [Color.ajOrangeRed.opacity(0.10), Color.black.opacity(0.25)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 14)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [Color.ajOrangeRed.opacity(0.50), Color.white.opacity(0.06)],
+                                startPoint: .top, endPoint: .bottom
+                            ),
+                            lineWidth: 1
+                        )
+                }
+            )
         }
         .buttonStyle(.plain)
     }

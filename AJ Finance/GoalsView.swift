@@ -34,6 +34,8 @@ struct GoalsView: View {
         }
         .navigationTitle("Goals")
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .navigationDestination(isPresented: $showLyfeBudget)  { LyfeBudgetView() }
         .navigationDestination(isPresented: $showNetWorth)    { NetWorthView() }
         .navigationDestination(isPresented: $showJars)        { SavingsJarsView() }

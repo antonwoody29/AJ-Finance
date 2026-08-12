@@ -89,6 +89,8 @@ struct GamesView: View {
         }
         .navigationTitle("Games 🎮")
         .navigationBarTitleDisplayMode(.large)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showBudgetBlitz) {
             BudgetBlitzGame()
         }
