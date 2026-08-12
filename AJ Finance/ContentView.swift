@@ -746,14 +746,25 @@ struct LifeMeterView: View {
             .frame(width: 136, height: 136)
 
             // Score badge
-            HStack(spacing: 5) {
+            HStack(spacing: 8) {
                 Circle()
                     .fill(scoreColor)
-                    .frame(width: 6, height: 6)
-                Text("\(Int(overallScore * 100))% Life Score")
-                    .font(.system(size: 11, weight: .black))
-                    .foregroundColor(.white.opacity(0.65))
+                    .frame(width: 8, height: 8)
+                    .shadow(color: scoreColor.opacity(0.8), radius: 4)
+                Text("\(Int(overallScore * 100))%")
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundColor(.white)
+                Text("Life Score")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.50))
             }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(
+                Capsule()
+                    .fill(scoreColor.opacity(0.14))
+                    .overlay(Capsule().strokeBorder(scoreColor.opacity(0.35), lineWidth: 1))
+            )
 
             // Metric pills
             HStack(spacing: 8) {
@@ -784,22 +795,55 @@ struct LifeMeterView: View {
     }
 
     private func meterPill(_ icon: String, _ label: String, _ pct: Int, color: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(icon).font(.system(size: 16))
-            Text("\(pct)%")
-                .font(.system(size: 14, weight: .black))
-                .foregroundColor(color)
-            Text(label)
-                .font(.system(size: 9, weight: .bold))
-                .foregroundColor(.white.opacity(0.40))
-                .tracking(0.5)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 5) {
+                Text(icon).font(.system(size: 18))
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(label.uppercased())
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundColor(color.opacity(0.85))
+                        .tracking(1.2)
+                    Text("\(pct)%")
+                        .font(.system(size: 22, weight: .black))
+                        .foregroundColor(.white)
+                        .shadow(color: color.opacity(0.45), radius: 4)
+                }
+                Spacer()
+            }
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule().fill(Color.white.opacity(0.08))
+                    Capsule()
+                        .fill(LinearGradient(
+                            colors: [color, color.opacity(0.55)],
+                            startPoint: .leading, endPoint: .trailing
+                        ))
+                        .frame(width: max(geo.size.width * 0.04, geo.size.width * CGFloat(pct) / 100))
+                        .shadow(color: color.opacity(0.55), radius: 4)
+                }
+            }
+            .frame(height: 4)
         }
-        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 10)
         .padding(.vertical, 10)
+        .frame(maxWidth: .infinity)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(color.opacity(0.12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(color.opacity(0.28), lineWidth: 1))
+            ZStack {
+                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(LinearGradient(
+                        colors: [color.opacity(0.16), Color.black.opacity(0.18)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 14)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [color.opacity(0.50), color.opacity(0.08)],
+                            startPoint: .top, endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            }
         )
     }
 }

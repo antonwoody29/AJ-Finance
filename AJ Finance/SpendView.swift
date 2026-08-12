@@ -44,6 +44,9 @@ struct SpendView: View {
                         // Category breakdown
                         categoryBreakdownCard
 
+                        // Day-of-week heatmap
+                        dayOfWeekHeatmapCard
+
                         // Spending trends chart
                         spendingTrendsCard
 
@@ -610,17 +613,27 @@ struct SpendView: View {
     }
 
     private var monthlyHeroCard: some View {
-        let spending = appState.spendingByCategory
-        let total    = appState.totalSpent
-        let nonZero  = SpendCategory.allCases
+        let spending    = appState.spendingByCategory
+        let total       = appState.totalSpent
+        let nonZero     = SpendCategory.allCases
             .map { ($0, spending[$0] ?? 0) }
             .filter { $0.1 > 0 }
             .sorted { $0.1 > $1.1 }
+        let cal         = Calendar.current
+        let now         = Date()
+        let day         = cal.component(.day, from: now)
+        let daysInMonth = cal.range(of: .day, in: .month, for: now)?.count ?? 30
+        let dailyAvg    = total / Double(max(1, day))
+        let projected   = dailyAvg * Double(daysInMonth)
+        let budget      = appState.dailyBudget * 30
+        let isOver      = budget > 0 && projected > budget
+        let projColor: Color = isOver ? .ajOrangeRed : Color(red: 0.18, green: 0.82, blue: 0.44)
 
         return AJCard {
-            VStack(spacing: 14) {
-                HStack(alignment: .center, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 14) {
+                // Header row
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("SPENT THIS MONTH")
                             .font(.system(size: 10, weight: .black))
                             .foregroundColor(.white.opacity(0.45))
@@ -633,30 +646,134 @@ struct SpendView: View {
                             .foregroundColor(.white.opacity(0.4))
                     }
                     Spacer()
-                    MonthlySpendBarsView(transactions: appState.monthlyTransactions)
-                        .frame(width: 88, height: 72)
+                    // Velocity badge
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Text("~$\(Int(projected))")
+                            .font(.system(size: 18, weight: .black))
+                            .foregroundColor(projColor)
+                        Text("projected")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.4))
+                        Text(isOver ? "⚠️ over pace" : "✅ on track")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(projColor.opacity(0.85))
+                    }
+                    .padding(.top, 8)
                 }
 
+                // Full-width daily bar chart
+                MonthlyTrendChart(transactions: appState.monthlyTransactions)
+                    .frame(height: 96)
+
+                // Category color strip + compact legend
                 if !nonZero.isEmpty {
-                    Divider().background(Color.white.opacity(0.08))
-                    VStack(spacing: 7) {
-                        ForEach(nonZero.prefix(5), id: \.0.id) { cat, amt in
-                            HStack(spacing: 8) {
-                                Circle().fill(cat.color).frame(width: 7, height: 7)
-                                Text("\(cat.icon) \(cat.rawValue)")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.75))
-                                Spacer()
-                                Text("$\(Int(amt))")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.white.opacity(0.45))
-                                Text("\(Int((amt / total) * 100))%")
-                                    .font(.system(size: 11, weight: .black))
-                                    .foregroundColor(cat.color)
-                                    .frame(width: 34, alignment: .trailing)
+                    GeometryReader { geo in
+                        HStack(spacing: 2) {
+                            ForEach(nonZero.prefix(6), id: \.0.id) { cat, amt in
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(LinearGradient(
+                                        colors: [cat.color, cat.color.opacity(0.65)],
+                                        startPoint: .leading, endPoint: .trailing
+                                    ))
+                                    .frame(width: max(geo.size.width * CGFloat(amt / max(total, 1)) - 2, 5))
                             }
                         }
                     }
+                    .frame(height: 6)
+                    .clipShape(Capsule())
+
+                    HStack(spacing: 10) {
+                        ForEach(nonZero.prefix(5), id: \.0.id) { cat, amt in
+                            HStack(spacing: 4) {
+                                Circle().fill(cat.color).frame(width: 6, height: 6)
+                                Text("\(cat.icon) \(Int((amt / max(total, 1)) * 100))%")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.70))
+                            }
+                        }
+                        Spacer()
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Day of Week Heatmap
+
+    private var dayOfWeekHeatmapCard: some View {
+        let cal   = Calendar.current
+        let txns  = appState.transactions.filter { !$0.isSaving }
+        let days  = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        let totals: [Double] = (1...7).map { wd in
+            txns.filter { cal.component(.weekday, from: $0.date) == wd }
+                .reduce(0) { $0 + $1.amount }
+        }
+        let maxTotal = totals.max() ?? 1
+        let peakIdx  = totals.indices.max(by: { totals[$0] < totals[$1] })
+
+        return AJCard {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text("PEAK SPEND DAYS")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.ajOrange)
+                        .tracking(2)
+                    Spacer()
+                    Text("all time")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.30))
+                }
+
+                HStack(alignment: .bottom, spacing: 4) {
+                    ForEach(Array(zip(days, totals)), id: \.0) { day, total in
+                        let frac    = CGFloat(maxTotal > 0 ? total / maxTotal : 0)
+                        let isPeak  = total == maxTotal && total > 0
+                        let barColor: Color = isPeak       ? Color(red: 1.0, green: 0.32, blue: 0.18)
+                            : frac > 0.60 ? .ajOrange
+                            : frac > 0.20 ? Color(red: 0.18, green: 0.82, blue: 0.44)
+                            :               Color.white.opacity(0.09)
+
+                        VStack(spacing: 5) {
+                            Text(total > 0 ? "$\(Int(total))" : " ")
+                                .font(.system(size: 8, weight: isPeak ? .black : .regular))
+                                .foregroundColor(isPeak ? .ajOrangeRed : .white.opacity(0.32))
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+
+                            GeometryReader { geo in
+                                VStack(spacing: 0) {
+                                    Spacer(minLength: 0)
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(LinearGradient(
+                                            colors: [barColor, barColor.opacity(0.55)],
+                                            startPoint: .top, endPoint: .bottom
+                                        ))
+                                        .frame(height: max(4, geo.size.height * frac))
+                                        .shadow(color: isPeak ? barColor.opacity(0.55) : .clear, radius: 5)
+                                }
+                            }
+                            .frame(height: 64)
+
+                            Text(day)
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundColor(isPeak ? .white.opacity(0.85) : .white.opacity(0.40))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+
+                if let i = peakIdx, totals[i] > 0 {
+                    HStack(spacing: 5) {
+                        Text("🔥")
+                            .font(.system(size: 12))
+                        Text("You spend most on \(days[i])s — $\(Int(totals[i])) all time")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.50))
+                    }
+                } else {
+                    Text("Log more transactions to see your peak spend day")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.30))
                 }
             }
         }
@@ -1499,6 +1616,104 @@ private struct TrendsStackedBar: View {
 }
 
 // MARK: - Monthly Spend Bar Chart
+
+// MARK: - Monthly Trend Chart
+
+struct MonthlyTrendChart: View {
+    let transactions: [SpendEntry]
+
+    private struct DaySpend: Identifiable {
+        let id: Int
+        let amount: Double
+    }
+
+    private var dailyData: [DaySpend] {
+        let cal  = Calendar.current
+        let now  = Date()
+        let days = cal.range(of: .day, in: .month, for: now)?.count ?? 30
+        return (1...days).map { d in
+            let amt = transactions
+                .filter { !$0.isSaving && cal.component(.day, from: $0.date) == d }
+                .reduce(0) { $0 + $1.amount }
+            return DaySpend(id: d, amount: amt)
+        }
+    }
+
+    var body: some View {
+        let items  = dailyData
+        let today  = Calendar.current.component(.day, from: Date())
+        let maxAmt = items.filter { $0.id <= today }.map(\.amount).max() ?? 1
+
+        GeometryReader { geo in
+            let chartH = geo.size.height - 16
+            let count  = CGFloat(items.count)
+            let barW   = max(2.5, (geo.size.width - (count - 1) * 2) / count)
+
+            ZStack(alignment: .bottomLeading) {
+                // Subtle grid lines
+                VStack(spacing: 0) {
+                    ForEach([0.75, 0.5, 0.25], id: \.self) { frac in
+                        Spacer()
+                        Rectangle()
+                            .fill(Color.white.opacity(0.04))
+                            .frame(height: 1)
+                    }
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: chartH)
+
+                // Bars
+                HStack(alignment: .bottom, spacing: 2) {
+                    ForEach(items) { item in
+                        let isFuture = item.id > today
+                        let isToday  = item.id == today
+                        let frac     = CGFloat(item.amount / maxAmt)
+                        let barH: CGFloat = isFuture    ? 3
+                            : item.amount == 0          ? 4
+                            : max(8, chartH * frac)
+                        let barColor: Color = isToday       ? .ajOrange
+                            : frac > 0.70 ? Color(red: 1.0, green: 0.32, blue: 0.18)
+                            : frac > 0.40 ? Color(red: 1.0, green: 0.60, blue: 0.12)
+                            : item.amount > 0 ? Color(red: 0.18, green: 0.82, blue: 0.44)
+                            : Color.white.opacity(0.07)
+
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(LinearGradient(
+                                colors: isFuture      ? [Color.white.opacity(0.06), Color.white.opacity(0.03)]
+                                    : isToday         ? [Color.ajOrange, Color(red: 1, green: 0.72, blue: 0.1)]
+                                    : item.amount > 0 ? [barColor, barColor.opacity(0.55)]
+                                    :                   [Color.white.opacity(0.07), Color.white.opacity(0.04)],
+                                startPoint: .top, endPoint: .bottom
+                            ))
+                            .frame(height: barH)
+                            .shadow(color: isToday ? Color.ajOrange.opacity(0.65) : .clear, radius: 5, y: 2)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: chartH, alignment: .bottom)
+            }
+            .frame(maxWidth: .infinity, maxHeight: chartH)
+
+            // X-axis labels
+            HStack {
+                Text("1")
+                Spacer()
+                Text("7")
+                Spacer()
+                Text("14")
+                Spacer()
+                Text("21")
+                Spacer()
+                Text("\(today)")
+                    .foregroundColor(.ajOrange)
+                    .fontWeight(.black)
+            }
+            .font(.system(size: 8, weight: .semibold))
+            .foregroundColor(.white.opacity(0.28))
+            .frame(maxWidth: .infinity)
+            .position(x: geo.size.width / 2, y: geo.size.height - 6)
+        }
+    }
+}
 
 struct MonthlySpendBarsView: View {
     let transactions: [SpendEntry]
