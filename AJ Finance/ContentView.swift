@@ -212,15 +212,25 @@ private struct AJTabBar: View {
                     VStack(spacing: 2) {
                         ZStack {
                             if selected == i {
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.ajOrange.opacity(0.20))
-                                    .frame(width: 46, height: 32)
+                                // Glowing pill background
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(LinearGradient(
+                                        colors: [Color.ajOrange.opacity(0.32), Color.ajOrange.opacity(0.12)],
+                                        startPoint: .top, endPoint: .bottom
+                                    ))
+                                    .frame(width: 48, height: 32)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .strokeBorder(Color.ajOrange.opacity(0.40), lineWidth: 1)
+                                    )
+                                    .shadow(color: Color.ajOrange.opacity(0.45), radius: 8, y: 2)
                                     .transition(.scale(scale: 0.6).combined(with: .opacity))
                             }
                             Image(systemName: selected == i ? items[i].activeIcon : items[i].icon)
                                 .font(.system(size: selected == i ? 21 : 17,
                                               weight: selected == i ? .bold : .regular))
                                 .foregroundColor(selected == i ? .ajOrange : .white.opacity(0.35))
+                                .shadow(color: selected == i ? Color.ajOrange.opacity(0.60) : .clear, radius: 6)
                                 .scaleEffect(bouncing[i] ? 1.28 : (selected == i ? 1.08 : 1.0))
                                 .animation(.spring(response: 0.22, dampingFraction: 0.45), value: bouncing[i])
                                 .animation(.spring(response: 0.28), value: selected)
@@ -229,6 +239,7 @@ private struct AJTabBar: View {
                             Text(items[i].label)
                                 .font(.system(size: 10, weight: .black))
                                 .foregroundColor(.ajOrange)
+                                .shadow(color: Color.ajOrange.opacity(0.40), radius: 4)
                                 .transition(.move(edge: .top).combined(with: .opacity))
                         }
                     }

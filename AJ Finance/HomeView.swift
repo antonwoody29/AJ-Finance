@@ -987,10 +987,25 @@ struct HomeView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 9)
         .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.black.opacity(0.58))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(Color.white.opacity(0.16), lineWidth: 1))
-                .shadow(color: .black.opacity(0.4), radius: 12, y: 4)
+            ZStack {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.10), Color.black.opacity(0.30)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                // Top glass edge highlight
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.40), Color.white.opacity(0.06)],
+                            startPoint: .top, endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            }
+            .shadow(color: .black.opacity(0.45), radius: 14, y: 5)
         )
     }
 
@@ -999,6 +1014,16 @@ struct HomeView: View {
             Text(icon).font(.system(size: 12))
             Text(value).font(.system(size: 12, weight: .black)).foregroundColor(.white)
         }
+        .padding(.horizontal, 6).padding(.vertical, 3)
+        .background(
+            Capsule()
+                .fill(icon == "🔥"
+                      ? Color(red: 1.0, green: 0.45, blue: 0.10).opacity(0.22)
+                      : icon == "🪙"
+                        ? Color(red: 1.0, green: 0.80, blue: 0.10).opacity(0.16)
+                        : Color.white.opacity(0.08))
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.10), lineWidth: 0.5))
+        )
     }
 
     private var foodGradient: LinearGradient {
@@ -1037,7 +1062,10 @@ struct HomeView: View {
                     Label("Set your first goal!", systemImage: "plus.circle.fill")
                         .font(.system(size: 13, weight: .semibold)).foregroundColor(.ajOrange)
                         .padding(.horizontal, 16).padding(.vertical, 8)
-                        .background(Capsule().fill(Color.black.opacity(0.36)))
+                        .background(
+                            Capsule().fill(.ultraThinMaterial)
+                                .overlay(Capsule().strokeBorder(Color.ajOrange.opacity(0.40), lineWidth: 1))
+                        )
                 }
             }
         }
@@ -1060,9 +1088,22 @@ struct HomeView: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 11)
-                .fill(Color.black.opacity(0.44))
-                .overlay(RoundedRectangle(cornerRadius: 11).stroke(Color.white.opacity(0.12), lineWidth: 1))
+            ZStack {
+                RoundedRectangle(cornerRadius: 11).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(LinearGradient(
+                        colors: [Color.ajOrange.opacity(0.14), Color.black.opacity(0.18)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                RoundedRectangle(cornerRadius: 11)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.30), Color.white.opacity(0.06)],
+                            startPoint: .top, endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            }
         )
     }
 
@@ -1208,34 +1249,64 @@ struct HomeView: View {
             // Missions peek
             if let firstPending = appState.dailyMissions.first(where: { !$0.isCompleted }) {
                 Button { showMissions = true } label: {
-                    HStack(spacing: 10) {
-                        Text(firstPending.icon).font(.system(size: 16))
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("MISSION")
-                                .font(.system(size: 8, weight: .black))
-                                .foregroundColor(.ajOrange)
-                                .tracking(1.5)
-                            Text(firstPending.title)
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundColor(.white)
-                                .lineLimit(1)
+                    let done = appState.dailyMissions.filter(\.isCompleted).count
+                    let total = appState.dailyMissions.count
+                    let progress = total > 0 ? CGFloat(done) / CGFloat(total) : 0
+                    VStack(spacing: 0) {
+                        HStack(spacing: 10) {
+                            Text(firstPending.icon).font(.system(size: 16))
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("MISSION")
+                                    .font(.system(size: 8, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                    .tracking(1.5)
+                                Text(firstPending.title)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                            }
+                            Spacer()
+                            Text("\(done)/\(total)")
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundColor(.ajGold)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.35))
                         }
-                        Spacer()
-                        let done = appState.dailyMissions.filter(\.isCompleted).count
-                        let total = appState.dailyMissions.count
-                        Text("\(done)/\(total)")
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundColor(.ajGold)
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.35))
+                        // Progress track
+                        GeometryReader { g in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.white.opacity(0.10))
+                                Capsule()
+                                    .fill(LinearGradient(
+                                        colors: [.ajOrange, Color(red: 1.0, green: 0.72, blue: 0.10)],
+                                        startPoint: .leading, endPoint: .trailing
+                                    ))
+                                    .frame(width: max(g.size.width * 0.04, g.size.width * progress))
+                            }
+                        }
+                        .frame(height: 4)
+                        .padding(.top, 7)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.50))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.3), lineWidth: 1))
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color.ajOrange.opacity(0.12), Color.black.opacity(0.20)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color.ajOrange.opacity(0.50), Color.ajOrange.opacity(0.10)],
+                                        startPoint: .top, endPoint: .bottom
+                                    ),
+                                    lineWidth: 1
+                                )
+                        }
                     )
                 }
                 .buttonStyle(.plain)
@@ -1257,81 +1328,158 @@ struct HomeView: View {
                 .padding(.vertical, 15)
                 .background(
                     ZStack {
+                        // Rich gradient: orange → amber → gold
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
-                                colors: [.ajOrange, .ajOrangeRed],
-                                startPoint: .leading, endPoint: .trailing
+                                colors: [
+                                    Color(red: 1.0, green: 0.55, blue: 0.10),
+                                    Color(red: 1.0, green: 0.38, blue: 0.08),
+                                    Color(red: 0.90, green: 0.22, blue: 0.05)
+                                ],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
                             ))
+                        // Inner top highlight (glass sheen)
+                        RoundedRectangle(cornerRadius: 18)
+                            .fill(LinearGradient(
+                                colors: [Color.white.opacity(0.30), .clear],
+                                startPoint: .top, endPoint: .center
+                            ))
+                        // Pulse ring
                         RoundedRectangle(cornerRadius: 18)
                             .stroke(Color.ajOrange, lineWidth: 2.5)
-                            .scaleEffect(receiptPulse ? 1.08 : 1.0)
-                            .opacity(receiptPulse ? 0.0 : 0.7)
+                            .scaleEffect(receiptPulse ? 1.09 : 1.0)
+                            .opacity(receiptPulse ? 0.0 : 0.8)
                             .animation(
                                 .easeOut(duration: 1.6).repeatForever(autoreverses: false),
                                 value: receiptPulse
                             )
                     }
-                    .shadow(color: .ajOrange.opacity(0.55), radius: 18, y: 5)
+                    .shadow(color: Color(red: 1.0, green: 0.45, blue: 0.10).opacity(0.70), radius: 22, y: 6)
                 )
             }
             .onAppear { receiptPulse = true }
 
             // Secondary row
             HStack(spacing: 8) {
+                // LOG — green tint
                 Button {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showQuickAdd = true
                 } label: {
                     VStack(spacing: 3) {
                         Text("✏️").font(.system(size: 18))
-                        Text("LOG").font(.system(size: 11, weight: .black)).foregroundColor(.ajOrange)
+                        Text("LOG").font(.system(size: 11, weight: .black))
+                            .foregroundColor(Color(red: 0.28, green: 0.92, blue: 0.52))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 13)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.48))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.45), lineWidth: 1.5))
-                            .shadow(color: Color.ajOrange.opacity(0.18), radius: 8, y: 3)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color(red: 0.10, green: 0.70, blue: 0.30).opacity(0.28),
+                                             Color(red: 0.04, green: 0.40, blue: 0.16).opacity(0.20)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color.white.opacity(0.18), .clear],
+                                    startPoint: .top, endPoint: .center
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color(red: 0.20, green: 0.90, blue: 0.46).opacity(0.60),
+                                                 Color(red: 0.10, green: 0.50, blue: 0.24).opacity(0.20)],
+                                        startPoint: .top, endPoint: .bottom
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        }
+                        .shadow(color: Color(red: 0.10, green: 0.80, blue: 0.35).opacity(0.28), radius: 10, y: 4)
                     )
                 }
 
+                // Shop — purple tint
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showShop = true
                 } label: {
                     VStack(spacing: 3) {
                         Text("🛍️").font(.system(size: 18))
-                        Text("Shop").font(.system(size: 11, weight: .black)).foregroundColor(.white)
+                        Text("Shop").font(.system(size: 11, weight: .black))
+                            .foregroundColor(Color(red: 0.76, green: 0.52, blue: 1.0))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 13)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.48))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18), lineWidth: 1))
-                            .shadow(color: .black.opacity(0.25), radius: 8, y: 3)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color(red: 0.52, green: 0.22, blue: 0.90).opacity(0.28),
+                                             Color(red: 0.28, green: 0.10, blue: 0.52).opacity(0.20)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color.white.opacity(0.18), .clear],
+                                    startPoint: .top, endPoint: .center
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color(red: 0.76, green: 0.44, blue: 1.0).opacity(0.60),
+                                                 Color(red: 0.44, green: 0.20, blue: 0.70).opacity(0.20)],
+                                        startPoint: .top, endPoint: .bottom
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        }
+                        .shadow(color: Color(red: 0.60, green: 0.30, blue: 1.0).opacity(0.28), radius: 10, y: 4)
                     )
                 }
 
+                // Wheel — gold tint
                 Button {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showStore = true
                 } label: {
                     VStack(spacing: 3) {
                         Text("🎡").font(.system(size: 18))
-                        Text("Wheel").font(.system(size: 11, weight: .black)).foregroundColor(.ajGold)
+                        Text("Wheel").font(.system(size: 11, weight: .black))
+                            .foregroundColor(Color(red: 1.0, green: 0.82, blue: 0.20))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 13)
                     .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.black.opacity(0.48))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajGold.opacity(0.45), lineWidth: 1.5))
-                            .shadow(color: Color.ajGold.opacity(0.18), radius: 8, y: 3)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color(red: 0.80, green: 0.58, blue: 0.06).opacity(0.30),
+                                             Color(red: 0.50, green: 0.34, blue: 0.02).opacity(0.20)],
+                                    startPoint: .top, endPoint: .bottom
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .fill(LinearGradient(
+                                    colors: [Color.white.opacity(0.18), .clear],
+                                    startPoint: .top, endPoint: .center
+                                ))
+                            RoundedRectangle(cornerRadius: 14)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [Color(red: 1.0, green: 0.80, blue: 0.20).opacity(0.65),
+                                                 Color(red: 0.70, green: 0.50, blue: 0.08).opacity(0.20)],
+                                        startPoint: .top, endPoint: .bottom
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        }
+                        .shadow(color: Color(red: 1.0, green: 0.78, blue: 0.10).opacity(0.28), radius: 10, y: 4)
                     )
                 }
-
             }
         }
     }
