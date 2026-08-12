@@ -102,7 +102,9 @@ struct SpendView: View {
             }
         }
         .navigationTitle("Spending")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .sheet(isPresented: $showScanner)   { ReceiptScannerView() }
         .sheet(isPresented: $showTrips)    { NavigationStack { TripModeView() } }
         .sheet(isPresented: $showQuickAdd) { QuickAddTransactionView() }

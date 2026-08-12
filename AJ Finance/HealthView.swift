@@ -241,7 +241,9 @@ struct HealthView: View {
             }
         }
         .navigationTitle("Life & Health")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .onAppear { hk.requestAuthorization() }
         .sheet(isPresented: $showWeightLogger) { weightSheet }
         .sheet(isPresented: $showTargetLogger) { targetSheet }
