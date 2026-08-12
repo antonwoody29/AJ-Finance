@@ -262,10 +262,21 @@ struct SpendView: View {
 
         return AJCard {
             HStack(spacing: 16) {
-                Text(icon)
-                    .font(.system(size: 36))
-                    .scaleEffect(isActive ? 1.1 : 1.0)
-                    .animation(.spring(response: 0.4), value: isActive)
+                if isActive && streak >= 7 {
+                    TimelineView(.animation) { tl in
+                        let t = CGFloat(tl.date.timeIntervalSinceReferenceDate)
+                        let pulse = 0.5 + 0.5 * sin(t * 2.0)
+                        Text(icon)
+                            .font(.system(size: 36))
+                            .scaleEffect(1.0 + pulse * 0.08)
+                            .shadow(color: accentColor.opacity(0.55 + pulse * 0.35), radius: 8 + pulse * 8)
+                    }
+                } else {
+                    Text(icon)
+                        .font(.system(size: 36))
+                        .scaleEffect(isActive ? 1.05 : 1.0)
+                        .animation(.spring(response: 0.4), value: isActive)
+                }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("NO-SPEND STREAK")
@@ -972,37 +983,51 @@ struct SpendView: View {
                     .padding(.vertical, 8)
                 } else {
                     let spending = appState.spendingByCategory
-                    VStack(spacing: 12) {
+                    VStack(spacing: 14) {
                         ForEach(SpendCategory.allCases) { cat in
                             if let limit = appState.categoryBudgets[cat.rawValue], limit > 0 {
-                                let spent = spending[cat] ?? 0
-                                let ratio = min(spent / limit, 1.0)
-                                let barColor: Color = ratio < 0.70 ? .green : ratio < 0.90 ? .yellow : .red
-                                VStack(spacing: 6) {
-                                    HStack(spacing: 8) {
-                                        Text(cat.icon).font(.system(size: 16))
+                                let spent   = spending[cat] ?? 0
+                                let ratio   = min(spent / limit, 1.0)
+                                let ringColor: Color = ratio < 0.70
+                                    ? Color(red: 0.18, green: 0.82, blue: 0.44)
+                                    : ratio < 0.90 ? .ajOrange : .ajOrangeRed
+
+                                HStack(spacing: 14) {
+                                    // Mini activity ring
+                                    ZStack {
+                                        Circle()
+                                            .stroke(ringColor.opacity(0.14), lineWidth: 5)
+                                        Circle()
+                                            .trim(from: 0, to: CGFloat(ratio))
+                                            .stroke(
+                                                LinearGradient(
+                                                    colors: [ringColor, ringColor.opacity(0.65)],
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                ),
+                                                style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                                            )
+                                            .rotationEffect(.degrees(-90))
+                                            .shadow(color: ringColor.opacity(0.55), radius: 4)
+                                            .animation(.spring(response: 0.6), value: ratio)
+                                        Text(cat.icon).font(.system(size: 11))
+                                    }
+                                    .frame(width: 36, height: 36)
+
+                                    VStack(alignment: .leading, spacing: 2) {
                                         Text(cat.rawValue)
                                             .font(.system(size: 13, weight: .semibold))
                                             .foregroundColor(.white)
-                                        Spacer()
-                                        Text("$\(Int(spent)) / $\(Int(limit))")
-                                            .font(.system(size: 12, weight: .bold))
-                                            .foregroundColor(barColor)
+                                        Text("$\(Int(spent)) of $\(Int(limit))")
+                                            .font(.system(size: 11))
+                                            .foregroundColor(.white.opacity(0.45))
                                     }
-                                    GeometryReader { geo in
-                                        ZStack(alignment: .leading) {
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(Color.white.opacity(0.08))
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(LinearGradient(
-                                                    colors: [barColor.opacity(0.9), barColor],
-                                                    startPoint: .leading, endPoint: .trailing
-                                                ))
-                                                .frame(width: max(4, geo.size.width * CGFloat(ratio)))
-                                                .animation(.spring(response: 0.5), value: ratio)
-                                        }
-                                    }
-                                    .frame(height: 6)
+
+                                    Spacer()
+
+                                    Text("\(Int(ratio * 100))%")
+                                        .font(.system(size: 13, weight: .black))
+                                        .foregroundColor(ringColor)
                                 }
                             }
                         }

@@ -229,6 +229,7 @@ struct HealthView: View {
                     }
 
                     gymStreakCard
+                    workoutCalendarCard
                     weightCard
                     rewardsCard
                     logWorkoutButton
@@ -593,6 +594,41 @@ struct HealthView: View {
         }
     }
 
+    // MARK: - Workout Calendar
+
+    private var workoutCalendarCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("WORKOUT CALENDAR")
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                WorkoutCalendarGrid(
+                    gymStreak: appState.gymStreak,
+                    lastGymDate: appState.lastGymDate
+                )
+
+                HStack(spacing: 8) {
+                    RoundedRectangle(cornerRadius: 3).fill(Color.ajOrange)
+                        .frame(width: 10, height: 10)
+                    Text("Workout day")
+                        .font(.system(size: 10)).foregroundColor(.white.opacity(0.45))
+                    RoundedRectangle(cornerRadius: 3).fill(Color.white.opacity(0.20))
+                        .frame(width: 10, height: 10)
+                    Text("Today")
+                        .font(.system(size: 10)).foregroundColor(.white.opacity(0.45))
+                    Spacer()
+                    if appState.gymStreak > 0 {
+                        Text("🔥 \(appState.gymStreak) day streak")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.ajOrange)
+                    }
+                }
+            }
+        }
+    }
+
     // MARK: - Weight
 
     private var weightCard: some View {
@@ -936,5 +972,78 @@ struct HealthView: View {
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
         .background(RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.06))
             .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.08), lineWidth: 1)))
+    }
+}
+
+// MARK: - Workout Calendar Grid
+
+private struct WorkoutCalendarGrid: View {
+    let gymStreak: Int
+    let lastGymDate: Date?
+
+    private let dayLabels = ["S", "M", "T", "W", "T", "F", "S"]
+
+    private var workoutDaySet: Set<Date> {
+        var days = Set<Date>()
+        guard let last = lastGymDate, gymStreak > 0 else { return days }
+        let cal = Calendar.current
+        let base = cal.startOfDay(for: last)
+        for i in 0..<gymStreak {
+            if let d = cal.date(byAdding: .day, value: -i, to: base) {
+                days.insert(d)
+            }
+        }
+        return days
+    }
+
+    var body: some View {
+        let cal  = Calendar.current
+        let today = cal.startOfDay(for: Date())
+        let startDay = cal.date(byAdding: .day, value: -34, to: today)!
+        let wdSet = workoutDaySet
+
+        VStack(spacing: 4) {
+            HStack(spacing: 4) {
+                ForEach(0..<7, id: \.self) { i in
+                    Text(dayLabels[i])
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.white.opacity(0.35))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+
+            ForEach(0..<5, id: \.self) { week in
+                HStack(spacing: 4) {
+                    ForEach(0..<7, id: \.self) { wd in
+                        let cellDate = cal.date(byAdding: .day, value: week * 7 + wd, to: startDay)!
+                        let isToday   = cal.isDate(cellDate, inSameDayAs: today)
+                        let isWorkout = wdSet.contains(cellDate)
+                        let isFuture  = cellDate > today
+                        let dayNum    = cal.component(.day, from: cellDate)
+
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 5)
+                                .fill(
+                                    isWorkout ? Color.ajOrange :
+                                    isToday   ? Color.white.opacity(0.20) :
+                                    isFuture  ? Color.clear :
+                                    Color.white.opacity(0.05)
+                                )
+                            if isWorkout {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 7, weight: .black))
+                                    .foregroundColor(.black)
+                            } else if isToday {
+                                Text("\(dayNum)")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundColor(.ajOrange)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+                .frame(height: 26)
+            }
+        }
     }
 }
