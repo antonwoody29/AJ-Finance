@@ -626,6 +626,8 @@ struct HamburgerMenuView: View {
 struct LifeMeterView: View {
     @Environment(AppState.self) private var appState
     @State private var showSobrietySetup = false
+    @State private var pulseScale: CGFloat = 1.0
+    @State private var pulseOpacity: Double = 0.5
 
     private let savingsColor  = Color.ajGold
     private let fitnessColor  = Color(red: 0.0, green: 0.82, blue: 1.0)
@@ -685,86 +687,172 @@ struct LifeMeterView: View {
         }
     }
 
+    private enum Rank: String {
+        case bronze = "BRONZE", silver = "SILVER", gold = "GOLD", platinum = "PLATINUM"
+    }
+
+    private var rank: Rank {
+        switch overallScore {
+        case 0.8...: return .platinum
+        case 0.6...: return .gold
+        case 0.4...: return .silver
+        default:     return .bronze
+        }
+    }
+
+    private var rankColor: Color {
+        switch rank {
+        case .bronze:   return Color(red: 0.80, green: 0.50, blue: 0.20)
+        case .silver:   return Color(red: 0.75, green: 0.80, blue: 0.88)
+        case .gold:     return Color.ajGold
+        case .platinum: return Color(red: 0.72, green: 0.92, blue: 1.0)
+        }
+    }
+
+    private var rankSystemImage: String {
+        switch rank {
+        case .bronze, .silver: return "medal.fill"
+        case .gold:            return "star.fill"
+        case .platinum:        return "sparkles"
+        }
+    }
+
     var body: some View {
         VStack(spacing: 16) {
+            // Rank badge
+            HStack(spacing: 6) {
+                Image(systemName: rankSystemImage)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(rankColor)
+                Text(rank.rawValue)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(rankColor)
+                    .tracking(2.2)
+                Image(systemName: rankSystemImage)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(rankColor)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(rankColor.opacity(0.12))
+                    .overlay(Capsule().strokeBorder(rankColor.opacity(0.45), lineWidth: 1))
+            )
+            .shadow(color: rankColor.opacity(0.55), radius: 10)
+
             ZStack {
-                // Soft ambient glow behind ring
+                // Pulsing outer ring
+                Circle()
+                    .stroke(scoreColor.opacity(pulseOpacity * 0.55), lineWidth: 3)
+                    .frame(width: 172 * pulseScale, height: 172 * pulseScale)
+                    .blur(radius: 2)
+                    .onAppear {
+                        withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
+                            pulseScale = 1.10
+                            pulseOpacity = 0.18
+                        }
+                    }
+
+                // Ambient color glow behind ring (score-colored radial)
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.white.opacity(0.07), .clear],
-                            center: .center, startRadius: 28, endRadius: 68
+                            colors: [scoreColor.opacity(0.18), .clear],
+                            center: .center, startRadius: 20, endRadius: 86
                         )
                     )
-                    .frame(width: 136, height: 136)
+                    .frame(width: 172, height: 172)
+
+                // Soft white ambient
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.white.opacity(0.10), .clear],
+                            center: .center, startRadius: 34, endRadius: 78
+                        )
+                    )
+                    .frame(width: 172, height: 172)
 
                 // Track ring
                 Circle()
-                    .stroke(Color.white.opacity(0.07), lineWidth: 14)
-                    .frame(width: 124, height: 124)
+                    .stroke(Color.white.opacity(0.10), lineWidth: 16)
+                    .frame(width: 156, height: 156)
 
-                // Per-metric colored arcs
+                // Per-metric colored arcs — triple-layer neon
                 ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
                     let filled = max(seg.start, seg.start + seg.width * seg.score)
 
-                    // Bloom glow
+                    // Outer wide bloom
                     Circle()
                         .trim(from: seg.start, to: filled)
-                        .stroke(seg.color.opacity(0.30), style: StrokeStyle(lineWidth: 22, lineCap: .butt))
-                        .frame(width: 124, height: 124)
+                        .stroke(seg.color.opacity(0.40), style: StrokeStyle(lineWidth: 38, lineCap: .butt))
+                        .frame(width: 156, height: 156)
                         .rotationEffect(.degrees(-90))
-                        .blur(radius: 7)
+                        .blur(radius: 14)
 
-                    // Crisp filled arc
+                    // Mid bloom
+                    Circle()
+                        .trim(from: seg.start, to: filled)
+                        .stroke(seg.color.opacity(0.65), style: StrokeStyle(lineWidth: 22, lineCap: .butt))
+                        .frame(width: 156, height: 156)
+                        .rotationEffect(.degrees(-90))
+                        .blur(radius: 6)
+
+                    // Crisp neon core
                     Circle()
                         .trim(from: seg.start, to: filled)
                         .stroke(
                             LinearGradient(
-                                colors: [seg.color.opacity(0.7), seg.color],
+                                colors: [seg.color.opacity(0.85), seg.color],
                                 startPoint: .leading, endPoint: .trailing
                             ),
-                            style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 16, lineCap: .round)
                         )
-                        .frame(width: 124, height: 124)
+                        .frame(width: 156, height: 156)
                         .rotationEffect(.degrees(-90))
                         .animation(.spring(response: 0.75, dampingFraction: 0.78), value: seg.score)
-                        .shadow(color: seg.color.opacity(0.65), radius: 6)
+                        .shadow(color: seg.color, radius: 10)
+                        .shadow(color: seg.color.opacity(0.60), radius: 20)
                 }
 
                 // Animal form in center
                 AnimalBodyView(
                     type: appState.selectedAnimal,
                     mood: appState.animalMood,
-                    size: 78,
+                    size: 92,
                     isWalking: false,
                     outfit: appState.equippedOutfit,
                     evolutionStage: appState.animalGrowthStage
                 )
-                .frame(width: 78, height: 78)
+                .frame(width: 92, height: 92)
                 .clipShape(Circle())
             }
-            .frame(width: 136, height: 136)
+            .frame(width: 172, height: 172)
 
             // Score badge
             HStack(spacing: 8) {
                 Circle()
                     .fill(scoreColor)
-                    .frame(width: 8, height: 8)
-                    .shadow(color: scoreColor.opacity(0.8), radius: 4)
+                    .frame(width: 9, height: 9)
+                    .shadow(color: scoreColor, radius: 5)
+                    .shadow(color: scoreColor.opacity(0.60), radius: 10)
                 Text("\(Int(overallScore * 100))%")
-                    .font(.system(size: 15, weight: .black))
+                    .font(.system(size: 17, weight: .black))
                     .foregroundColor(.white)
+                    .shadow(color: scoreColor.opacity(0.70), radius: 6)
                 Text("Life Score")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.50))
+                    .foregroundColor(.white.opacity(0.60))
             }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 7)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(scoreColor.opacity(0.14))
-                    .overlay(Capsule().strokeBorder(scoreColor.opacity(0.35), lineWidth: 1))
+                    .fill(scoreColor.opacity(0.22))
+                    .overlay(Capsule().strokeBorder(scoreColor.opacity(0.65), lineWidth: 1))
             )
+            .shadow(color: scoreColor.opacity(0.45), radius: 12)
 
             // Metric pills
             HStack(spacing: 8) {
@@ -795,21 +883,25 @@ struct LifeMeterView: View {
     }
 
     private func meterPill(_ icon: String, _ label: String, _ pct: Int, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 5) {
-                Text(icon).font(.system(size: 18))
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(label.uppercased())
-                        .font(.system(size: 8, weight: .black))
-                        .foregroundColor(color.opacity(0.85))
-                        .tracking(1.2)
-                    Text("\(pct)%")
-                        .font(.system(size: 22, weight: .black))
-                        .foregroundColor(.white)
-                        .shadow(color: color.opacity(0.45), radius: 4)
-                }
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 4) {
+                Text(icon).font(.system(size: 16))
+                Text("\(pct)%")
+                    .font(.system(size: 17, weight: .black))
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                    .fixedSize()
+                    .shadow(color: color.opacity(0.80), radius: 6)
+                    .shadow(color: color.opacity(0.40), radius: 12)
                 Spacer()
             }
+            Text(label.uppercased())
+                .font(.system(size: 8, weight: .black))
+                .foregroundColor(color.opacity(0.85))
+                .tracking(0.8)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: .infinity, alignment: .leading)
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     Capsule().fill(Color.white.opacity(0.08))
@@ -819,12 +911,13 @@ struct LifeMeterView: View {
                             startPoint: .leading, endPoint: .trailing
                         ))
                         .frame(width: max(geo.size.width * 0.04, geo.size.width * CGFloat(pct) / 100))
-                        .shadow(color: color.opacity(0.55), radius: 4)
+                        .shadow(color: color, radius: 6)
+                        .shadow(color: color.opacity(0.55), radius: 12)
                 }
             }
-            .frame(height: 4)
+            .frame(height: 5)
         }
-        .padding(.horizontal, 10)
+        .padding(.horizontal, 8)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity)
         .background(
@@ -832,19 +925,20 @@ struct LifeMeterView: View {
                 RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
                 RoundedRectangle(cornerRadius: 14)
                     .fill(LinearGradient(
-                        colors: [color.opacity(0.16), Color.black.opacity(0.18)],
+                        colors: [color.opacity(0.28), Color.black.opacity(0.22)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
                 RoundedRectangle(cornerRadius: 14)
                     .strokeBorder(
                         LinearGradient(
-                            colors: [color.opacity(0.50), color.opacity(0.08)],
+                            colors: [color.opacity(0.80), color.opacity(0.20)],
                             startPoint: .top, endPoint: .bottom
                         ),
                         lineWidth: 1
                     )
             }
         )
+        .shadow(color: color.opacity(0.25), radius: 8)
     }
 }
 
