@@ -1406,21 +1406,36 @@ enum TrophyType: String, CaseIterable, Codable, Identifiable {
     case noWeekends         = "No Weekends Off"
     case riseAndGrind       = "Rise & Grind"
     case marathonRunner     = "Marathon Runner"
+    case keepThatShitUp     = "Keep That Shit Up"
+    case youSOB             = "You Son of a Bitch"
+    case thousandDays       = "Thousand Days"
     // EXTRA MONEY
     case debtSlayer         = "Debt Slayer"
     case netWorthKing       = "Net Worth King"
     case subscriptionKiller = "Subscription Killer"
     case tripFunder         = "Trip Funder"
     case coinFlip           = "Coin Flip"
+    case moneyBagMan        = "Money Bag Man"
+    case fiftyKClub         = "Fifty K Club"
+    case savingsGod         = "Savings God"
+    case coinGod            = "Coin God"
+    case bigDreamer         = "Big Dreamer"
+    case payDayGang         = "Pay Day Gang"
     // EXTRA LIFE SCORE
     case bronzeToGold       = "Bronze to Gold"
     case silverToPlat       = "Silver to Platinum"
     case consistentKing     = "Consistent King"
+    case moonShot           = "Moon Shot"
+    case noCap              = "No Cap"
     // EXTRA SOBRIETY
     case twoYearsClean      = "2 Year Legend"
+    case soberAndStrong     = "Sober & Strong"
     // EXTRA FITNESS
     case sweatEveryDay      = "Sweat Every Day"
     case weightGoal         = "Weight Goal Achieved"
+    case spreadLove         = "Spread Love"
+    // EXTRA COMPANION
+    case petParent          = "Pet Parent"
 
     var id: String { rawValue }
 
@@ -1445,16 +1460,20 @@ enum TrophyType: String, CaseIterable, Codable, Identifiable {
             return .companion
         case .ogMember, .legendaryStatus, .completionist, .theGOAT, .tripleTheatActivated:
             return .special
-        case .noWeekends, .riseAndGrind, .marathonRunner:
+        case .noWeekends, .riseAndGrind, .marathonRunner,
+             .keepThatShitUp, .youSOB, .thousandDays:
             return .grind
-        case .debtSlayer, .netWorthKing, .subscriptionKiller, .tripFunder, .coinFlip:
+        case .debtSlayer, .netWorthKing, .subscriptionKiller, .tripFunder, .coinFlip,
+             .moneyBagMan, .fiftyKClub, .savingsGod, .coinGod, .bigDreamer, .payDayGang:
             return .money
-        case .bronzeToGold, .silverToPlat, .consistentKing:
+        case .bronzeToGold, .silverToPlat, .consistentKing, .moonShot, .noCap:
             return .lifeScore
-        case .twoYearsClean:
+        case .twoYearsClean, .soberAndStrong:
             return .sobriety
-        case .sweatEveryDay, .weightGoal:
+        case .sweatEveryDay, .weightGoal, .spreadLove:
             return .fitness
+        case .petParent:
+            return .companion
         }
     }
 
@@ -1475,13 +1494,18 @@ enum TrophyType: String, CaseIterable, Codable, Identifiable {
             return .epic
         case .yearOfTheGrind, .bigBackBreaker, .savingsSuperstar, .apexPredator,
              .level50, .yearOne, .soulBond, .legendaryStatus, .completionist,
-             .theGOAT, .tripleTheatActivated, .twoYearsClean, .netWorthKing:
+             .theGOAT, .tripleTheatActivated, .twoYearsClean, .netWorthKing,
+             .youSOB, .thousandDays, .fiftyKClub, .savingsGod:
             return .legendary
-        case .noWeekends, .riseAndGrind, .coinFlip, .bronzeToGold, .sweatEveryDay, .weightGoal:
+        case .noWeekends, .riseAndGrind, .coinFlip, .bronzeToGold, .sweatEveryDay,
+             .weightGoal, .petParent:
             return .common
         case .marathonRunner, .debtSlayer, .subscriptionKiller, .tripFunder,
-             .silverToPlat, .consistentKing:
+             .silverToPlat, .consistentKing, .keepThatShitUp, .moneyBagMan,
+             .bigDreamer, .payDayGang, .noCap, .soberAndStrong:
             return .rare
+        case .moonShot, .coinGod, .spreadLove:
+            return .epic
         }
     }
 
@@ -1541,17 +1565,31 @@ enum TrophyType: String, CaseIterable, Codable, Identifiable {
         case .noWeekends:              return "📅"
         case .riseAndGrind:            return "☀️"
         case .marathonRunner:          return "🏃"
+        case .keepThatShitUp:          return "💪"
+        case .youSOB:                  return "🤯"
+        case .thousandDays:            return "🌠"
         case .debtSlayer:              return "⚔️"
         case .netWorthKing:            return "👑"
         case .subscriptionKiller:      return "🔪"
         case .tripFunder:              return "✈️"
         case .coinFlip:                return "🪙"
+        case .moneyBagMan:             return "💼"
+        case .fiftyKClub:              return "💸"
+        case .savingsGod:              return "🏦"
+        case .coinGod:                 return "🟡"
+        case .bigDreamer:              return "💭"
+        case .payDayGang:              return "💵"
         case .bronzeToGold:            return "📈"
         case .silverToPlat:            return "💎"
         case .consistentKing:          return "♟️"
+        case .moonShot:                return "🌙"
+        case .noCap:                   return "🧢"
         case .twoYearsClean:           return "🌅"
+        case .soberAndStrong:          return "🦾"
         case .sweatEveryDay:           return "💦"
         case .weightGoal:              return "⚖️"
+        case .spreadLove:              return "❤️"
+        case .petParent:               return "🐾"
         }
     }
 
@@ -1606,22 +1644,36 @@ enum TrophyType: String, CaseIterable, Codable, Identifiable {
         case .ogMember:                return "6 months with AJ Finance. You're an OG."
         case .legendaryStatus:         return "One full year with AJ Finance. You are legendary."
         case .completionist:           return "Earn 40 trophies. The collection is almost complete."
-        case .theGOAT:                 return "All 50 trophies earned. You are THE G.O.A.T."
+        case .theGOAT:                 return "All trophies earned. Every single one. You are THE G.O.A.T."
         case .tripleTheatActivated:    return "All 3 life arcs active simultaneously. You're ALL IN."
         case .noWeekends:              return "Log every day for 2 weekends straight. Weekends don't stop the grind."
         case .riseAndGrind:            return "Open the app 7 days in a row before 9am. Early bird bags the worm."
         case .marathonRunner:          return "Log 200 days total (not necessarily consecutive). The long game wins."
-        case .debtSlayer:              return "Reach positive net worth after being in the negative. You killed the debt."
+        case .keepThatShitUp:          return "45-day streak. You found your rhythm. Now don't lose it."
+        case .youSOB:                  return "200-day streak. You absolute unit. You son of a bitch."
+        case .thousandDays:            return "1,000 total days logged. You are the journey."
+        case .debtSlayer:              return "Reach positive net worth. You killed the debt and built it back."
         case .netWorthKing:            return "Hit $10,000 net worth. You are building an empire."
-        case .subscriptionKiller:      return "Track and review 3+ subscriptions. No more silent leaks."
-        case .tripFunder:              return "Create and fully fund a trip goal. Adventure secured."
+        case .subscriptionKiller:      return "Track 3+ subscriptions. No more bleeding money."
+        case .tripFunder:              return "Create your first trip goal. Adventure secured."
         case .coinFlip:                return "Earn 1,000 AJ coins. The coin machine never stops."
-        case .bronzeToGold:            return "Jump from Bronze to Gold rank in Life Score. Character arc complete."
-        case .silverToPlat:            return "Reach Platinum rank. Silver couldn't hold you."
-        case .consistentKing:          return "Reach level 30. Consistency is your identity now."
-        case .twoYearsClean:           return "730 days sober. Two years. You are an absolute warrior."
-        case .sweatEveryDay:           return "Log a gym workout for 7 days straight. Sweat don't lie."
-        case .weightGoal:              return "Reach your target weight. That goal was always yours."
+        case .moneyBagMan:             return "Save $3,000 total. The bag is getting heavy."
+        case .fiftyKClub:              return "$50,000 saved. You are not the same person who started."
+        case .savingsGod:              return "Complete 15 savings goals. Goals don't scare you anymore."
+        case .coinGod:                 return "Earn 5,000 AJ coins. You own this game."
+        case .bigDreamer:              return "Set 3 goals over $500 at the same time. Think big or go home."
+        case .payDayGang:              return "Income set + 60-day streak. Showing up AND getting paid."
+        case .bronzeToGold:            return "Jump from Bronze to Gold rank. Character arc complete."
+        case .silverToPlat:            return "Hit Platinum rank. Silver couldn't hold you."
+        case .consistentKing:          return "Level 30 reached. Consistency is your identity now."
+        case .moonShot:                return "10,000 XP earned. You shot for the moon and made it."
+        case .noCap:                   return "Fitness arc at 95%+. No cap — your body is elite."
+        case .twoYearsClean:           return "730 days sober. Two full years. You are an absolute warrior."
+        case .soberAndStrong:          return "90 days clean + 30-day gym streak at the same time. Untouchable."
+        case .sweatEveryDay:           return "7-day gym streak. Sweat don't lie."
+        case .weightGoal:              return "Hit your target weight. That goal was always yours."
+        case .spreadLove:              return "Complete 100 daily missions total. You run the missions."
+        case .petParent:               return "Keep your companion alive and healthy. Pure dedication."
         }
     }
 }

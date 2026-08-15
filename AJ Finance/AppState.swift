@@ -2136,31 +2136,48 @@ final class AppState {
         if daysSinceInstall >= 180 { earnTrophy(.ogMember) }
         if daysSinceInstall >= 365 { earnTrophy(.legendaryStatus) }
         if trophies.count >= 40 { earnTrophy(.completionist) }
-        if trophies.count >= 64 { earnTrophy(.theGOAT) }
+        if trophies.count >= 79 { earnTrophy(.theGOAT) }
 
         // EXTRA GRIND
         let totalDays = UserDefaults.standard.integer(forKey: "aj_totalDays")
-        if streak >= 14 { earnTrophy(.noWeekends) }
-        if totalDays >= 200 { earnTrophy(.marathonRunner) }
+        if streak >= 14  { earnTrophy(.noWeekends) }
+        if streak >= 45  { earnTrophy(.keepThatShitUp) }
+        if streak >= 200 { earnTrophy(.youSOB) }
+        if totalDays >= 200  { earnTrophy(.marathonRunner) }
+        if totalDays >= 1000 { earnTrophy(.thousandDays) }
 
         // EXTRA MONEY
         if netWorth >= 0 && !netWorthItems.isEmpty { earnTrophy(.debtSlayer) }
+        if totalSaved >= 3_000  { earnTrophy(.moneyBagMan) }
+        if totalSaved >= 50_000 { earnTrophy(.fiftyKClub) }
+        if completedGoals >= 15 { earnTrophy(.savingsGod) }
+        if animalCoins >= 1000  { earnTrophy(.coinFlip) }
+        if animalCoins >= 5000  { earnTrophy(.coinGod) }
+        let bigGoals = goals.filter { $0.targetAmount >= 500 }.count
+        if bigGoals >= 3 { earnTrophy(.bigDreamer) }
+        if monthlyIncome > 0 && streak >= 60 { earnTrophy(.payDayGang) }
         if netWorth >= 10_000 { earnTrophy(.netWorthKing) }
         if subscriptions.count >= 3 { earnTrophy(.subscriptionKiller) }
         if !trips.isEmpty { earnTrophy(.tripFunder) }
-        if animalCoins >= 1000 { earnTrophy(.coinFlip) }
 
         // EXTRA LIFE SCORE
         if lifeScore >= 0.60 { earnTrophy(.bronzeToGold) }
         if lifeScore >= 0.80 { earnTrophy(.silverToPlat) }
         if level >= 30 { earnTrophy(.consistentKing) }
+        if xp >= 10_000 { earnTrophy(.moonShot) }
+        if gymStreak >= 29 { earnTrophy(.noCap) }
 
         // EXTRA SOBRIETY
         if daysClean >= 730 { earnTrophy(.twoYearsClean) }
+        if daysClean >= 90 && gymStreak >= 30 { earnTrophy(.soberAndStrong) }
 
         // EXTRA FITNESS
         if gymStreak >= 7  { earnTrophy(.sweatEveryDay) }
         if targetWeight > 0 && currentWeight > 0 && currentWeight <= targetWeight { earnTrophy(.weightGoal) }
+        if totalMissionsCompleted >= 100 { earnTrophy(.spreadLove) }
+
+        // COMPANION
+        if animalIsAlive { earnTrophy(.petParent) }
 
         // EARLY MORNING (simplified: if user has any gym streak they're consistent)
         if gymStreak >= 3 { earnTrophy(.riseAndGrind) }
