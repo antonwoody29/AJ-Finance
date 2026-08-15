@@ -1,6 +1,7 @@
 import SwiftUI
 import Foundation
 import CryptoKit
+import UserNotifications
 
 @Observable
 final class AppState {
@@ -2213,6 +2214,49 @@ final class AppState {
         }
     }
 
+    // MARK: - The Spot
+
+    var spotMessages: [SpotMessage] = []
+
+    func sendSpotMessage(_ text: String) {
+        let msg = SpotMessage(
+            senderName:  userName.isEmpty ? "You" : userName,
+            animalEmoji: selectedAnimal.emoji,
+            text:        text,
+            isOwn:       true
+        )
+        spotMessages.append(msg)
+        saveSpotMessages()
+        scheduleSpotNotification(from: userName.isEmpty ? "You" : userName, text: text)
+    }
+
+    func saveSpotMessages() {
+        if let data = try? JSONEncoder().encode(spotMessages) {
+            UserDefaults.standard.set(data, forKey: "aj_spotMessages")
+        }
+    }
+
+    func loadSpotMessages() {
+        if let data = UserDefaults.standard.data(forKey: "aj_spotMessages"),
+           let decoded = try? JSONDecoder().decode([SpotMessage].self, from: data) {
+            spotMessages = decoded
+        }
+    }
+
+    private func scheduleSpotNotification(from name: String, text: String) {
+        let content = UNMutableNotificationContent()
+        content.title = "💬 The Spot"
+        content.body  = "\(name): \(text)"
+        content.sound = .default
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let req = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(req, withCompletionHandler: nil)
+    }
+
+    func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in }
+    }
+
     func generateShareLink() -> String {
         let rankStr: String
         let scores = [savingsScoreForShare, fitnessScoreForShare, sobrietyScoreForShare].filter { $0 > 0 }
@@ -3052,6 +3096,8 @@ final class AppState {
         }
         updateNoSpendStreak()
         loadFriends()
+        loadSpotMessages()
+        requestNotificationPermission()
 
         // Track first open date for OG/Legendary trophies
         if UserDefaults.standard.object(forKey: "aj_firstOpenDate") == nil {

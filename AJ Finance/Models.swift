@@ -4392,3 +4392,14 @@ struct PortfolioHolding: Identifiable, Codable {
     var quantity : Double
     var avgCost  : Double    // USD per unit at purchase
 }
+
+// MARK: - The Spot
+
+struct SpotMessage: Identifiable, Codable {
+    var id           = UUID()
+    var senderName   : String
+    var animalEmoji  : String
+    var text         : String
+    var date         : Date = Date()
+    var isOwn        : Bool = false   // true = sent by the local user
+}

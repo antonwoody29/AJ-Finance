@@ -5,6 +5,7 @@ struct SocialView: View {
     @State private var showShareSheet = false
     @State private var friendToRemove: FriendProfile? = nil
     @State private var pulseScale: CGFloat = 1.0
+    @State private var showTheSpot = false
 
     var body: some View {
         ZStack {
@@ -14,6 +15,9 @@ struct SocialView: View {
                     // Your profile card
                     myProfileCard
                         .padding(.top, 8)
+
+                    // The Spot banner
+                    theSpotBanner
 
                     // Share button
                     shareButton
@@ -30,6 +34,7 @@ struct SocialView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        .navigationDestination(isPresented: $showTheSpot) { TheSpotView() }
         .sheet(isPresented: $showShareSheet) {
             ShareActivityView(link: appState.generateShareLink(), message: appState.shareMessage)
         }
@@ -162,6 +167,79 @@ struct SocialView: View {
                 .tracking(0.5)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    // MARK: - The Spot Banner
+
+    private var theSpotBanner: some View {
+        Button { showTheSpot = true } label: {
+            HStack(spacing: 14) {
+                // Animated pet cluster preview
+                ZStack {
+                    ForEach(Array(spotPreviewEmojis.enumerated()), id: \.offset) { i, emoji in
+                        Text(emoji)
+                            .font(.system(size: 20))
+                            .offset(x: CGFloat(i) * 18 - CGFloat(spotPreviewEmojis.count - 1) * 9)
+                    }
+                }
+                .frame(width: 60, height: 44)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 6) {
+                        Text("The Spot")
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(.white)
+                        Text("LIVE")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.ajGreen)
+                            .tracking(1.5)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.ajGreen.opacity(0.18)))
+                    }
+                    Text("Your crew's hangout · chat + motivate")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.50))
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.30))
+            }
+            .padding(16)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.55, green: 0.0, blue: 0.9).opacity(0.20),
+                                    Color(red: 1.0, green: 0.549, blue: 0.0).opacity(0.12),
+                                ],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.purple.opacity(0.55), Color.ajOrange.opacity(0.40)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1.5
+                        )
+                }
+            )
+            .shadow(color: Color.purple.opacity(0.18), radius: 10, y: 4)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var spotPreviewEmojis: [String] {
+        var emojis = [appState.selectedAnimal.emoji]
+        emojis += appState.friends.prefix(3).map { $0.animalEmoji }
+        return emojis
     }
 
     // MARK: - Share Button
