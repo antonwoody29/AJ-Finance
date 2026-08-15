@@ -76,8 +76,6 @@ struct TheSpotView: View {
                     worldPickerPill
                         .padding(.leading, 16)
                     Spacer()
-                    mutePill
-                        .padding(.trailing, 16)
                 }
                 .padding(.top, 106)
                 Spacer()
@@ -112,13 +110,6 @@ struct TheSpotView: View {
         }
         .onAppear {
             lastSeenCount = appState.spotMessages.count
-            SpotAmbientPlayer.shared.play(appState.spotBackground)
-        }
-        .onDisappear {
-            SpotAmbientPlayer.shared.stop()
-        }
-        .onChange(of: appState.spotBackground) {
-            SpotAmbientPlayer.shared.play(appState.spotBackground)
         }
     }
 
@@ -206,25 +197,6 @@ struct TheSpotView: View {
             )
             .shadow(color: .black.opacity(0.40), radius: 10, y: 3)
             .contentShape(Capsule())
-        }
-        .buttonStyle(PillButtonStyle())
-    }
-
-    private var mutePill: some View {
-        Button {
-            SpotAmbientPlayer.shared.setMuted(!SpotAmbientPlayer.shared.isMuted)
-        } label: {
-            Image(systemName: SpotAmbientPlayer.shared.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(.white.opacity(SpotAmbientPlayer.shared.isMuted ? 0.45 : 0.90))
-                .frame(width: 38, height: 38)
-                .background(
-                    Circle()
-                        .fill(.ultraThinMaterial)
-                        .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
-                )
-                .shadow(color: .black.opacity(0.35), radius: 8, y: 2)
-                .contentShape(Circle())
         }
         .buttonStyle(PillButtonStyle())
     }
