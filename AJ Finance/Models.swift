@@ -4403,3 +4403,69 @@ struct SpotMessage: Identifiable, Codable {
     var date         : Date = Date()
     var isOwn        : Bool = false   // true = sent by the local user
 }
+
+enum SpotBackground: String, CaseIterable, Codable {
+    case forest       = "forest"
+    case beach        = "beach"
+    case jungle       = "jungle"
+    case space        = "space"
+    case volcano      = "volcano"
+    case snow         = "snow"
+    case meadow       = "meadow"
+    case ocean        = "ocean"
+    case mountain     = "mountain"
+    case woodland     = "woodland"
+    case candy        = "candy"
+    case cherry       = "cherry"
+
+    var displayName: String {
+        switch self {
+        case .forest:   return "Forest"
+        case .beach:    return "Beach"
+        case .jungle:   return "Jungle"
+        case .space:    return "Space"
+        case .volcano:  return "Volcano"
+        case .snow:     return "Arctic"
+        case .meadow:   return "Meadow"
+        case .ocean:    return "Ocean"
+        case .mountain: return "Mountains"
+        case .woodland: return "Moonlit"
+        case .candy:    return "Candy Land"
+        case .cherry:   return "Cherry Blossom"
+        }
+    }
+
+    var emoji: String {
+        switch self {
+        case .forest:   return "🌲"
+        case .beach:    return "🏖️"
+        case .jungle:   return "🌴"
+        case .space:    return "🌌"
+        case .volcano:  return "🌋"
+        case .snow:     return "❄️"
+        case .meadow:   return "🌻"
+        case .ocean:    return "🌊"
+        case .mountain: return "⛰️"
+        case .woodland: return "🌙"
+        case .candy:    return "🍭"
+        case .cherry:   return "🌸"
+        }
+    }
+
+    var habitat: AnimalHabitat {
+        switch self {
+        case .forest:   return .forest
+        case .beach:    return .beach
+        case .jungle:   return .jungle
+        case .space:    return .cloudland
+        case .volcano:  return .volcano
+        case .snow:     return .arctic
+        case .meadow:   return .meadow
+        case .ocean:    return .ocean
+        case .mountain: return .mountain
+        case .woodland: return .woodland
+        case .candy:    return .candy
+        case .cherry:   return .bamboo
+        }
+    }
+}

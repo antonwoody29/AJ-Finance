@@ -2216,6 +2216,7 @@ final class AppState {
 
     // MARK: - The Spot
 
+    var spotBackground: SpotBackground = .forest
     var spotMessages: [SpotMessage] = []
 
     func sendSpotMessage(_ text: String) {
@@ -2241,6 +2242,19 @@ final class AppState {
            let decoded = try? JSONDecoder().decode([SpotMessage].self, from: data) {
             spotMessages = decoded
         }
+        if let raw = UserDefaults.standard.string(forKey: "aj_spotBackground"),
+           let bg = SpotBackground(rawValue: raw) {
+            spotBackground = bg
+        }
+    }
+
+    func setSpotBackground(_ bg: SpotBackground) {
+        spotBackground = bg
+        UserDefaults.standard.set(bg.rawValue, forKey: "aj_spotBackground")
+        let msg = SpotMessage(senderName: userName.isEmpty ? "You" : userName, animalEmoji: selectedAnimal.emoji,
+                              text: "🎨 Changed the world to \(bg.displayName)", isOwn: true)
+        spotMessages.append(msg)
+        saveSpotMessages()
     }
 
     private func scheduleSpotNotification(from name: String, text: String) {

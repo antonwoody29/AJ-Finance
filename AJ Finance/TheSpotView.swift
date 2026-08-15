@@ -4,7 +4,8 @@ import SwiftUI
 
 struct TheSpotView: View {
     @Environment(AppState.self) private var appState
-    @State private var showChat = false
+    @State private var showChat        = false
+    @State private var showWorldPicker = false
     @State private var lastSeenCount: Int = 0
 
     struct SpotParticipant {
@@ -37,10 +38,10 @@ struct TheSpotView: View {
 
     private func stageFromLevel(_ level: Int) -> Int {
         switch level {
-        case ..<5:  return 0
-        case 5..<15: return 1
+        case ..<5:    return 0
+        case 5..<15:  return 1
         case 15..<28: return 2
-        default:    return 3
+        default:      return 3
         }
     }
 
@@ -48,19 +49,41 @@ struct TheSpotView: View {
         max(0, appState.spotMessages.count - lastSeenCount)
     }
 
+    private var habitat: AnimalHabitat { appState.spotBackground.habitat }
+
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Full home-screen environment
-            AJRichBackground()
+            // Sky gradient driven by selected world
+            LinearGradient(
+                colors: [habitat.skyTop, habitat.skyBottom],
+                startPoint: .top, endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
+            // Rich habitat scene (trees, mountains, etc.)
+            HabitatBackLayer(habitat: habitat, isAlive: true, parallaxX: 0)
                 .ignoresSafeArea()
 
-            // World scene — animals on the ground
+            // Pets on the ground
             GeometryReader { geo in
                 worldLayer(geo: geo)
             }
             .ignoresSafeArea(edges: .bottom)
 
-            // Floating chat button — sits above tab bar
+            // World picker pill button — top left, below nav bar
+            VStack {
+                HStack {
+                    worldPickerPill
+                        .padding(.leading, 16)
+                    Spacer()
+                    mutePill
+                        .padding(.trailing, 16)
+                }
+                .padding(.top, 106)
+                Spacer()
+            }
+
+            // Chat FAB — bottom right
             VStack {
                 Spacer()
                 HStack {
@@ -81,7 +104,22 @@ struct TheSpotView: View {
                 .presentationDragIndicator(.visible)
                 .presentationBackground(.ultraThinMaterial)
         }
-        .onAppear { lastSeenCount = appState.spotMessages.count }
+        .sheet(isPresented: $showWorldPicker) {
+            WorldPickerSheet()
+                .environment(appState)
+                .presentationDetents([.height(520)])
+                .presentationDragIndicator(.visible)
+        }
+        .onAppear {
+            lastSeenCount = appState.spotMessages.count
+            SpotAmbientPlayer.shared.play(appState.spotBackground)
+        }
+        .onDisappear {
+            SpotAmbientPlayer.shared.stop()
+        }
+        .onChange(of: appState.spotBackground) {
+            SpotAmbientPlayer.shared.play(appState.spotBackground)
+        }
     }
 
     // MARK: - World layer
@@ -92,11 +130,11 @@ struct TheSpotView: View {
         let count   = pets.count
 
         return ZStack {
-            // Ground fog strip
+            // Ground shadow fog
             Ellipse()
                 .fill(
                     LinearGradient(
-                        colors: [Color.black.opacity(0.18), Color.clear],
+                        colors: [Color.black.opacity(0.22), Color.clear],
                         startPoint: .top, endPoint: .bottom
                     )
                 )
@@ -108,14 +146,12 @@ struct TheSpotView: View {
                 let xPos = petX(idx: idx, total: count, width: geo.size.width)
                 let canvasSize: CGFloat = pet.isOwn ? 110 : 90
 
-                // Ground shadow
                 Ellipse()
-                    .fill(Color.black.opacity(0.30))
+                    .fill(Color.black.opacity(0.28))
                     .frame(width: canvasSize * 0.70, height: 10)
                     .blur(radius: 6)
                     .position(x: xPos, y: groundY + 10)
 
-                // Actual AnimalCanvas — real mood, outfit, evolution stage
                 SpotAnimalFigure(
                     participant: pet,
                     size: canvasSize,
@@ -124,26 +160,73 @@ struct TheSpotView: View {
                 .position(x: xPos, y: groundY - canvasSize * 0.44)
             }
 
-            // "In the world" count pill — top centre
-            HStack(spacing: 5) {
+            // World name + count pill — top centre
+            HStack(spacing: 6) {
                 Circle().fill(Color.ajGreen).frame(width: 6, height: 6)
-                Text("\(count) in the world")
+                Text("\(count) in \(appState.spotBackground.displayName)")
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.55))
+                    .foregroundColor(.white.opacity(0.75))
+                Text(appState.spotBackground.emoji)
+                    .font(.system(size: 10))
             }
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 12)
             .padding(.vertical, 5)
-            .background(Capsule().fill(Color.black.opacity(0.30)))
-            .position(x: geo.size.width / 2, y: geo.safeAreaInsets.top + 18)
+            .background(Capsule().fill(Color.black.opacity(0.35)))
+            .position(x: geo.size.width / 2, y: geo.safeAreaInsets.top + 20)
         }
     }
 
-    // Evenly space pets across the screen with edge padding
     private func petX(idx: Int, total: Int, width: CGFloat) -> CGFloat {
         let padding: CGFloat = 44
         let usable = width - padding * 2
         if total == 1 { return width / 2 }
         return padding + usable * CGFloat(idx) / CGFloat(total - 1)
+    }
+
+    // MARK: - World picker pill button
+
+    private var worldPickerPill: some View {
+        Button { showWorldPicker = true } label: {
+            HStack(spacing: 7) {
+                Text(appState.spotBackground.emoji)
+                    .font(.system(size: 16))
+                Text(appState.spotBackground.displayName)
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundColor(.white)
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(.white.opacity(0.70))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 9)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(Capsule().stroke(Color.white.opacity(0.30), lineWidth: 1))
+            )
+            .shadow(color: .black.opacity(0.40), radius: 10, y: 3)
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PillButtonStyle())
+    }
+
+    private var mutePill: some View {
+        Button {
+            SpotAmbientPlayer.shared.setMuted(!SpotAmbientPlayer.shared.isMuted)
+        } label: {
+            Image(systemName: SpotAmbientPlayer.shared.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.white.opacity(SpotAmbientPlayer.shared.isMuted ? 0.45 : 0.90))
+                .frame(width: 38, height: 38)
+                .background(
+                    Circle()
+                        .fill(.ultraThinMaterial)
+                        .overlay(Circle().stroke(Color.white.opacity(0.25), lineWidth: 1))
+                )
+                .shadow(color: .black.opacity(0.35), radius: 8, y: 2)
+                .contentShape(Circle())
+        }
+        .buttonStyle(PillButtonStyle())
     }
 
     // MARK: - Chat FAB
@@ -165,7 +248,6 @@ struct TheSpotView: View {
                     .font(.system(size: 22))
                     .foregroundColor(.white)
 
-                // Unread badge
                 if unread > 0 {
                     ZStack {
                         Circle()
@@ -183,7 +265,7 @@ struct TheSpotView: View {
     }
 }
 
-// MARK: - Spot Animal Figure (uses real AnimalCanvas)
+// MARK: - Spot Animal Figure
 
 private struct SpotAnimalFigure: View {
     let participant: TheSpotView.SpotParticipant
@@ -195,7 +277,6 @@ private struct SpotAnimalFigure: View {
     var body: some View {
         VStack(spacing: 6) {
             ZStack {
-                // Aura glow
                 Circle()
                     .fill(
                         participant.isOwn
@@ -205,7 +286,6 @@ private struct SpotAnimalFigure: View {
                     .frame(width: size * 0.85, height: size * 0.85)
                     .blur(radius: 16)
 
-                // Real drawn animal
                 AnimalCanvas(
                     type:           participant.animalType,
                     mood:           participant.mood,
@@ -217,7 +297,6 @@ private struct SpotAnimalFigure: View {
             }
             .offset(y: bob)
 
-            // Name + mood tag
             HStack(spacing: 4) {
                 Text(moodIcon)
                     .font(.system(size: 9))
@@ -260,6 +339,145 @@ private struct SpotAnimalFigure: View {
     }
 }
 
+// MARK: - Press-scale button style
+
+struct PillButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.93 : 1.0)
+            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: configuration.isPressed)
+    }
+}
+
+// MARK: - World Picker Sheet
+
+struct WorldPickerSheet: View {
+    @Environment(AppState.self) private var appState
+    @Environment(\.dismiss) private var dismiss
+
+    private let columns = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("CHOOSE YOUR WORLD")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.white.opacity(0.50))
+                        .tracking(2)
+                    Text("Tap a world to switch")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.35))
+                }
+                Spacer()
+                Button("Done") { dismiss() }
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.ajOrange)
+            }
+            .padding(.horizontal, 22)
+            .padding(.top, 22)
+            .padding(.bottom, 14)
+
+            Divider().opacity(0.12)
+
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 14) {
+                    ForEach(SpotBackground.allCases, id: \.self) { bg in
+                        WorldCard(bg: bg, isSelected: appState.spotBackground == bg) {
+                            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                                appState.setSpotBackground(bg)
+                            }
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) { dismiss() }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 28)
+            }
+        }
+        .background(
+            ZStack {
+                Color(red: 0.07, green: 0.03, blue: 0.12)
+                LinearGradient(
+                    colors: [Color.ajOrange.opacity(0.07), .clear],
+                    startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.5)
+                )
+            }
+            .ignoresSafeArea()
+        )
+    }
+}
+
+// MARK: - World Card
+
+private struct WorldCard: View {
+    let bg: SpotBackground
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    @State private var pulse: CGFloat = 1.0
+
+    private var habitat: AnimalHabitat { bg.habitat }
+
+    var body: some View {
+        Button(action: onSelect) {
+            VStack(spacing: 8) {
+                ZStack(alignment: .topTrailing) {
+                    // Sky preview
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [habitat.skyTop, habitat.skyBottom],
+                            startPoint: .top, endPoint: .bottom
+                        ))
+                        .frame(height: 82)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(
+                                    isSelected ? Color.ajOrange : Color.white.opacity(0.14),
+                                    lineWidth: isSelected ? 2.5 : 1
+                                )
+                        )
+                        .shadow(
+                            color: isSelected ? Color.ajOrange.opacity(0.45) : .clear,
+                            radius: 10
+                        )
+
+                    // World emoji
+                    Text(bg.emoji)
+                        .font(.system(size: 34))
+
+                    // Selected checkmark
+                    if isSelected {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.ajOrange)
+                            .background(Circle().fill(Color.black.opacity(0.5)).padding(-2))
+                            .padding(6)
+                            .scaleEffect(pulse)
+                    }
+                }
+
+                Text(bg.displayName)
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundColor(isSelected ? .ajOrange : .white.opacity(0.65))
+                    .tracking(0.3)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+        }
+        .buttonStyle(.plain)
+        .onAppear {
+            if isSelected {
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    pulse = 1.18
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Chat Sheet
 
 struct SpotChatSheet: View {
@@ -281,7 +499,6 @@ struct SpotChatSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
             HStack {
                 Text("The Spot")
                     .font(.system(size: 17, weight: .black))
@@ -297,7 +514,6 @@ struct SpotChatSheet: View {
 
             Divider().opacity(0.5)
 
-            // Feed
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(spacing: 10) {
@@ -324,7 +540,6 @@ struct SpotChatSheet: View {
                 }
             }
 
-            // Quick phrases
             if showQuickPhrases {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
@@ -353,7 +568,6 @@ struct SpotChatSheet: View {
                 .background(Color.primary.opacity(0.04))
             }
 
-            // Input bar
             HStack(spacing: 10) {
                 Button {
                     withAnimation(.spring(response: 0.3)) { showQuickPhrases.toggle() }
