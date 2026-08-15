@@ -15,6 +15,8 @@ final class AppState {
 
     // MARK: - Gamification
     var badges: [Badge] = []
+    var trophies: [Trophy] = []
+    var totalMissionsCompleted: Int = 0
     var xp: Int = 0
     var level: Int = 1
     var streak: Int = 0
@@ -2028,12 +2030,140 @@ final class AppState {
         if petBondLevel >= 50       { earnBadge(.bondMaster) }
         let missionsDone = (dailyMissions + weeklyMissions).filter(\.isCompleted).count
         if missionsDone >= 10       { earnBadge(.missionsPro) }
+        checkTrophies()
     }
 
     func earnBadge(_ type: BadgeType) {
         guard !badges.contains(where: { $0.type == type }) else { return }
         badges.append(Badge(type: type))
         showToast("Badge unlocked: \(type.rawValue) \(type.icon)", icon: type.icon, color: .ajGold)
+    }
+
+    // MARK: - Trophy System
+
+    func earnTrophy(_ type: TrophyType) {
+        guard !trophies.contains(where: { $0.type == type }) else { return }
+        trophies.append(Trophy(type: type))
+        let rarityLabel: String
+        switch type.rarity {
+        case .common:    rarityLabel = ""
+        case .rare:      rarityLabel = "🔵 Rare"
+        case .epic:      rarityLabel = "🟣 Epic"
+        case .legendary: rarityLabel = "⭐ Legendary"
+        }
+        let suffix = rarityLabel.isEmpty ? "" : " · \(rarityLabel)"
+        showToast("🏆 \(type.rawValue)\(suffix)", icon: type.icon, color: type.rarity.color)
+        save()
+    }
+
+    func checkTrophies() {
+        // Compute life score inline (mirrors LifeMeterView logic)
+        var scores: [Double] = []
+        let savScore: Double = {
+            let ag = activeGoals
+            guard !ag.isEmpty else { return 0 }
+            return min(ag.reduce(0.0) { $0 + $1.progress } / Double(ag.count), 1.0)
+        }()
+        scores.append(savScore)
+        if gymStreak > 0 { scores.append(min(Double(gymStreak) / 30.0, 1.0)) }
+        if hasSobrietyGoal { scores.append(min(Double(daysClean) / 365.0, 1.0)) }
+        let lifeScore = scores.isEmpty ? 0 : scores.reduce(0, +) / Double(scores.count)
+
+        // GRIND
+        if streak >= 14  { earnTrophy(.noDaysOff) }
+        if streak >= 30  { earnTrophy(.dailyDriver) }
+        if streak >= 60  { earnTrophy(.grindNoStop) }
+        if streak >= 90  { earnTrophy(.seasonGrinder) }
+        if streak >= 100 { earnTrophy(.ironWill) }
+        if streak >= 365 { earnTrophy(.yearOfTheGrind) }
+        if totalMissionsCompleted >= 10 { earnTrophy(.mondayMachine) }
+        if totalMissionsCompleted >= 50 { earnTrophy(.missionDomination) }
+
+        // MONEY
+        let hasSetup = monthlyIncome > 0 && !goals.isEmpty && totalSaved > 0
+        if hasSetup { earnTrophy(.gettingYourShitTogether) }
+        if totalSaved >= 5_000  { earnTrophy(.bigBackBreaker) }
+        if totalSaved >= 10_000 { earnTrophy(.paperChaser) }
+        if totalSaved >= 25_000 { earnTrophy(.savingsSuperstar) }
+        let completedGoals = goals.filter { $0.isCompleted }.count
+        if completedGoals >= 5  { earnTrophy(.breadWinner) }
+        if completedGoals >= 10 { earnTrophy(.goalMachine) }
+        if savingsStreak >= 3   { earnTrophy(.budgetGangster) }
+        if !subscriptions.isEmpty { earnTrophy(.noLeaks) }
+        if netWorth >= 1_000 { earnTrophy(.selfMade) }
+        for g in goals where g.targetAmount >= 5_000 { earnTrophy(.millionaireMindset); break }
+        if noSpendStreak >= 30 { earnTrophy(.frugalGod) }
+        if receiptCount >= 100 { earnTrophy(.stackItUp) }
+
+        // LIFE SCORE
+        if lifeScore >= 0.50 { earnTrophy(.risingStar) }
+        if lifeScore >= 0.60 { earnTrophy(.comebackSeason) }
+        if lifeScore >= 0.80 { earnTrophy(.eliteStatus) }
+        if lifeScore >= 0.90 { earnTrophy(.builtDifferent) }
+        if lifeScore >= 1.00 { earnTrophy(.apexPredator) }
+        if level >= 20 { earnTrophy(.level20) }
+        if level >= 50 { earnTrophy(.level50) }
+        if trophies.count >= 25 { earnTrophy(.theJourney) }
+
+        // FITNESS
+        if gymStreak >= 14 { earnTrophy(.neverSkip) }
+        if gymStreak >= 30 { earnTrophy(.bodyRight) }
+        if gymStreak >= 60 { earnTrophy(.gymRat) }
+        if gymStreak >= 90 { earnTrophy(.peakForm) }
+        if gymStreak > 0 && totalSaved >= 500 { earnTrophy(.doubleThreat) }
+        if hasSobrietyGoal && gymStreak > 0 && lifeScore >= 0.70 { earnTrophy(.tripleTheat) }
+
+        // SOBRIETY
+        if hasSobrietyGoal                  { earnTrophy(.firstStep) }
+        if daysClean >= 7                   { earnTrophy(.oneWeekClean) }
+        if daysClean >= 30                  { earnTrophy(.oneMonthStrong) }
+        if daysClean >= 90                  { earnTrophy(.ninetyDays) }
+        if daysClean >= 180                 { earnTrophy(.halfYearHero) }
+        if daysClean >= 365                 { earnTrophy(.yearOne) }
+        if daysClean >= 30 && totalSaved >= 500 { earnTrophy(.cleanAndRich) }
+
+        // COMPANION
+        if petBondLevel >= 25 { earnTrophy(.bestFriend) }
+        if petBondLevel >= 50 { earnTrophy(.familyMan) }
+        if petBondLevel >= 75 { earnTrophy(.soulBond) }
+        if animalDeathCount >= 1 && animalIsAlive { earnTrophy(.phoenixRising) }
+        if animalHealth >= 95 { earnTrophy(.nurtureMode) }
+
+        // SPECIAL
+        if hasSobrietyGoal && gymStreak > 0 { earnTrophy(.tripleTheatActivated) }
+        let firstOpen = UserDefaults.standard.object(forKey: "aj_firstOpenDate") as? Date ?? Date()
+        let daysSinceInstall = Calendar.current.dateComponents([.day], from: firstOpen, to: Date()).day ?? 0
+        if daysSinceInstall >= 180 { earnTrophy(.ogMember) }
+        if daysSinceInstall >= 365 { earnTrophy(.legendaryStatus) }
+        if trophies.count >= 40 { earnTrophy(.completionist) }
+        if trophies.count >= 64 { earnTrophy(.theGOAT) }
+
+        // EXTRA GRIND
+        let totalDays = UserDefaults.standard.integer(forKey: "aj_totalDays")
+        if streak >= 14 { earnTrophy(.noWeekends) }
+        if totalDays >= 200 { earnTrophy(.marathonRunner) }
+
+        // EXTRA MONEY
+        if netWorth >= 0 && !netWorthItems.isEmpty { earnTrophy(.debtSlayer) }
+        if netWorth >= 10_000 { earnTrophy(.netWorthKing) }
+        if subscriptions.count >= 3 { earnTrophy(.subscriptionKiller) }
+        if !trips.isEmpty { earnTrophy(.tripFunder) }
+        if animalCoins >= 1000 { earnTrophy(.coinFlip) }
+
+        // EXTRA LIFE SCORE
+        if lifeScore >= 0.60 { earnTrophy(.bronzeToGold) }
+        if lifeScore >= 0.80 { earnTrophy(.silverToPlat) }
+        if level >= 30 { earnTrophy(.consistentKing) }
+
+        // EXTRA SOBRIETY
+        if daysClean >= 730 { earnTrophy(.twoYearsClean) }
+
+        // EXTRA FITNESS
+        if gymStreak >= 7  { earnTrophy(.sweatEveryDay) }
+        if targetWeight > 0 && currentWeight > 0 && currentWeight <= targetWeight { earnTrophy(.weightGoal) }
+
+        // EARLY MORNING (simplified: if user has any gym streak they're consistent)
+        if gymStreak >= 3 { earnTrophy(.riseAndGrind) }
     }
 
     // MARK: - Extended Pet Stats
@@ -2213,6 +2343,7 @@ final class AppState {
                 guard !weeklyMissions[idx2].isCompleted else { return }
                 weeklyMissions[idx2].completedDate = Date()
                 awardMissionRewards(weeklyMissions[idx2])
+                totalMissionsCompleted += 1
                 saveMissions()
             }
             return
@@ -2220,6 +2351,7 @@ final class AppState {
         guard !dailyMissions[idx].isCompleted else { return }
         dailyMissions[idx].completedDate = Date()
         awardMissionRewards(dailyMissions[idx])
+        totalMissionsCompleted += 1
         checkCombinedGoalBonus()
         saveMissions()
     }
@@ -2346,6 +2478,8 @@ final class AppState {
         var goals: [SavingsGoal]
         var transactions: [SpendEntry]
         var badges: [Badge]
+        var trophies: [Trophy]? = nil
+        var totalMissionsCompleted: Int? = nil
         var xp, level, streak, receiptCount: Int
         var lastLogDate: Date?
         var accountabilityMode: AccountabilityMode
@@ -2460,6 +2594,7 @@ final class AppState {
         let data = SaveData(
             userName: userName, hasCompletedOnboarding: hasCompletedOnboarding,
             goals: goals, transactions: transactions, badges: badges,
+            trophies: trophies, totalMissionsCompleted: totalMissionsCompleted,
             xp: xp, level: level, streak: streak, receiptCount: receiptCount,
             lastLogDate: lastLogDate,
             accountabilityMode: accountabilityMode, ajPersonality: ajPersonality,
@@ -2755,6 +2890,8 @@ final class AppState {
         userName = d.userName
         hasCompletedOnboarding = isSimBuild ? true : d.hasCompletedOnboarding
         goals = d.goals; badges = d.badges
+        trophies = d.trophies ?? []
+        totalMissionsCompleted = d.totalMissionsCompleted ?? 0
         if isSimBuild && d.transactions.isEmpty {
             let now = Date()
             transactions = [
@@ -2806,5 +2943,12 @@ final class AppState {
             noSpendMilestonesClaimed = decoded
         }
         updateNoSpendStreak()
+
+        // Track first open date for OG/Legendary trophies
+        if UserDefaults.standard.object(forKey: "aj_firstOpenDate") == nil {
+            UserDefaults.standard.set(Date(), forKey: "aj_firstOpenDate")
+        }
+
+        checkTrophies()
     }
 }

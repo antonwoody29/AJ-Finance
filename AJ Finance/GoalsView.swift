@@ -6,6 +6,7 @@ struct GoalsView: View {
     @State private var showNetWorth = false
     @State private var showJars = false
     @State private var showChallenges = false
+    @State private var showTrophies = false
 
     var body: some View {
         ZStack {
@@ -20,6 +21,9 @@ struct GoalsView: View {
                     lyfeBudgetCard
 
                     // Feature cards row
+                    // Trophy card (full width)
+                    trophyCard
+
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 14) {
                         featureCard(emoji: "📊", title: "Net Worth", subtitle: appState.netWorthItems.isEmpty ? "Track assets & debts" : netWorthLabel, color: .ajGreen) { showNetWorth = true }
                         featureCard(emoji: "🫙", title: "Savings Jars", subtitle: appState.savingsJars.isEmpty ? "Create money jars" : "\(appState.savingsJars.count) jar\(appState.savingsJars.count == 1 ? "" : "s") · $\(String(format: "%.0f", appState.savingsJars.reduce(0) { $0 + $1.currentAmount })) saved", color: Color(red: 0.6, green: 0.42, blue: 1.0)) { showJars = true }
@@ -41,6 +45,7 @@ struct GoalsView: View {
         .navigationDestination(isPresented: $showJars)        { SavingsJarsView() }
         .navigationDestination(isPresented: $showChallenges)  { SpendingChallengesView() }
         .navigationDestination(isPresented: $showSubsNav)     { SubscriptionGraveyardView() }
+        .navigationDestination(isPresented: $showTrophies)    { TrophiesView() }
     }
 
     @State private var showSubsNav = false
@@ -89,6 +94,57 @@ struct GoalsView: View {
         AJCard {
             LifeMeterView()
         }
+    }
+
+    private var trophyCard: some View {
+        let earned = appState.trophies.count
+        let total  = TrophyType.allCases.count
+        let lastTrophy = appState.trophies.sorted { $0.earnedDate > $1.earnedDate }.first
+
+        return Button { showTrophies = true } label: {
+            HStack(spacing: 10) {
+                Text("🏆").font(.system(size: 22))
+
+                Text("Trophy Case")
+                    .font(.system(size: 14, weight: .black))
+                    .foregroundColor(.white)
+
+                if let last = lastTrophy {
+                    Text("· \(last.type.icon) \(last.type.rawValue)")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.50))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Text("\(earned)/\(total)")
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundStyle(
+                        LinearGradient(colors: [Color.ajGold, Color(red: 1, green: 0.65, blue: 0)],
+                                       startPoint: .top, endPoint: .bottom)
+                    )
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.30))
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 11)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(LinearGradient(
+                            colors: [Color.ajGold.opacity(0.16), Color.ajGold.opacity(0.04)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.ajGold.opacity(0.40), lineWidth: 1.2)
+                }
+            )
+            .shadow(color: Color.ajGold.opacity(0.12), radius: 6, y: 2)
+        }
+        .buttonStyle(.plain)
     }
 
     private var lyfeBudgetCard: some View {
