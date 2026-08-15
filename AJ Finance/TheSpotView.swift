@@ -83,49 +83,20 @@ struct TheSpotView: View {
         }
     }
 
-    // MARK: - Pet Room Scene
+    // MARK: - World Scene
 
     private var petRoomScene: some View {
-        ZStack {
-            // Floor
-            Ellipse()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.3, green: 0.1, blue: 0.5).opacity(0.25), Color.clear],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                )
-                .frame(width: 340, height: 60)
-                .offset(y: 80)
-                .blur(radius: 4)
-
-            // Friends' pets — spread across the scene
-            let participants = spotParticipants
-            ForEach(Array(participants.enumerated()), id: \.offset) { idx, p in
-                PetAvatar(
-                    emoji: p.emoji,
-                    name: p.name,
-                    isOwn: p.isOwn,
-                    xOffset: petXOffset(index: idx, total: participants.count),
-                    yOffset: petYOffset(index: idx, total: participants.count),
-                    phase: Double(idx) * 0.4
-                )
-            }
-
-            // Room label
-            VStack {
-                HStack(spacing: 6) {
-                    Circle()
-                        .fill(Color.ajGreen)
-                        .frame(width: 6, height: 6)
-                    Text("\(spotParticipants.count) in the room")
+        WorldScene(participants: spotParticipants)
+            .frame(height: 260)
+            .overlay(alignment: .top) {
+                HStack(spacing: 5) {
+                    Circle().fill(Color.ajGreen).frame(width: 6, height: 6)
+                    Text("\(spotParticipants.count) in the world")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.white.opacity(0.45))
                 }
-                Spacer()
+                .padding(.top, 10)
             }
-            .padding(.top, 8)
-        }
     }
 
     private var spotParticipants: [(emoji: String, name: String, isOwn: Bool)] {
@@ -136,16 +107,6 @@ struct TheSpotView: View {
             list.append((f.animalEmoji, f.name, false))
         }
         return list
-    }
-
-    private func petXOffset(index: Int, total: Int) -> CGFloat {
-        let positions: [CGFloat] = [-130, 0, 130, -90, 90, -40]
-        return positions[safe: index] ?? CGFloat(index * 60 - 90)
-    }
-
-    private func petYOffset(index: Int, total: Int) -> CGFloat {
-        let positions: [CGFloat] = [20, 30, 15, -10, 5, 40]
-        return positions[safe: index] ?? 0
     }
 
     // MARK: - Message Feed
@@ -307,61 +268,205 @@ struct TheSpotView: View {
     }
 }
 
-// MARK: - Pet Avatar
+// MARK: - World Scene
 
-private struct PetAvatar: View {
+private struct WorldScene: View {
+    let participants: [(emoji: String, name: String, isOwn: Bool)]
+
+    @State private var orbitAngle: Double = 0
+    @State private var globePulse: CGFloat = 1.0
+
+    // Stars — fixed positions derived from index
+    private let stars: [(x: CGFloat, y: CGFloat, size: CGFloat, opacity: Double)] = (0..<28).map { i in
+        let seed = Double(i * 137 + 41)
+        return (
+            x:       CGFloat(sin(seed) * 155),
+            y:       CGFloat(cos(seed * 1.3) * 100),
+            size:    CGFloat(1.0 + (Double(i % 3)) * 0.6),
+            opacity: 0.25 + (Double(i % 4)) * 0.15
+        )
+    }
+
+    var body: some View {
+        ZStack {
+            // Stars
+            ForEach(0..<stars.count, id: \.self) { i in
+                Circle()
+                    .fill(Color.white.opacity(stars[i].opacity))
+                    .frame(width: stars[i].size, height: stars[i].size)
+                    .offset(x: stars[i].x, y: stars[i].y)
+            }
+
+            // Globe outer glow
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            Color(red: 0.3, green: 0.15, blue: 0.7).opacity(0.5),
+                            Color(red: 0.1, green: 0.05, blue: 0.35).opacity(0.0),
+                        ],
+                        center: .center, startRadius: 50, endRadius: 110
+                    )
+                )
+                .frame(width: 220, height: 220)
+                .scaleEffect(globePulse)
+                .blur(radius: 14)
+
+            // Globe body
+            ZStack {
+                // Base sphere
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color(red: 0.22, green: 0.55, blue: 0.85),
+                                Color(red: 0.10, green: 0.30, blue: 0.65),
+                                Color(red: 0.05, green: 0.12, blue: 0.45),
+                            ],
+                            center: UnitPoint(x: 0.35, y: 0.28),
+                            startRadius: 10, endRadius: 55
+                        )
+                    )
+                    .frame(width: 108, height: 108)
+
+                // Continent blobs
+                Circle()
+                    .fill(Color(red: 0.18, green: 0.62, blue: 0.35).opacity(0.70))
+                    .frame(width: 34, height: 26)
+                    .offset(x: -14, y: -8)
+                    .blur(radius: 2)
+                    .clipShape(Circle().scale(0.97))
+
+                Circle()
+                    .fill(Color(red: 0.18, green: 0.62, blue: 0.35).opacity(0.60))
+                    .frame(width: 22, height: 18)
+                    .offset(x: 18, y: 14)
+                    .blur(radius: 2)
+                    .clipShape(Circle().scale(0.97))
+
+                Circle()
+                    .fill(Color(red: 0.22, green: 0.58, blue: 0.32).opacity(0.50))
+                    .frame(width: 16, height: 12)
+                    .offset(x: -22, y: 22)
+                    .blur(radius: 1.5)
+                    .clipShape(Circle().scale(0.97))
+
+                // Atmosphere ring
+                Circle()
+                    .stroke(Color(red: 0.5, green: 0.75, blue: 1.0).opacity(0.30), lineWidth: 3)
+                    .frame(width: 108, height: 108)
+                    .blur(radius: 3)
+
+                // Specular highlight
+                Ellipse()
+                    .fill(Color.white.opacity(0.22))
+                    .frame(width: 28, height: 18)
+                    .offset(x: -22, y: -26)
+                    .blur(radius: 4)
+            }
+            .frame(width: 108, height: 108)
+            .clipShape(Circle())
+            .shadow(color: Color(red: 0.2, green: 0.5, blue: 1.0).opacity(0.5), radius: 20)
+
+            // Orbit ring (ellipse for perspective)
+            Ellipse()
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                .frame(width: 220, height: 90)
+
+            // Orbiting pet heads
+            ForEach(Array(participants.enumerated()), id: \.offset) { idx, p in
+                OrbitingHead(
+                    emoji: p.emoji,
+                    name: p.name,
+                    isOwn: p.isOwn,
+                    orbitAngle: orbitAngle,
+                    indexOffset: Double(idx) / Double(max(participants.count, 1)) * 360.0,
+                    floatPhase: Double(idx) * 0.55
+                )
+            }
+        }
+        .onAppear {
+            withAnimation(.linear(duration: 18).repeatForever(autoreverses: false)) {
+                orbitAngle = 360
+            }
+            withAnimation(.easeInOut(duration: 3.5).repeatForever(autoreverses: true)) {
+                globePulse = 1.08
+            }
+        }
+    }
+}
+
+// MARK: - Single orbiting head
+
+private struct OrbitingHead: View {
     let emoji: String
     let name: String
     let isOwn: Bool
-    let xOffset: CGFloat
-    let yOffset: CGFloat
-    let phase: Double
+    let orbitAngle: Double
+    let indexOffset: Double
+    let floatPhase: Double
 
-    @State private var bounce: CGFloat = 0
+    @State private var floatY: CGFloat = 0
+
+    // Orbit ellipse radii (perspective tilt)
+    private let rx: CGFloat = 110
+    private let ry: CGFloat = 45
+
+    private var angle: Double { (orbitAngle + indexOffset) * .pi / 180 }
+
+    // Depth: sin of angle maps -1…1 → back to front
+    private var depth: Double { sin(angle) }          // -1 = back, +1 = front
+    private var scale: CGFloat { CGFloat(0.75 + 0.35 * (depth + 1) / 2) }
+    private var xPos: CGFloat  { CGFloat(cos(angle)) * rx }
+    private var yPos: CGFloat  { CGFloat(sin(angle)) * ry }
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             ZStack {
-                // Glow ring
+                // Glow
                 Circle()
-                    .fill(
-                        isOwn
-                            ? Color.ajOrange.opacity(0.18)
-                            : Color(red: 0.4, green: 0.7, blue: 1.0).opacity(0.12)
-                    )
-                    .frame(width: 60, height: 60)
-                    .blur(radius: 6)
+                    .fill(isOwn ? Color.ajOrange.opacity(0.35) : Color(red: 0.4, green: 0.7, blue: 1.0).opacity(0.22))
+                    .frame(width: 52, height: 52)
+                    .blur(radius: 8)
+
+                // Ring
+                Circle()
+                    .fill(Color(red: 0.08, green: 0.04, blue: 0.18).opacity(0.85))
+                    .frame(width: 46, height: 46)
 
                 Circle()
                     .stroke(
                         isOwn
-                            ? Color.ajOrange.opacity(0.55)
-                            : Color(red: 0.4, green: 0.7, blue: 1.0).opacity(0.40),
-                        lineWidth: 1.5
+                            ? Color.ajOrange.opacity(0.90)
+                            : Color(red: 0.55, green: 0.75, blue: 1.0).opacity(0.70),
+                        lineWidth: 2
                     )
-                    .frame(width: 52, height: 52)
+                    .frame(width: 46, height: 46)
 
                 Text(emoji)
-                    .font(.system(size: 30))
-                    .offset(y: bounce)
+                    .font(.system(size: 26))
             }
 
-            // Name tag
-            Text(isOwn ? "You" : name)
-                .font(.system(size: 9, weight: .black))
-                .foregroundColor(isOwn ? .ajOrange : .white.opacity(0.55))
-                .tracking(0.5)
-                .lineLimit(1)
-                .frame(maxWidth: 60)
+            // Name tag — only show when near front half
+            if depth > -0.3 {
+                Text(isOwn ? "You" : name)
+                    .font(.system(size: 8, weight: .black))
+                    .foregroundColor(isOwn ? .ajOrange : .white.opacity(0.60))
+                    .tracking(0.4)
+                    .lineLimit(1)
+                    .opacity(depth > 0 ? 1 : (depth + 0.3) / 0.3)
+            }
         }
-        .offset(x: xOffset, y: yOffset)
+        .scaleEffect(scale)
+        .offset(x: xPos, y: yPos + floatY)
+        .zIndex(depth)
         .onAppear {
             withAnimation(
-                .easeInOut(duration: 1.6 + phase * 0.4)
+                .easeInOut(duration: 2.2 + floatPhase * 0.6)
                 .repeatForever(autoreverses: true)
-                .delay(phase * 0.3)
+                .delay(floatPhase * 0.4)
             ) {
-                bounce = -8
+                floatY = -7
             }
         }
     }
