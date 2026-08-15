@@ -7,14 +7,41 @@ struct TheSpotView: View {
     @State private var showChat = false
     @State private var lastSeenCount: Int = 0
 
-    private var allPets: [(emoji: String, name: String, isOwn: Bool)] {
-        var list: [(emoji: String, name: String, isOwn: Bool)] = [
-            (appState.selectedAnimal.emoji, appState.userName.isEmpty ? "You" : appState.userName, true)
+    struct SpotParticipant {
+        var animalType  : AnimalType
+        var mood        : AJMood
+        var stage       : Int
+        var outfit      : OutfitItem?
+        var name        : String
+        var isOwn       : Bool
+    }
+
+    private var allPets: [SpotParticipant] {
+        var list: [SpotParticipant] = [
+            SpotParticipant(
+                animalType: appState.selectedAnimal,
+                mood:       appState.animalMood,
+                stage:      appState.animalGrowthStage,
+                outfit:     appState.equippedOutfit,
+                name:       appState.userName.isEmpty ? "You" : appState.userName,
+                isOwn:      true
+            )
         ]
         for f in appState.friends.prefix(4) {
-            list.append((f.animalEmoji, f.name, false))
+            let type  = AnimalType.allCases.first { $0.emoji == f.animalEmoji } ?? .tiger
+            let stage = stageFromLevel(f.level)
+            list.append(SpotParticipant(animalType: type, mood: .neutral, stage: stage, outfit: nil, name: f.name, isOwn: false))
         }
         return list
+    }
+
+    private func stageFromLevel(_ level: Int) -> Int {
+        switch level {
+        case ..<5:  return 0
+        case 5..<15: return 1
+        case 15..<28: return 2
+        default:    return 3
+        }
     }
 
     private var unread: Int {
@@ -79,22 +106,22 @@ struct TheSpotView: View {
 
             ForEach(Array(pets.enumerated()), id: \.offset) { idx, pet in
                 let xPos = petX(idx: idx, total: count, width: geo.size.width)
+                let canvasSize: CGFloat = pet.isOwn ? 110 : 90
 
                 // Ground shadow
                 Ellipse()
                     .fill(Color.black.opacity(0.30))
-                    .frame(width: 52, height: 10)
+                    .frame(width: canvasSize * 0.70, height: 10)
                     .blur(radius: 6)
                     .position(x: xPos, y: groundY + 10)
 
-                // Pet figure
-                SpotPetFigure(
-                    emoji: pet.emoji,
-                    name:  pet.name,
-                    isOwn: pet.isOwn,
+                // Actual AnimalCanvas — real mood, outfit, evolution stage
+                SpotAnimalFigure(
+                    participant: pet,
+                    size: canvasSize,
                     phase: Double(idx) * 0.55
                 )
-                .position(x: xPos, y: groundY - 38)
+                .position(x: xPos, y: groundY - canvasSize * 0.44)
             }
 
             // "In the world" count pill — top centre
@@ -156,59 +183,59 @@ struct TheSpotView: View {
     }
 }
 
-// MARK: - Pet Figure (standing in world)
+// MARK: - Spot Animal Figure (uses real AnimalCanvas)
 
-private struct SpotPetFigure: View {
-    let emoji: String
-    let name: String
-    let isOwn: Bool
+private struct SpotAnimalFigure: View {
+    let participant: TheSpotView.SpotParticipant
+    let size: CGFloat
     let phase: Double
 
     @State private var bob: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 5) {
+        VStack(spacing: 6) {
             ZStack {
-                // Aura glow behind animal
+                // Aura glow
                 Circle()
                     .fill(
-                        isOwn
-                            ? Color.ajOrange.opacity(0.22)
-                            : Color(red: 0.4, green: 0.7, blue: 1.0).opacity(0.14)
+                        participant.isOwn
+                            ? Color.ajOrange.opacity(0.20)
+                            : participant.animalType.bodyColor.opacity(0.18)
                     )
-                    .frame(width: isOwn ? 88 : 70, height: isOwn ? 88 : 70)
-                    .blur(radius: 14)
+                    .frame(width: size * 0.85, height: size * 0.85)
+                    .blur(radius: 16)
 
-                // Animal emoji
-                Text(emoji)
-                    .font(.system(size: isOwn ? 62 : 50))
-                    .shadow(color: .black.opacity(0.5), radius: 6, y: 4)
-                    .shadow(
-                        color: isOwn
-                            ? Color.ajOrange.opacity(0.40)
-                            : Color(red: 0.4, green: 0.7, blue: 1.0).opacity(0.30),
-                        radius: 12
-                    )
+                // Real drawn animal
+                AnimalCanvas(
+                    type:           participant.animalType,
+                    mood:           participant.mood,
+                    size:           size,
+                    outfit:         participant.outfit,
+                    isWalking:      false,
+                    evolutionStage: participant.stage
+                )
             }
             .offset(y: bob)
 
-            // Name tag
-            Text(isOwn ? "You" : name)
-                .font(.system(size: 9, weight: .black))
-                .foregroundColor(isOwn ? .ajOrange : .white.opacity(0.70))
-                .tracking(0.5)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 3)
-                .background(
-                    Capsule()
-                        .fill(Color.black.opacity(0.45))
-                        .overlay(
-                            Capsule().stroke(
-                                isOwn ? Color.ajOrange.opacity(0.60) : Color.white.opacity(0.15),
-                                lineWidth: 1
-                            )
-                        )
-                )
+            // Name + mood tag
+            HStack(spacing: 4) {
+                Text(moodIcon)
+                    .font(.system(size: 9))
+                Text(participant.isOwn ? "You" : participant.name)
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(participant.isOwn ? .ajOrange : .white.opacity(0.80))
+                    .tracking(0.4)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                Capsule()
+                    .fill(Color.black.opacity(0.50))
+                    .overlay(Capsule().stroke(
+                        participant.isOwn ? Color.ajOrange.opacity(0.55) : Color.white.opacity(0.12),
+                        lineWidth: 1
+                    ))
+            )
         }
         .onAppear {
             withAnimation(
@@ -216,8 +243,19 @@ private struct SpotPetFigure: View {
                 .repeatForever(autoreverses: true)
                 .delay(phase * 0.4)
             ) {
-                bob = -9
+                bob = -8
             }
+        }
+    }
+
+    private var moodIcon: String {
+        switch participant.mood {
+        case .hype:    return "🔥"
+        case .happy:   return "😊"
+        case .neutral: return "😐"
+        case .sad:     return "😢"
+        case .angry:   return "😤"
+        case .sleep:   return "😴"
         }
     }
 }
