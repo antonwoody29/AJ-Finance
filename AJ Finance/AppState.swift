@@ -17,6 +17,9 @@ final class AppState {
     var badges: [Badge] = []
     var trophies: [Trophy] = []
     var totalMissionsCompleted: Int = 0
+
+    // MARK: - Social
+    var friends: [FriendProfile] = []
     var xp: Int = 0
     var level: Int = 1
     var streak: Int = 0
@@ -2183,6 +2186,94 @@ final class AppState {
         if gymStreak >= 3 { earnTrophy(.riseAndGrind) }
     }
 
+    // MARK: - Social
+
+    func addFriend(_ profile: FriendProfile) {
+        guard !friends.contains(where: { $0.name == profile.name }) else { return }
+        friends.append(profile)
+        saveFriends()
+        showToast("👥 \(profile.name) added as a friend!", icon: "👥", color: Color(red: 0.3, green: 0.6, blue: 1.0))
+    }
+
+    func removeFriend(id: UUID) {
+        friends.removeAll { $0.id == id }
+        saveFriends()
+    }
+
+    func saveFriends() {
+        if let data = try? JSONEncoder().encode(friends) {
+            UserDefaults.standard.set(data, forKey: "aj_friends")
+        }
+    }
+
+    func loadFriends() {
+        if let data = UserDefaults.standard.data(forKey: "aj_friends"),
+           let decoded = try? JSONDecoder().decode([FriendProfile].self, from: data) {
+            friends = decoded
+        }
+    }
+
+    func generateShareLink() -> String {
+        let rankStr: String
+        let scores = [savingsScoreForShare, fitnessScoreForShare, sobrietyScoreForShare].filter { $0 > 0 }
+        let lifeScoreVal = scores.isEmpty ? 0 : scores.reduce(0, +) / Double(scores.count)
+        switch lifeScoreVal {
+        case 0.8...: rankStr = "PLATINUM"
+        case 0.6...: rankStr = "GOLD"
+        case 0.4...: rankStr = "SILVER"
+        default:     rankStr = "BRONZE"
+        }
+
+        let name = userName.isEmpty ? "Friend" : userName
+        let animalEmoji = selectedAnimal.emoji
+        let scoreInt = Int(lifeScoreVal * 100)
+        let trophyCount = trophies.count
+
+        var comps = URLComponents()
+        comps.scheme = "ajlyfe"
+        comps.host = "friend"
+        comps.queryItems = [
+            URLQueryItem(name: "n",  value: name),
+            URLQueryItem(name: "ae", value: animalEmoji),
+            URLQueryItem(name: "s",  value: "\(scoreInt)"),
+            URLQueryItem(name: "st", value: "\(streak)"),
+            URLQueryItem(name: "lv", value: "\(level)"),
+            URLQueryItem(name: "tr", value: "\(trophyCount)"),
+            URLQueryItem(name: "rk", value: rankStr),
+        ]
+        return comps.url?.absoluteString ?? "ajlyfe://friend?n=\(name)"
+    }
+
+    var shareMessage: String {
+        let name = userName.isEmpty ? "Someone" : userName
+        return "\(name) challenged you on AJ Finance 💪 Check out my Life Score and join me on the grind. Download AJ Finance and add me as a friend! 🏆"
+    }
+
+    private var savingsScoreForShare: Double {
+        let ag = activeGoals
+        guard !ag.isEmpty else { return 0 }
+        return min(ag.reduce(0.0) { $0 + $1.progress } / Double(ag.count), 1.0)
+    }
+    private var fitnessScoreForShare: Double { gymStreak > 0 ? min(Double(gymStreak) / 30.0, 1.0) : 0 }
+    private var sobrietyScoreForShare: Double { hasSobrietyGoal ? min(Double(daysClean) / 365.0, 1.0) : 0 }
+
+    static func parseFriendLink(_ url: URL) -> FriendProfile? {
+        guard url.scheme == "ajlyfe", url.host == "friend",
+              let comps = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              let items = comps.queryItems else { return nil }
+        func q(_ key: String) -> String? { items.first(where: { $0.name == key })?.value }
+        guard let name = q("n") else { return nil }
+        return FriendProfile(
+            name:        name,
+            animalEmoji: q("ae") ?? "🐯",
+            lifeScore:   Int(q("s")  ?? "0") ?? 0,
+            streak:      Int(q("st") ?? "0") ?? 0,
+            level:       Int(q("lv") ?? "1") ?? 1,
+            trophyCount: Int(q("tr") ?? "0") ?? 0,
+            rank:        q("rk") ?? "BRONZE"
+        )
+    }
+
     // MARK: - Extended Pet Stats
 
     func boostPetStats(from source: PetStatSource, amount: Double = 5) {
@@ -2960,6 +3051,7 @@ final class AppState {
             noSpendMilestonesClaimed = decoded
         }
         updateNoSpendStreak()
+        loadFriends()
 
         // Track first open date for OG/Legendary trophies
         if UserDefaults.standard.object(forKey: "aj_firstOpenDate") == nil {

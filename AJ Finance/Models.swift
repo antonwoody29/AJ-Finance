@@ -1691,6 +1691,20 @@ struct ToastMessage: Identifiable {
     var color   : Color
 }
 
+// MARK: - Social / Friends
+
+struct FriendProfile: Identifiable, Codable {
+    var id          = UUID()
+    var name        : String
+    var animalEmoji : String
+    var lifeScore   : Int       // 0-100
+    var streak      : Int
+    var level       : Int
+    var trophyCount : Int
+    var rank        : String    // "BRONZE" / "SILVER" / "GOLD" / "PLATINUM"
+    var addedDate   : Date = Date()
+}
+
 // MARK: - Confetti Particle
 
 struct ConfettiPiece: Identifiable {

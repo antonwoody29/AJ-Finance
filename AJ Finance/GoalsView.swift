@@ -7,6 +7,7 @@ struct GoalsView: View {
     @State private var showJars = false
     @State private var showChallenges = false
     @State private var showTrophies = false
+    @State private var showFriends = false
 
     var body: some View {
         ZStack {
@@ -29,6 +30,7 @@ struct GoalsView: View {
                         featureCard(emoji: "🫙", title: "Savings Jars", subtitle: appState.savingsJars.isEmpty ? "Create money jars" : "\(appState.savingsJars.count) jar\(appState.savingsJars.count == 1 ? "" : "s") · $\(String(format: "%.0f", appState.savingsJars.reduce(0) { $0 + $1.currentAmount })) saved", color: Color(red: 0.6, green: 0.42, blue: 1.0)) { showJars = true }
                         featureCard(emoji: "⚔️", title: "Challenges", subtitle: appState.joinedChallenges.isEmpty ? "Win gems + XP" : "\(appState.joinedChallenges.filter { $0.claimedDate == nil }.count) active challenge\(appState.joinedChallenges.filter { $0.claimedDate == nil }.count == 1 ? "" : "s")", color: .ajOrange) { showChallenges = true }
                         featureCard(emoji: "📋", title: "Subscriptions", subtitle: appState.subscriptions.isEmpty ? "Kill your leaks 💀" : "$\(String(format: "%.0f", appState.totalMonthlySubscriptions))/mo burning", color: .ajOrangeRed) { showSubsNav = true }
+                        featureCard(emoji: "👥", title: "Friends", subtitle: appState.friends.isEmpty ? "Invite the squad" : "\(appState.friends.count) friend\(appState.friends.count == 1 ? "" : "s") · share your link", color: Color(red: 0.3, green: 0.6, blue: 1.0)) { showFriends = true }
                     }
 
                     Spacer(minLength: 40)
@@ -46,6 +48,7 @@ struct GoalsView: View {
         .navigationDestination(isPresented: $showChallenges)  { SpendingChallengesView() }
         .navigationDestination(isPresented: $showSubsNav)     { SubscriptionGraveyardView() }
         .navigationDestination(isPresented: $showTrophies)    { TrophiesView() }
+        .navigationDestination(isPresented: $showFriends)    { SocialView() }
     }
 
     @State private var showSubsNav = false

@@ -24,6 +24,7 @@ struct ContentView: View {
     @State private var showMenu        = false
     @State private var showSplash      = true
     @State private var pendingResetToken: String? = nil
+    @State private var pendingFriendProfile: FriendProfile? = nil
 
     var body: some View {
         ZStack {
@@ -70,10 +71,16 @@ struct ContentView: View {
             }
         }
         .onOpenURL { url in
-            guard url.scheme == "ajlyfe", url.host == "reset" else { return }
-            if let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?
-                .queryItems?.first(where: { $0.name == "token" })?.value {
-                pendingResetToken = token
+            guard url.scheme == "ajlyfe" else { return }
+            if url.host == "reset" {
+                if let token = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                    .queryItems?.first(where: { $0.name == "token" })?.value {
+                    pendingResetToken = token
+                }
+            } else if url.host == "friend" {
+                if let profile = AppState.parseFriendLink(url) {
+                    pendingFriendProfile = profile
+                }
             }
         }
         .sheet(isPresented: Binding(
@@ -83,6 +90,18 @@ struct ContentView: View {
             if let token = pendingResetToken {
                 SetNewPasswordView(token: token)
                     .environment(appState)
+            }
+        }
+        .sheet(isPresented: Binding(
+            get: { pendingFriendProfile != nil },
+            set: { if !$0 { pendingFriendProfile = nil } }
+        )) {
+            if let profile = pendingFriendProfile {
+                IncomingFriendSheet(
+                    profile: profile,
+                    onAdd: { appState.addFriend(profile) },
+                    onDismiss: { pendingFriendProfile = nil }
+                )
             }
         }
     }
