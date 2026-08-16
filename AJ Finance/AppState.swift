@@ -1588,6 +1588,7 @@ final class AppState {
         showToast("☠️ Killed \(sub.name)! +$\(String(format: "%.0f", yearlySaved))/yr back in your pocket", icon: "☠️", color: .ajGreen)
         setMood(.hype, speech: "YOU FINALLY KILLED \(sub.name.uppercased()) 💀 That's $\(String(format: "%.0f", yearlySaved)) BACK IN YOUR HANDS every year!")
         saveFeatures()
+        saveEvolutionState()
     }
 
     func deleteSubscription(id: UUID) {
@@ -1612,6 +1613,7 @@ final class AppState {
             gems += 100; earnXP(200); boostHealth(by: 10)
             showToast("🫙 \(jar.name) is FULL! +100💎 +200XP", icon: "🫙", color: .ajGold)
             setMood(.hype, speech: "THE JAR IS FULL 🫙 I am SO proud of you bestie! $\(String(format: "%.0f", jar.targetAmount)) achieved!")
+            saveEvolutionState()
         } else {
             showToast("+$\(String(format: "%.0f", amount)) added to \(jar.name) 💰", icon: "💰", color: .ajGreen)
         }
@@ -1645,6 +1647,7 @@ final class AppState {
             gems += 100; earnXP(250)
             showToast("📈 Net Worth hit \(label)! +100💎 +250XP", icon: "📈", color: .ajGold)
             setMood(.hype, speech: "YOUR NET WORTH HIT \(label) 📈 BESTIE WE ARE BUILT DIFFERENT!")
+            saveEvolutionState()
         }
     }
 
@@ -1669,6 +1672,7 @@ final class AppState {
         showToast("🏆 Challenge complete! +\(c.rewardGems)💎 +\(c.rewardXP)XP", icon: "🏆", color: .ajGold)
         setMood(.hype, speech: "CHALLENGE COMPLETE 🏆 You're literally built different bestie!")
         saveFeatures()
+        saveEvolutionState()
     }
 
     // MARK: - Daily Check-In
@@ -1690,6 +1694,7 @@ final class AppState {
         earnXP(20)
         showToast("✅ Weekly check-in! +\(bonus)💎 (Week \(checkInStreak))", icon: "✅", color: .ajGreen)
         saveFeatures()
+        saveEvolutionState()
     }
 
     // MARK: - Feature Persistence
@@ -2696,7 +2701,7 @@ final class AppState {
         } else {
             foodGain = 5        // way over or no save → crumb
         }
-        animalFood = min(100, foodGain)
+        animalFood = min(100, animalFood + foodGain)
         lastFoodDate = Date()
         needsDailyFoodCheck = false
         saveFoodState()
