@@ -104,6 +104,9 @@ final class AppState {
     var isPIPMode: Bool = false
     var trips: [Trip] = []
 
+    // MARK: - Backup
+    var backupCode: String = ""
+
     // MARK: - Companion Evolution System
     var gems: Int = 0
     var rarePetTokens: Int = 0
@@ -2737,6 +2740,90 @@ final class AppState {
         ud.set(sobrietyGoalName, forKey: "aj_sobrietyName")
     }
 
+    // MARK: - Backup Code
+
+    func getOrCreateBackupCode() -> String {
+        if !backupCode.isEmpty { return backupCode }
+        if let saved = UserDefaults.standard.string(forKey: "aj_backupCode") {
+            backupCode = saved
+            return backupCode
+        }
+        backupCode = generateBackupCode()
+        UserDefaults.standard.set(backupCode, forKey: "aj_backupCode")
+        return backupCode
+    }
+
+    private func generateBackupCode() -> String {
+        let chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789" // exclude 0,O,1,I (ambiguous)
+        return String((0..<8).compactMap { _ in chars.randomElement() })
+    }
+
+    func formattedBackupCode() -> String {
+        let c = getOrCreateBackupCode()
+        guard c.count == 8 else { return c }
+        return "\(c.prefix(4))-\(c.suffix(4))"
+    }
+
+    // MARK: - Export / Import (for cloud backup)
+
+    func exportPayload() -> [String: Any] {
+        var payload: [String: Any] = [:]
+        let ud  = UserDefaults.standard
+        let all = ud.dictionaryRepresentation()
+
+        for (key, value) in all where key.hasPrefix("aj_") && key != "aj_backupCode" {
+            if let date = value as? Date {
+                payload[key] = ["_t": "date", "_v": date.timeIntervalSince1970]
+            } else if let data = value as? Data {
+                payload[key] = ["_t": "data", "_v": data.base64EncodedString()]
+            } else if let str = value as? String {
+                payload[key] = str
+            } else if let num = value as? NSNumber {
+                payload[key] = num
+            } else if let arr = value as? [String] {
+                payload[key] = arr
+            } else if let arr = value as? [Int] {
+                payload[key] = arr
+            } else if let arr = value as? [Any], JSONSerialization.isValidJSONObject(arr) {
+                payload[key] = arr
+            }
+        }
+
+        payload["_meta_user"] = userName
+        payload["_meta_ts"]   = Date().timeIntervalSince1970
+        payload["_meta_v"]    = 1
+        return payload
+    }
+
+    func importPayload(_ payload: [String: Any]) {
+        let ud = UserDefaults.standard
+
+        for (key, value) in payload where key.hasPrefix("aj_") {
+            if key == "aj_backupCode" { continue }
+            if let dict = value as? [String: Any], let type = dict["_t"] as? String {
+                switch type {
+                case "date":
+                    if let ts = dict["_v"] as? Double {
+                        ud.set(Date(timeIntervalSince1970: ts), forKey: key)
+                    }
+                case "data":
+                    if let b64 = dict["_v"] as? String, let data = Data(base64Encoded: b64) {
+                        ud.set(data, forKey: key)
+                    }
+                default: break
+                }
+            } else {
+                ud.set(value, forKey: key)
+            }
+        }
+
+        ud.synchronize()
+        load()
+        // Ensure logged in after restore
+        isLoggedIn = true
+        ud.set(true, forKey: "aj_isLoggedIn")
+    }
+
     func save() {
         savePetStats()
         saveMissions()
@@ -2757,6 +2844,7 @@ final class AppState {
         UserDefaults.standard.set(goalsCompletedCount, forKey: "aj_goalsCompleted")
         UserDefaults.standard.set(accountabilityMessages, forKey: "aj_messages")
         UserDefaults.standard.set(cryptoWatchlistIds, forKey: "aj_cryptoWatch")
+        UserDefaults.standard.set(getOrCreateBackupCode(), forKey: "aj_backupCode")
         saveMarkets()
         saveEvolutionState()
         saveFoodState()
@@ -3036,6 +3124,14 @@ final class AppState {
         checkInStreak  = ud.integer(forKey: "aj_checkInStreak")
         lastCheckInDate = ud.object(forKey: "aj_lastCheckIn") as? Date
         lastWeeklyCheckInDate = ud.object(forKey: "aj_lastWeeklyCheckIn") as? Date
+
+        // Backup code — generate one if this is the first time
+        if let code = UserDefaults.standard.string(forKey: "aj_backupCode"), !code.isEmpty {
+            backupCode = code
+        } else {
+            backupCode = generateBackupCode()
+            UserDefaults.standard.set(backupCode, forKey: "aj_backupCode")
+        }
 
         // Budget
         monthlyIncome    = UserDefaults.standard.double(forKey: "aj_monthlyIncome")

@@ -11,6 +11,7 @@ struct SettingsView: View {
         ScrollView {
             VStack(spacing: 20) {
                 notificationCard
+                backupCard
                 legalSupportCard
                 accountCard
                 restoreCard
@@ -341,6 +342,60 @@ struct SettingsView: View {
                 } message: {
                     Text("This will permanently erase all your data — goals, transactions, streaks, and your animal. This cannot be undone.")
                 }
+            }
+        }
+    }
+
+    // MARK: - Backup & Restore
+
+    @State private var showBackupRestore = false
+
+    private var backupCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("BACKUP & RESTORE")
+                    .font(.system(size: 11, weight: .black))
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+
+                Button {
+                    showBackupRestore = true
+                } label: {
+                    HStack(spacing: 14) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.ajOrange.opacity(0.15))
+                                .frame(width: 38, height: 38)
+                            Image(systemName: "key.icloud.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(.ajOrange)
+                        }
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Your Backup Code")
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(.white)
+                            Text(appState.formattedBackupCode())
+                                .font(.system(size: 13, weight: .black, design: .monospaced))
+                                .foregroundColor(.ajOrange)
+                                .tracking(3)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12))
+                            .foregroundColor(.white.opacity(0.3))
+                    }
+                    .padding(.vertical, 4)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .navigationDestination(isPresented: $showBackupRestore) {
+                    BackupRestoreView()
+                        .environment(appState)
+                }
+
+                Text("Back up your data to iCloud. Restore on any device using your code.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.40))
             }
         }
     }
