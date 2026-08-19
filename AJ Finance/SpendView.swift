@@ -12,6 +12,7 @@ struct SpendView: View {
     @State private var showRecurring      = false
     @State private var showBudgetSetter   = false
     @State private var trendRange: TrendRange = .weeks
+    @State private var showReceiptOptions = false
 
     var body: some View {
         ZStack {
@@ -61,44 +62,27 @@ struct SpendView: View {
             // Floating add buttons
             VStack(spacing: 10) {
                 Spacer()
-                HStack(spacing: 10) {
-                    Button {
-                        showQuickAdd = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("Manual")
-                                .font(.system(size: 14, weight: .black))
-                        }
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 14)
-                        .background(
-                            Capsule()
-                                .fill(Color.white.opacity(0.15))
-                                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
-                        )
+                Button { showReceiptOptions = true } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 18, weight: .bold))
+                        Text("Snap Receipt")
+                            .font(.system(size: 16, weight: .black))
                     }
-                    Button {
-                        showScanner = true
-                    } label: {
-                        HStack(spacing: 10) {
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 18, weight: .bold))
-                            Text("Snap Receipt")
-                                .font(.system(size: 16, weight: .black))
-                        }
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 14)
-                        .background(
-                            Capsule()
-                                .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
-                                                     startPoint: .leading, endPoint: .trailing))
-                                .shadow(color: .ajOrange.opacity(0.4), radius: 12, y: 4)
-                        )
-                    }
+                    .foregroundColor(.black)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(
+                        Capsule()
+                            .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
+                                                 startPoint: .leading, endPoint: .trailing))
+                            .shadow(color: .ajOrange.opacity(0.4), radius: 12, y: 4)
+                    )
+                }
+                .confirmationDialog("Add Transaction", isPresented: $showReceiptOptions, titleVisibility: .visible) {
+                    Button("Snap Receipt") { showScanner = true }
+                    Button("Manual")       { showQuickAdd = true }
+                    Button("Cancel", role: .cancel) { }
                 }
                 .padding(.horizontal, 16)
                 .padding(.bottom, 104)
