@@ -2874,6 +2874,7 @@ final class AppState {
         if let encoded = try? JSONEncoder().encode(data) {
             UserDefaults.standard.set(encoded, forKey: saveKey)
         }
+        writeWidgetData()
     }
 
     func login(userID: String, name: String) {
