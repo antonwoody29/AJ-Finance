@@ -7,15 +7,48 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BEEF000800000000FEED0001 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BEEF000700000000FEED0001 /* WidgetKit.framework */; };
+		BEEF000900000000FEED0001 /* AJ Finance Widget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = BEEF000500000000FEED0001 /* AJ Finance Widget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E53C1E202FDD9000004F8046 /* HealthKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E53C1E212FDD9000004F8046 /* HealthKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		BEEF000B00000000FEED0001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E53C1E072FDD8FB4004F8046 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BEEF000400000000FEED0001;
+			remoteInfo = "AJ Finance Widget";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BEEF000A00000000FEED0001 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BEEF000900000000FEED0001 /* AJ Finance Widget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		BEEF000500000000FEED0001 /* AJ Finance Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "AJ Finance Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEEF000700000000FEED0001 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		E53C1E0F2FDD8FB4004F8046 /* AJ Finance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AJ Finance.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E53C1E212FDD9000004F8046 /* HealthKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = HealthKit.framework; path = System/Library/Frameworks/HealthKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		BEEF000600000000FEED0001 /* AJ Finance Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "AJ Finance Widget";
+			sourceTree = "<group>";
+		};
 		E53C1E112FDD8FB4004F8046 /* AJ Finance */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "AJ Finance";
@@ -24,6 +57,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		BEEF000200000000FEED0001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BEEF000800000000FEED0001 /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53C1E0C2FDD8FB4004F8046 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -39,8 +80,10 @@
 			isa = PBXGroup;
 			children = (
 				E53C1E112FDD8FB4004F8046 /* AJ Finance */,
+				BEEF000600000000FEED0001 /* AJ Finance Widget */,
 				E53C1E102FDD8FB4004F8046 /* Products */,
 				E53C1E212FDD9000004F8046 /* HealthKit.framework */,
+				BEEF000700000000FEED0001 /* WidgetKit.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -48,6 +91,7 @@
 			isa = PBXGroup;
 			children = (
 				E53C1E0F2FDD8FB4004F8046 /* AJ Finance.app */,
+				BEEF000500000000FEED0001 /* AJ Finance Widget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,6 +99,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		BEEF000400000000FEED0001 /* AJ Finance Widget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BEEF000F00000000FEED0001 /* Build configuration list for PBXNativeTarget "AJ Finance Widget" */;
+			buildPhases = (
+				BEEF000100000000FEED0001 /* Sources */,
+				BEEF000200000000FEED0001 /* Frameworks */,
+				BEEF000300000000FEED0001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				BEEF000600000000FEED0001 /* AJ Finance Widget */,
+			);
+			name = "AJ Finance Widget";
+			productName = "AJ Finance Widget";
+			productReference = BEEF000500000000FEED0001 /* AJ Finance Widget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		E53C1E0E2FDD8FB4004F8046 /* AJ Finance */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E53C1E1A2FDD8FB7004F8046 /* Build configuration list for PBXNativeTarget "AJ Finance" */;
@@ -62,11 +126,13 @@
 				E53C1E0B2FDD8FB4004F8046 /* Sources */,
 				E53C1E0C2FDD8FB4004F8046 /* Frameworks */,
 				E53C1E0D2FDD8FB4004F8046 /* Resources */,
+				BEEF000A00000000FEED0001 /* Embed App Extensions */,
 				AJ000001AAAA0001000F8046 /* Inject URL Scheme */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				BEEF000C00000000FEED0001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				E53C1E112FDD8FB4004F8046 /* AJ Finance */,
@@ -88,6 +154,9 @@
 				LastSwiftUpdateCheck = 2650;
 				LastUpgradeCheck = 2650;
 				TargetAttributes = {
+					BEEF000400000000FEED0001 = {
+						CreatedOnToolsVersion = 26.5;
+					};
 					E53C1E0E2FDD8FB4004F8046 = {
 						CreatedOnToolsVersion = 26.5;
 						SystemCapabilities = {
@@ -113,11 +182,19 @@
 			projectRoot = "";
 			targets = (
 				E53C1E0E2FDD8FB4004F8046 /* AJ Finance */,
+				BEEF000400000000FEED0001 /* AJ Finance Widget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		BEEF000300000000FEED0001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53C1E0D2FDD8FB4004F8046 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -152,6 +229,13 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		BEEF000100000000FEED0001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		E53C1E0B2FDD8FB4004F8046 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -161,7 +245,69 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		BEEF000C00000000FEED0001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BEEF000400000000FEED0001 /* AJ Finance Widget */;
+			targetProxy = BEEF000B00000000FEED0001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		BEEF000D00000000FEED0001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = "AJ Finance Widget/AJ Finance Widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
+				INFOPLIST_FILE = "WidgetInfo.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.aj.AJ-Finance.widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BEEF000E00000000FEED0001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = "AJ Finance Widget/AJ Finance Widget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
+				INFOPLIST_FILE = "WidgetInfo.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.aj.AJ-Finance.widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		E53C1E182FDD8FB7004F8046 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -288,6 +434,7 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				EXTRACT_APP_INTENTS_METADATA = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_ADDITIONAL_CONTENT = "$(SRCROOT)/URLScheme.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
@@ -337,6 +484,7 @@
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				EXTRACT_APP_INTENTS_METADATA = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_ADDITIONAL_CONTENT = "$(SRCROOT)/URLScheme.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "AJ Lyfe";
@@ -377,6 +525,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		BEEF000F00000000FEED0001 /* Build configuration list for PBXNativeTarget "AJ Finance Widget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BEEF000D00000000FEED0001 /* Debug */,
+				BEEF000E00000000FEED0001 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		E53C1E0A2FDD8FB4004F8046 /* Build configuration list for PBXProject "AJ Finance" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
