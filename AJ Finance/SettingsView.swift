@@ -12,6 +12,7 @@ struct SettingsView: View {
             VStack(spacing: 20) {
                 notificationCard
                 backupCard
+                helpCard
                 legalSupportCard
                 accountCard
                 restoreCard
@@ -101,6 +102,47 @@ struct SettingsView: View {
                 }
                 .padding(10)
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.04)))
+            }
+        }
+    }
+
+    // MARK: - Help & Support
+
+    @State private var showHelp = false
+
+    private var helpCard: some View {
+        AJCard {
+            Button {
+                showHelp = true
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.ajOrange.opacity(0.15))
+                            .frame(width: 38, height: 38)
+                        Image(systemName: "questionmark.bubble.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.ajOrange)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Help & Support")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.white)
+                        Text("FAQ, common problems & contact us")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.45))
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.3))
+                }
+                .padding(.vertical, 4)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .navigationDestination(isPresented: $showHelp) {
+                HelpSupportView()
             }
         }
     }
