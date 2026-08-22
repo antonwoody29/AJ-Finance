@@ -56,6 +56,8 @@ struct AJWidgetProvider: TimelineProvider {
 
 // MARK: - Design tokens
 
+private let bgBase = Color(red: 0.07, green: 0.08, blue: 0.16)
+
 private func spendGradient(over: Bool, pct: Double) -> LinearGradient {
     if over       { return LinearGradient(colors: [Color(red:1,green:0.25,blue:0.2),.red], startPoint:.leading, endPoint:.trailing) }
     if pct > 0.75 { return LinearGradient(colors: [Color(red:1,green:0.65,blue:0),Color(red:1,green:0.38,blue:0)], startPoint:.leading, endPoint:.trailing) }
@@ -157,11 +159,7 @@ struct SmallWidgetView: View {
     private var exP: Double    { min(Double(data.exerciseMinutes) / 30, 1.0) }
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            RadialGradient(colors: [Color.orange.opacity(0.22), .clear],
-                           center: .topLeading, startRadius: 0, endRadius: 120)
-
-            VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
 
                 // Header
                 HStack(spacing: 3) {
@@ -212,9 +210,8 @@ struct SmallWidgetView: View {
                     }
                     Spacer()
                 }
-            }
-            .padding(10)
         }
+        .padding(10)
     }
 
     private func statRow(_ icon: String, _ label: String, _ color: Color) -> some View {
@@ -254,11 +251,7 @@ struct MediumWidgetView: View {
     var body: some View {
         let status = statusInfo(over: over, pct: pct)
 
-        ZStack(alignment: .topLeading) {
-            RadialGradient(colors: [Color.orange.opacity(0.14), .clear],
-                           center: .topLeading, startRadius: 0, endRadius: 190)
-
-            HStack(spacing: 0) {
+        HStack(spacing: 0) {
 
                 // ── Left: spending ──
                 VStack(alignment: .leading, spacing: 3) {
@@ -367,7 +360,6 @@ struct MediumWidgetView: View {
                 }
                 .frame(width: 78)
                 .padding(.vertical, 10)
-            }
         }
     }
 
@@ -415,12 +407,14 @@ struct AJFinanceWidget: Widget {
         StaticConfiguration(kind: kind, provider: AJWidgetProvider()) { entry in
             AJWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {
-                    LinearGradient(
-                        colors: [Color(red:0.05,green:0.06,blue:0.14), Color(red:0.09,green:0.10,blue:0.20)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    )
+                    ZStack(alignment: .topLeading) {
+                        bgBase
+                        RadialGradient(colors: [Color.orange.opacity(0.20), .clear],
+                                       center: .topLeading, startRadius: 0, endRadius: 180)
+                    }
                 }
         }
+        .contentMarginsDisabled()
         .configurationDisplayName("AJ Finance")
         .description("Spending, streaks & activity at a glance.")
         .supportedFamilies([.systemSmall, .systemMedium])
