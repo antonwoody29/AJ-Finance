@@ -262,7 +262,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
-				INFOPLIST_FILE = "WidgetInfo.plist";
+				INFOPLIST_FILE = WidgetInfo.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -289,7 +289,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 7FQ8JHMDUM;
-				INFOPLIST_FILE = "WidgetInfo.plist";
+				INFOPLIST_FILE = WidgetInfo.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
