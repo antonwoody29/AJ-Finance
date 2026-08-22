@@ -56,12 +56,10 @@ struct AJWidgetProvider: TimelineProvider {
 
 // MARK: - Design tokens
 
-private let bgColors = [Color(red: 0.05, green: 0.06, blue: 0.14), Color(red: 0.09, green: 0.10, blue: 0.20)]
-
 private func spendGradient(over: Bool, pct: Double) -> LinearGradient {
-    if over        { return LinearGradient(colors: [Color(red:1,green:0.25,blue:0.2), .red], startPoint: .leading, endPoint: .trailing) }
-    if pct > 0.75  { return LinearGradient(colors: [Color(red:1,green:0.65,blue:0), Color(red:1,green:0.38,blue:0)], startPoint: .leading, endPoint: .trailing) }
-    return           LinearGradient(colors: [Color(red:1,green:0.6,blue:0.1), Color(red:1,green:0.38,blue:0)], startPoint: .leading, endPoint: .trailing)
+    if over       { return LinearGradient(colors: [Color(red:1,green:0.25,blue:0.2),.red], startPoint:.leading, endPoint:.trailing) }
+    if pct > 0.75 { return LinearGradient(colors: [Color(red:1,green:0.65,blue:0),Color(red:1,green:0.38,blue:0)], startPoint:.leading, endPoint:.trailing) }
+    return          LinearGradient(colors: [Color(red:1,green:0.6,blue:0.1),Color(red:1,green:0.38,blue:0)], startPoint:.leading, endPoint:.trailing)
 }
 
 private func statusInfo(over: Bool, pct: Double) -> (String, Color) {
@@ -71,7 +69,9 @@ private func statusInfo(over: Bool, pct: Double) -> (String, Color) {
     return                  ("Looking good", Color(red:0.25,green:0.85,blue:0.55))
 }
 
-private func fmt(_ v: Double) -> String  { v >= 1000 ? "$\(Int(v/1000))k" : "$\(Int(v))" }
+private func fmt(_ v: Double) -> String {
+    v >= 1000 ? "$\(Int(v/1000))k" : "$\(Int(v))"
+}
 private func fmtN(_ v: Double) -> String {
     let f = NumberFormatter(); f.numberStyle = .decimal; f.maximumFractionDigits = 0
     return "$\(f.string(from: NSNumber(value: v)) ?? "\(Int(v))")"
@@ -84,7 +84,7 @@ struct BudgetRing: View {
     let overBudget: Bool
     let lineWidth: CGFloat
 
-    private var accentColor: Color { overBudget ? .red : (progress > 0.75 ? .orange : Color(red:1,green:0.55,blue:0.1)) }
+    private var accent: Color { overBudget ? .red : (progress > 0.75 ? .orange : Color(red:1,green:0.55,blue:0.1)) }
 
     var body: some View {
         ZStack {
@@ -93,9 +93,7 @@ struct BudgetRing: View {
                 .trim(from: 0, to: CGFloat(progress))
                 .stroke(
                     AngularGradient(
-                        colors: overBudget
-                            ? [.orange, .red]
-                            : [Color(red:1,green:0.6,blue:0.1), Color(red:1,green:0.32,blue:0)],
+                        colors: overBudget ? [.orange,.red] : [Color(red:1,green:0.6,blue:0.1),Color(red:1,green:0.32,blue:0)],
                         center: .center,
                         startAngle: .degrees(-90),
                         endAngle:   .degrees(-90 + 360 * progress)
@@ -103,36 +101,31 @@ struct BudgetRing: View {
                     style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .shadow(color: accentColor.opacity(0.7), radius: 5)
+                .shadow(color: accent.opacity(0.65), radius: 4)
         }
     }
 }
 
-// MARK: - Nested activity rings (steps / calories / exercise)
+// MARK: - Nested activity rings
 
 struct ActivityRings: View {
     let stepsProgress: Double
     let calProgress: Double
     let exProgress: Double
+    var outerDiameter: CGFloat = 52
 
-    // Ring colors match Apple Activity rings
-    private let stepColor = Color(red: 0.2,  green: 0.85, blue: 0.35)
-    private let calColor  = Color(red: 1.0,  green: 0.25, blue: 0.15)
-    private let exColor   = Color(red: 0.35, green: 0.75, blue: 1.0)
-
-    private let outerSize: CGFloat = 60
-    private let lw: CGFloat = 7
+    private let stepColor = Color(red:0.2,  green:0.85, blue:0.35)
+    private let calColor  = Color(red:1.0,  green:0.25, blue:0.15)
+    private let exColor   = Color(red:0.35, green:0.75, blue:1.0)
 
     var body: some View {
+        let lw = outerDiameter * 0.118
         ZStack {
-            // Steps — outer
-            ring(progress: stepsProgress, color: stepColor, size: outerSize, lw: lw)
-            // Calories — middle
-            ring(progress: calProgress,   color: calColor,  size: outerSize - lw*2.4, lw: lw)
-            // Exercise — inner
-            ring(progress: exProgress,    color: exColor,   size: outerSize - lw*4.8, lw: lw)
+            ring(progress: stepsProgress, color: stepColor, size: outerDiameter,        lw: lw)
+            ring(progress: calProgress,   color: calColor,  size: outerDiameter - lw*2.5, lw: lw)
+            ring(progress: exProgress,    color: exColor,   size: outerDiameter - lw*5.0, lw: lw)
         }
-        .frame(width: outerSize, height: outerSize)
+        .frame(width: outerDiameter, height: outerDiameter)
     }
 
     private func ring(progress: Double, color: Color, size: CGFloat, lw: CGFloat) -> some View {
@@ -142,7 +135,7 @@ struct ActivityRings: View {
                 .trim(from: 0, to: CGFloat(min(progress, 1.0)))
                 .stroke(color, style: StrokeStyle(lineWidth: lw, lineCap: .round))
                 .rotationEffect(.degrees(-90))
-                .shadow(color: color.opacity(0.5), radius: 3)
+                .shadow(color: color.opacity(0.5), radius: 2)
         }
         .frame(width: size, height: size)
     }
@@ -153,11 +146,11 @@ struct ActivityRings: View {
 struct SmallWidgetView: View {
     let data: AJWidgetData
 
-    private var spent: Double    { data.monthlySpent }
-    private var income: Double   { data.monthlyIncome > 0 ? data.monthlyIncome : 1 }
-    private var progress: Double { min(spent / income, 1.0) }
+    private var spent: Double     { data.monthlySpent }
+    private var income: Double    { data.monthlyIncome > 0 ? data.monthlyIncome : 1 }
+    private var progress: Double  { min(spent / income, 1.0) }
     private var remaining: Double { max(income - spent, 0) }
-    private var over: Bool       { spent > income && income > 0 }
+    private var over: Bool        { spent > income && income > 0 }
 
     private var stepsP: Double { min(Double(data.todaySteps) / 10_000, 1.0) }
     private var calP: Double   { min(data.activeCalories / 500, 1.0) }
@@ -165,55 +158,54 @@ struct SmallWidgetView: View {
 
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Warm corner glow
-            RadialGradient(colors: [Color.orange.opacity(0.25), .clear],
-                           center: .topLeading, startRadius: 0, endRadius: 130)
+            RadialGradient(colors: [Color.orange.opacity(0.22), .clear],
+                           center: .topLeading, startRadius: 0, endRadius: 120)
 
             VStack(alignment: .leading, spacing: 0) {
+
                 // Header
-                HStack(spacing: 4) {
-                    Text("💰").font(.system(size: 11))
+                HStack(spacing: 3) {
+                    Text("💰").font(.system(size: 10))
                     Text("AJ Finance")
-                        .font(.system(size: 10, weight: .bold))
+                        .font(.system(size: 9, weight: .bold))
                         .foregroundColor(.white.opacity(0.45))
                     Spacer()
                 }
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
-                // Budget arc ring
+                // Budget ring
                 ZStack {
-                    BudgetRing(progress: progress, overBudget: over, lineWidth: 9)
+                    BudgetRing(progress: progress, overBudget: over, lineWidth: 7)
                     VStack(spacing: 1) {
                         Text(over ? "Over!" : fmt(remaining))
-                            .font(.system(size: over ? 13 : 17, weight: .black))
+                            .font(.system(size: over ? 11 : 15, weight: .black))
                             .foregroundColor(over ? .red : .white)
-                            .minimumScaleFactor(0.7).lineLimit(1)
+                            .minimumScaleFactor(0.65).lineLimit(1)
                         Text("left")
-                            .font(.system(size: 9, weight: .semibold))
+                            .font(.system(size: 8, weight: .semibold))
                             .foregroundColor(.white.opacity(0.38))
                     }
                 }
-                .frame(height: 70).frame(maxWidth: .infinity)
+                .frame(height: 60).frame(maxWidth: .infinity)
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
-                // Activity rings row
-                HStack(spacing: 8) {
-                    ActivityRings(stepsProgress: stepsP, calProgress: calP, exProgress: exP)
-                        .frame(width: 46, height: 46)
+                // Activity rings + stats side by side
+                HStack(spacing: 6) {
+                    ActivityRings(stepsProgress: stepsP, calProgress: calP, exProgress: exP, outerDiameter: 40)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        statRow("👟", "\(data.todaySteps.formatted()) steps", Color(red:0.2,green:0.85,blue:0.35))
-                        statRow("🔥", "\(Int(data.activeCalories)) cal",      Color(red:1,green:0.25,blue:0.15))
-                        statRow("⚡", "\(data.exerciseMinutes) min",           Color(red:0.35,green:0.75,blue:1))
+                        statRow("👟", "\(data.todaySteps.formatted())", Color(red:0.2,green:0.85,blue:0.35))
+                        statRow("🔥", "\(Int(data.activeCalories)) cal", Color(red:1,green:0.25,blue:0.15))
+                        statRow("⚡", "\(data.exerciseMinutes) min",      Color(red:0.35,green:0.75,blue:1))
                     }
                 }
 
-                Spacer(minLength: 4)
+                Spacer(minLength: 2)
 
                 // Streak pills
-                HStack(spacing: 5) {
+                HStack(spacing: 4) {
                     pill("🔥", "\(data.streak)d",    .orange)
                     if data.gymStreak > 0 {
                         pill("💪", "\(data.gymStreak)d", Color(red:0.4,green:0.76,blue:1))
@@ -221,26 +213,25 @@ struct SmallWidgetView: View {
                     Spacer()
                 }
             }
-            .padding(13)
+            .padding(10)
         }
     }
 
     private func statRow(_ icon: String, _ label: String, _ color: Color) -> some View {
-        HStack(spacing: 3) {
-            Text(icon).font(.system(size: 8))
+        HStack(spacing: 2) {
+            Text(icon).font(.system(size: 7))
             Text(label)
-                .font(.system(size: 8, weight: .semibold))
-                .foregroundColor(color)
-                .lineLimit(1)
+                .font(.system(size: 7, weight: .semibold))
+                .foregroundColor(color).lineLimit(1)
         }
     }
 
     private func pill(_ icon: String, _ label: String, _ color: Color) -> some View {
-        HStack(spacing: 3) {
-            Text(icon).font(.system(size: 9))
-            Text(label).font(.system(size: 10, weight: .black)).foregroundColor(color)
+        HStack(spacing: 2) {
+            Text(icon).font(.system(size: 8))
+            Text(label).font(.system(size: 9, weight: .black)).foregroundColor(color)
         }
-        .padding(.horizontal, 7).padding(.vertical, 3)
+        .padding(.horizontal, 6).padding(.vertical, 2)
         .background(Capsule().fill(color.opacity(0.18)))
     }
 }
@@ -250,11 +241,11 @@ struct SmallWidgetView: View {
 struct MediumWidgetView: View {
     let data: AJWidgetData
 
-    private var spent: Double    { data.monthlySpent }
-    private var income: Double   { data.monthlyIncome > 0 ? data.monthlyIncome : 1 }
+    private var spent: Double     { data.monthlySpent }
+    private var income: Double    { data.monthlyIncome > 0 ? data.monthlyIncome : 1 }
     private var remaining: Double { max(income - spent, 0) }
-    private var over: Bool       { spent > income && income > 0 }
-    private var pct: Double      { min(spent / income, 1.0) }
+    private var over: Bool        { spent > income && income > 0 }
+    private var pct: Double       { min(spent / income, 1.0) }
 
     private var stepsP: Double { min(Double(data.todaySteps) / 10_000, 1.0) }
     private var calP: Double   { min(data.activeCalories / 500, 1.0) }
@@ -264,118 +255,138 @@ struct MediumWidgetView: View {
         let status = statusInfo(over: over, pct: pct)
 
         ZStack(alignment: .topLeading) {
-            RadialGradient(colors: [Color.orange.opacity(0.15), .clear],
-                           center: .topLeading, startRadius: 0, endRadius: 200)
+            RadialGradient(colors: [Color.orange.opacity(0.14), .clear],
+                           center: .topLeading, startRadius: 0, endRadius: 190)
 
             HStack(spacing: 0) {
 
                 // ── Left: spending ──
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Text("💰").font(.system(size: 11))
+                VStack(alignment: .leading, spacing: 3) {
+                    // Header + status badge
+                    HStack(spacing: 3) {
+                        Text("💰").font(.system(size: 10))
                         Text("AJ Finance")
-                            .font(.system(size: 10, weight: .bold))
+                            .font(.system(size: 9, weight: .bold))
                             .foregroundColor(.white.opacity(0.45))
                         Spacer()
                         Text(status.0)
-                            .font(.system(size: 9, weight: .bold))
+                            .font(.system(size: 8, weight: .bold))
                             .foregroundColor(status.1)
-                            .padding(.horizontal, 8).padding(.vertical, 3)
+                            .padding(.horizontal, 6).padding(.vertical, 2)
                             .background(Capsule().fill(status.1.opacity(0.18)))
                     }
 
-                    Spacer(minLength: 4)
+                    Spacer(minLength: 2)
 
                     Text(over ? "Over Budget!" : fmtN(remaining))
-                        .font(.system(size: 26, weight: .black))
+                        .font(.system(size: 22, weight: .black))
                         .foregroundColor(over ? .red : .white)
                         .minimumScaleFactor(0.55).lineLimit(1)
 
                     Text("of \(fmtN(income)) budget")
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 9, weight: .medium))
                         .foregroundColor(.white.opacity(0.4))
 
-                    Spacer(minLength: 6)
+                    Spacer(minLength: 4)
 
+                    // Progress bar
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.07))
-                            RoundedRectangle(cornerRadius: 6)
+                            RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.07))
+                            RoundedRectangle(cornerRadius: 5)
                                 .fill(spendGradient(over: over, pct: pct))
-                                .frame(width: max(geo.size.width * pct, 8))
-                                .shadow(color: (over ? Color.red : .orange).opacity(0.55), radius: 5, y: 2)
+                                .frame(width: max(geo.size.width * pct, 6))
+                                .shadow(color: (over ? Color.red : .orange).opacity(0.5), radius: 4, y: 2)
                         }
                     }
-                    .frame(height: 9)
+                    .frame(height: 7)
 
                     Text("Spent \(fmtN(spent)) this month")
-                        .font(.system(size: 9, weight: .medium))
+                        .font(.system(size: 8, weight: .medium))
                         .foregroundColor(.white.opacity(0.3))
+
+                    Spacer(minLength: 2)
+
+                    // Streak pills
+                    HStack(spacing: 4) {
+                        miniPill("🔥", "\(data.streak)d", .orange)
+                        if data.noSpendStreak > 0 {
+                            miniPill("🚫", "\(data.noSpendStreak)d", Color(red:0.3,green:0.9,blue:0.5))
+                        }
+                        Spacer()
+                    }
                 }
-                .padding(14)
+                .padding(12)
                 .frame(maxWidth: .infinity)
 
-                // Gradient divider
+                // Divider
                 Rectangle()
                     .fill(LinearGradient(colors: [.clear, Color.white.opacity(0.1), .clear],
                                          startPoint: .top, endPoint: .bottom))
                     .frame(width: 1)
 
                 // ── Right: health ──
-                VStack(spacing: 6) {
-                    Spacer()
+                VStack(spacing: 4) {
+                    Spacer(minLength: 0)
 
                     // Gym streak circle
                     ZStack {
-                        Circle().fill(Color(red:0.4,green:0.76,blue:1).opacity(0.13)).frame(width: 46, height: 46)
-                        Circle().stroke(Color(red:0.4,green:0.76,blue:1).opacity(0.3), lineWidth: 1.5).frame(width: 46, height: 46)
+                        Circle().fill(Color(red:0.4,green:0.76,blue:1).opacity(0.13)).frame(width: 34, height: 34)
+                        Circle().stroke(Color(red:0.4,green:0.76,blue:1).opacity(0.3), lineWidth: 1.2).frame(width: 34, height: 34)
                         VStack(spacing: 0) {
-                            Text("💪").font(.system(size: 14))
+                            Text("💪").font(.system(size: 11))
                             Text("\(data.gymStreak)")
-                                .font(.system(size: 12, weight: .black))
+                                .font(.system(size: 10, weight: .black))
                                 .foregroundColor(Color(red:0.4,green:0.76,blue:1))
                         }
                     }
-                    Text("gym streak")
+                    Text("gym")
                         .font(.system(size: 7, weight: .semibold))
                         .foregroundColor(.white.opacity(0.35))
 
                     // Activity rings
-                    ActivityRings(stepsProgress: stepsP, calProgress: calP, exProgress: exP)
-                        .frame(width: 54, height: 54)
+                    ActivityRings(stepsProgress: stepsP, calProgress: calP, exProgress: exP, outerDiameter: 46)
 
-                    // Ring legend
+                    // Legend
                     VStack(alignment: .leading, spacing: 2) {
-                        ringLegend(Color(red:0.2,green:0.85,blue:0.35), "\(data.todaySteps.formatted())")
-                        ringLegend(Color(red:1,green:0.25,blue:0.15),   "\(Int(data.activeCalories)) cal")
-                        ringLegend(Color(red:0.35,green:0.75,blue:1),   "\(data.exerciseMinutes) min")
+                        dot(Color(red:0.2,green:0.85,blue:0.35), "\(data.todaySteps.formatted())")
+                        dot(Color(red:1,green:0.25,blue:0.15),   "\(Int(data.activeCalories)) cal")
+                        dot(Color(red:0.35,green:0.75,blue:1),   "\(data.exerciseMinutes) min")
                     }
 
                     if data.heartRate > 0 {
-                        HStack(spacing: 3) {
-                            Text("❤️").font(.system(size: 8))
+                        HStack(spacing: 2) {
+                            Text("❤️").font(.system(size: 7))
                             Text("\(Int(data.heartRate)) bpm")
-                                .font(.system(size: 8, weight: .semibold))
+                                .font(.system(size: 7, weight: .semibold))
                                 .foregroundColor(Color(red:1,green:0.35,blue:0.35))
                         }
                     }
 
-                    Spacer()
+                    Spacer(minLength: 0)
                 }
-                .frame(width: 88)
+                .frame(width: 78)
                 .padding(.vertical, 10)
             }
         }
     }
 
-    private func ringLegend(_ color: Color, _ label: String) -> some View {
-        HStack(spacing: 4) {
-            Circle().fill(color).frame(width: 5, height: 5)
+    private func dot(_ color: Color, _ label: String) -> some View {
+        HStack(spacing: 3) {
+            Circle().fill(color).frame(width: 4, height: 4)
             Text(label)
-                .font(.system(size: 8, weight: .semibold))
-                .foregroundColor(.white.opacity(0.55))
-                .lineLimit(1)
+                .font(.system(size: 7, weight: .semibold))
+                .foregroundColor(.white.opacity(0.55)).lineLimit(1)
         }
+    }
+
+    private func miniPill(_ icon: String, _ label: String, _ color: Color) -> some View {
+        HStack(spacing: 2) {
+            Text(icon).font(.system(size: 8))
+            Text(label).font(.system(size: 8, weight: .black)).foregroundColor(color)
+        }
+        .padding(.horizontal, 5).padding(.vertical, 2)
+        .background(Capsule().fill(color.opacity(0.18)))
     }
 }
 
