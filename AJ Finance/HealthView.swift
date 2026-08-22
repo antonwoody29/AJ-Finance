@@ -246,6 +246,16 @@ struct HealthView: View {
         .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .onAppear { hk.requestAuthorization() }
+        .onChange(of: hk.isRefreshing) { _, refreshing in
+            if !refreshing {
+                appState.writeWidgetHealth(
+                    steps:        hk.todaySteps,
+                    calories:     hk.activeCalories,
+                    exerciseMins: hk.exerciseMinutes,
+                    heartRate:    hk.heartRate ?? 0
+                )
+            }
+        }
         .sheet(isPresented: $showWeightLogger) { weightSheet }
         .sheet(isPresented: $showTargetLogger) { targetSheet }
         .sheet(isPresented: $showDisclaimer)   { disclaimerSheet }
