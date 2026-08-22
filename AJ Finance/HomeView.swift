@@ -1287,7 +1287,6 @@ struct HomeView: View {
                                 .font(.system(size: 11, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.35))
                         }
-                        // Progress track
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
                                 Capsule().fill(Color.white.opacity(0.10))
@@ -1342,7 +1341,6 @@ struct HomeView: View {
                 .padding(.vertical, 15)
                 .background(
                     ZStack {
-                        // Rich gradient: orange → amber → gold
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
                                 colors: [
@@ -1352,13 +1350,11 @@ struct HomeView: View {
                                 ],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             ))
-                        // Inner top highlight (glass sheen)
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
                                 colors: [Color.white.opacity(0.30), .clear],
                                 startPoint: .top, endPoint: .center
                             ))
-                        // Pulse ring
                         RoundedRectangle(cornerRadius: 18)
                             .stroke(Color.ajOrange, lineWidth: 2.5)
                             .scaleEffect(receiptPulse ? 1.09 : 1.0)
@@ -1375,7 +1371,6 @@ struct HomeView: View {
 
             // Secondary row
             HStack(spacing: 8) {
-                // LOG — green tint
                 Button {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showQuickAdd = true
@@ -1415,7 +1410,6 @@ struct HomeView: View {
                     )
                 }
 
-                // Shop — purple tint
                 Button {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showShop = true
@@ -1455,7 +1449,6 @@ struct HomeView: View {
                     )
                 }
 
-                // Wheel — gold tint
                 Button {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showStore = true
