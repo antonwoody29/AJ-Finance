@@ -627,7 +627,7 @@ struct StoreView: View {
                                 .foregroundColor(.ajGold)
                         }
                         .padding(.vertical, 7)
-                        if label != rows.last!.0 {
+                        if label != rows.last?.0 {
                             Divider().background(Color.white.opacity(0.06))
                         }
                     }
