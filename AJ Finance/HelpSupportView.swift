@@ -101,6 +101,14 @@ struct HelpSupportView: View {
     @State private var contactMessage = ""
     @State private var showMailAlert  = false
     @State private var mailSent       = false
+    @State private var ideaCategory   = "New Feature"
+    @State private var ideaText       = ""
+    @State private var ideaSent       = false
+
+    private let ideaCategories = [
+        "New Feature", "Budget & Spending", "Pet & Animal",
+        "Health & Fitness", "UI & Design", "Social", "Other"
+    ]
 
     var body: some View {
         ScrollView {
@@ -109,6 +117,7 @@ struct HelpSupportView: View {
                 ForEach(faqCategories) { category in
                     faqCard(category)
                 }
+                ideaCard
                 contactCard
                 Spacer(minLength: 100)
             }
@@ -220,6 +229,112 @@ struct HelpSupportView: View {
         }
     }
 
+    // MARK: - Idea Card
+
+    private var ideaCard: some View {
+        AJCard {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(spacing: 10) {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.ajGold)
+                    Text("SUGGEST AN IDEA")
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundColor(.ajGold)
+                        .tracking(1.5)
+                }
+
+                Text("Got a feature request or improvement idea? We read every single one.")
+                    .font(.system(size: 13))
+                    .foregroundColor(.white.opacity(0.55))
+
+                // Category chips
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("CATEGORY")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.white.opacity(0.35))
+                        .tracking(1.2)
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(ideaCategories, id: \.self) { cat in
+                                Button { ideaCategory = cat } label: {
+                                    Text(cat)
+                                        .font(.system(size: 12, weight: .semibold))
+                                        .foregroundColor(ideaCategory == cat ? .black : .white.opacity(0.60))
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 7)
+                                        .background(
+                                            Capsule()
+                                                .fill(ideaCategory == cat
+                                                      ? Color.ajGold
+                                                      : Color.white.opacity(0.08))
+                                                .overlay(
+                                                    Capsule()
+                                                        .stroke(ideaCategory == cat
+                                                                ? Color.ajGold.opacity(0.0)
+                                                                : Color.white.opacity(0.12),
+                                                                lineWidth: 1)
+                                                )
+                                        )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.bottom, 2)
+                    }
+                }
+
+                // Description field
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("YOUR IDEA")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(.white.opacity(0.35))
+                        .tracking(1.2)
+                    TextField("Describe the feature or improvement you'd love to see…", text: $ideaText, axis: .vertical)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white)
+                        .lineLimit(4...8)
+                        .padding(12)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.06)))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                        .tint(.ajGold)
+                }
+
+                // Submit button
+                Button { sendIdea() } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: ideaSent ? "checkmark.circle.fill" : "paperplane.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                        Text(ideaSent ? "Idea Sent! 🙏" : "Send Your Idea")
+                            .font(.system(size: 16, weight: .black))
+                    }
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 15)
+                    .background(
+                        Capsule()
+                            .fill(LinearGradient(
+                                colors: [.ajGold, Color(red:1.0,green:0.65,blue:0.0)],
+                                startPoint: .leading, endPoint: .trailing
+                            ))
+                            .shadow(color: Color.ajGold.opacity(0.40), radius: 10, y: 4)
+                    )
+                }
+                .buttonStyle(.plain)
+                .disabled(ideaText.trimmingCharacters(in: .whitespaces).isEmpty)
+
+                HStack(spacing: 6) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.ajGold.opacity(0.45))
+                    Text("Every idea helps shape AJ Finance's future")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.30))
+                }
+            }
+        }
+    }
+
     // MARK: - Contact Card
 
     private var contactCard: some View {
@@ -301,6 +416,29 @@ struct HelpSupportView: View {
                         .foregroundColor(.white.opacity(0.3))
                 }
             }
+        }
+    }
+
+    // MARK: - Send idea
+
+    private func sendIdea() {
+        let body = ideaText.trimmingCharacters(in: .whitespaces)
+        let subject = "App Idea: \(ideaCategory)"
+        let encodedSubject = subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? subject
+        let encodedBody    = body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? body
+        let urlString = "mailto:ajlyfe.support@gmail.com?subject=\(encodedSubject)&body=\(encodedBody)"
+
+        guard let url = URL(string: urlString) else { showMailAlert = true; return }
+
+        if UIApplication.shared.canOpenURL(url) {
+            UIApplication.shared.open(url)
+            withAnimation { ideaSent = true }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                withAnimation { ideaSent = false }
+                ideaText = ""
+            }
+        } else {
+            showMailAlert = true
         }
     }
 

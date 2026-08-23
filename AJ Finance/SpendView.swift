@@ -13,6 +13,7 @@ struct SpendView: View {
     @State private var showBudgetSetter   = false
     @State private var trendRange: TrendRange = .weeks
     @State private var showReceiptOptions = false
+    @State private var snapPulse          = false
 
     var body: some View {
         ZStack {
@@ -70,15 +71,29 @@ struct SpendView: View {
                             .font(.system(size: 16, weight: .black))
                     }
                     .foregroundColor(.black)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 14)
+                    .padding(.horizontal, 28)
+                    .padding(.vertical, 15)
                     .background(
-                        Capsule()
-                            .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
-                                                 startPoint: .leading, endPoint: .trailing))
-                            .shadow(color: .ajOrange.opacity(0.4), radius: 12, y: 4)
+                        ZStack {
+                            Capsule()
+                                .fill(LinearGradient(
+                                    colors: [Color(red:1.0,green:0.55,blue:0.10), Color(red:1.0,green:0.30,blue:0.06)],
+                                    startPoint: .leading, endPoint: .trailing
+                                ))
+                            Capsule()
+                                .fill(LinearGradient(colors: [Color.white.opacity(0.28), .clear],
+                                                     startPoint: .top, endPoint: .center))
+                            Capsule()
+                                .stroke(Color.ajOrange, lineWidth: 2)
+                                .scaleEffect(snapPulse ? 1.14 : 1.0)
+                                .opacity(snapPulse ? 0.0 : 0.75)
+                                .animation(.easeOut(duration: 1.6).repeatForever(autoreverses: false),
+                                           value: snapPulse)
+                        }
+                        .shadow(color: Color.ajOrange.opacity(0.55), radius: 18, y: 5)
                     )
                 }
+                .onAppear { snapPulse = true }
                 .confirmationDialog("Add Transaction", isPresented: $showReceiptOptions, titleVisibility: .visible) {
                     Button("Snap Receipt") { showScanner = true }
                     Button("Manual")       { showQuickAdd = true }
@@ -112,33 +127,55 @@ struct SpendView: View {
 
     private var shortcutsRow: some View {
         HStack(spacing: 10) {
-            shortcutBtn(icon: "☠️", label: "Subs",  color: .ajOrangeRed) { showSubGraveyard = true }
-            shortcutBtn(icon: "🔄", label: "Bills", color: .ajOrange)    { showRecurring    = true }
-            shortcutBtn(icon: "✈️", label: "Trips", color: Color(red: 0.4, green: 0.76, blue: 1.0)) { showTrips = true }
+            let subValue: String? = appState.subscriptions.isEmpty
+                ? nil : "$\(String(format: "%.0f", appState.totalMonthlySubscriptions))/mo"
+            let billCount = appState.recurringTransactions.filter { $0.isEnabled }.count
+            let billValue: String? = billCount == 0 ? nil : "\(billCount) bill\(billCount == 1 ? "" : "s")"
+            let tripValue: String? = appState.trips.first(where: { $0.isActive }) != nil ? "Active" : nil
+
+            shortcutBtn(icon: "☠️", label: "Subs",  value: subValue,  color: .ajOrangeRed) { showSubGraveyard = true }
+            shortcutBtn(icon: "🔄", label: "Bills", value: billValue, color: .ajOrange)    { showRecurring    = true }
+            shortcutBtn(icon: "✈️", label: "Trips", value: tripValue, color: Color(red: 0.4, green: 0.76, blue: 1.0)) { showTrips = true }
         }
     }
 
-    private func shortcutBtn(icon: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+    private func shortcutBtn(icon: String, label: String, value: String? = nil, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 6) {
-                Text(icon).font(.system(size: 28))
+            VStack(spacing: 4) {
+                Text(icon).font(.system(size: 26))
                 Text(label)
                     .font(.system(size: 11, weight: .black))
                     .foregroundColor(.white.opacity(0.90))
+                if let value {
+                    Text(value)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(color)
+                        .lineLimit(1)
+                } else {
+                    Text(" ").font(.system(size: 9))
+                }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, 13)
             .background(
                 ZStack {
+                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
                     RoundedRectangle(cornerRadius: 16)
                         .fill(LinearGradient(
-                            colors: [color.opacity(0.24), color.opacity(0.07)],
+                            colors: [color.opacity(0.22), color.opacity(0.06)],
                             startPoint: .topLeading, endPoint: .bottomTrailing
                         ))
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(color.opacity(0.65), lineWidth: 1.5)
+                        .fill(LinearGradient(colors: [Color.white.opacity(0.15), .clear],
+                                             startPoint: .top, endPoint: .center))
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(
+                            LinearGradient(colors: [color.opacity(0.70), color.opacity(0.12)],
+                                           startPoint: .top, endPoint: .bottom),
+                            lineWidth: 1.5
+                        )
                 }
-                .shadow(color: color.opacity(0.30), radius: 10, y: 3)
+                .shadow(color: color.opacity(0.28), radius: 10, y: 3)
             )
         }
         .buttonStyle(.plain)
@@ -244,8 +281,7 @@ struct SpendView: View {
                                : streak < 14 ? .ajOrange
                                : .ajGold
 
-        return AJCard {
-            HStack(spacing: 16) {
+        return HStack(spacing: 16) {
                 if isActive && streak >= 7 {
                     TimelineView(.animation) { tl in
                         let t = CGFloat(tl.date.timeIntervalSinceReferenceDate)
@@ -298,8 +334,28 @@ struct SpendView: View {
                             .foregroundColor(.white.opacity(0.25))
                     }
                 }
-            }
         }
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(
+                        colors: [accentColor.opacity(0.14), .clear],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [Color.white.opacity(0.10), .clear],
+                                         startPoint: .top, endPoint: .center))
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        LinearGradient(colors: [accentColor.opacity(0.65), accentColor.opacity(0.10)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1.5
+                    )
+            }
+            .shadow(color: accentColor.opacity(0.22), radius: 16, y: 4)
+        )
     }
 
     // MARK: - Empty State
@@ -624,8 +680,7 @@ struct SpendView: View {
         let isOver      = budget > 0 && projected > budget
         let projColor: Color = isOver ? .ajOrangeRed : Color(red: 0.18, green: 0.82, blue: 0.44)
 
-        return AJCard {
-            VStack(alignment: .leading, spacing: 14) {
+        return VStack(alignment: .leading, spacing: 14) {
                 // Header row
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -634,8 +689,13 @@ struct SpendView: View {
                             .foregroundColor(.white.opacity(0.45))
                             .tracking(2)
                         Text("$\(String(format: "%.0f", total))")
-                            .font(.system(size: 40, weight: .black))
-                            .foregroundColor(.white)
+                            .font(.system(size: 44, weight: .black))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.white, Color(red:1.0,green:0.88,blue:0.72)],
+                                    startPoint: .top, endPoint: .bottom
+                                )
+                            )
                         Text("\(appState.monthlyTransactions.count) transaction\(appState.monthlyTransactions.count == 1 ? "" : "s")")
                             .font(.system(size: 12))
                             .foregroundColor(.white.opacity(0.4))
@@ -690,7 +750,26 @@ struct SpendView: View {
                     }
                 }
             }
-        }
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(
+                        colors: [Color(red:0.14, green:0.06, blue:0.01), Color(red:0.06, green:0.02, blue:0.005)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [Color.ajOrange.opacity(0.16), .clear],
+                                         startPoint: .top, endPoint: .center))
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        LinearGradient(colors: [Color.ajOrange.opacity(0.50), Color.white.opacity(0.05)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1.2
+                    )
+            }
+            .shadow(color: Color.ajOrange.opacity(0.25), radius: 24, y: 8)
+        )
     }
 
     // MARK: - Day of Week Heatmap
@@ -1140,27 +1219,38 @@ struct TransactionRow: View {
     var tx: SpendEntry
 
     var body: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(tx.category.color.opacity(0.15))
-                    .frame(width: 40, height: 40)
-                Text(tx.category.icon)
-                    .font(.system(size: 18))
+        HStack(spacing: 0) {
+            RoundedRectangle(cornerRadius: 2)
+                .fill(tx.category.color)
+                .frame(width: 3)
+                .padding(.vertical, 6)
+
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [tx.category.color.opacity(0.22), tx.category.color.opacity(0.08)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                        .frame(width: 40, height: 40)
+                    Text(tx.category.icon)
+                        .font(.system(size: 18))
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tx.note.isEmpty ? tx.category.rawValue : tx.note)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    Text(tx.date, style: .relative)
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.4))
+                }
+                Spacer()
+                Text(tx.isSaving ? "+$\(String(format: "%.2f", tx.amount))" : "-$\(String(format: "%.2f", tx.amount))")
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundColor(tx.isSaving ? Color(red: 0.18, green: 0.88, blue: 0.44) : .white)
             }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(tx.note.isEmpty ? tx.category.rawValue : tx.note)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                Text(tx.date, style: .relative)
-                    .font(.system(size: 11))
-                    .foregroundColor(.white.opacity(0.4))
-            }
-            Spacer()
-            Text(tx.isSaving ? "+$\(String(format: "%.2f", tx.amount))" : "-$\(String(format: "%.2f", tx.amount))")
-                .font(.system(size: 14, weight: .bold))
-                .foregroundColor(tx.isSaving ? Color(red: 0, green: 0.8, blue: 0.27) : .white)
+            .padding(.leading, 10)
         }
     }
 }
