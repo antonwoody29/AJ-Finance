@@ -1262,6 +1262,7 @@ struct QuickAddTransactionView: View {
     @Environment(\.dismiss) private var dismiss
 
     var onLogged: (() -> Void)? = nil
+    var startInLimitMode: Bool = false
 
     @State private var amountText        = ""
     @State private var selectedCategory  : SpendCategory = .food
@@ -1269,6 +1270,9 @@ struct QuickAddTransactionView: View {
     @State private var didLog            = false
     @State private var successScale      : CGFloat = 0.4
     @FocusState private var amountFocused: Bool
+    @State private var viewMode     = 0
+    @State private var limitText    = ""
+    @State private var limitSaved   = false
 
     var amount: Double { Double(amountText) ?? 0 }
     var hasAmount: Bool { amount > 0 }
@@ -1285,6 +1289,20 @@ struct QuickAddTransactionView: View {
                     .frame(width: 38, height: 4)
                     .padding(.top, 10)
                     .padding(.bottom, 18)
+
+                // ── Mode toggle ──
+                Picker("", selection: $viewMode) {
+                    Text("✏️  Log Spend").tag(0)
+                    Text("🎯  Daily Limit").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 14)
+                .onChange(of: viewMode) { _, new in
+                    if new == 1 { limitText = "\(Int(appState.dailyBudget))" }
+                }
+
+                if viewMode == 0 {
 
                 // ── Big amount display ──
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
@@ -1406,11 +1424,21 @@ struct QuickAddTransactionView: View {
                 .disabled(!hasAmount)
                 .padding(.horizontal, 20)
                 .padding(.bottom, 32)
+                } else {
+                    dailyLimitForm
+                }
             }
         }
-        .presentationDetents([.height(470), .large])
+        .presentationDetents([.height(520), .large])
         .presentationDragIndicator(.hidden)
-        .onAppear { amountFocused = true }
+        .onAppear {
+            if startInLimitMode {
+                viewMode = 1
+                limitText = "\(Int(appState.dailyBudget))"
+            } else {
+                amountFocused = true
+            }
+        }
         // ── Success overlay ──
         .overlay {
             if didLog {
@@ -1449,6 +1477,148 @@ struct QuickAddTransactionView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
             onLogged?()
             dismiss()
+        }
+    }
+
+    private var dailyLimitForm: some View {
+        let spent   = appState.todaySpent
+        let limit   = appState.dailyBudget
+        let pct     = limit > 0 ? min(spent / limit, 1.0) : 0
+        let isOver  = spent > limit && limit > 0
+        let bar: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
+
+        return VStack(spacing: 18) {
+            // Today's progress card
+            VStack(spacing: 10) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("TODAY'S SPENDING")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.white.opacity(0.38))
+                            .tracking(1.5)
+                        HStack(alignment: .firstTextBaseline, spacing: 5) {
+                            Text("$\(String(format: "%.0f", spent))")
+                                .font(.system(size: 36, weight: .black))
+                                .foregroundColor(.white)
+                            Text("of $\(String(format: "%.0f", limit))")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white.opacity(0.38))
+                        }
+                    }
+                    Spacer()
+                    ZStack {
+                        Circle()
+                            .fill(bar.opacity(0.16))
+                            .frame(width: 50, height: 50)
+                        Text(isOver ? "🔴" : pct > 0.85 ? "⚠️" : "✅")
+                            .font(.system(size: 24))
+                    }
+                }
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.white.opacity(0.08))
+                        Capsule()
+                            .fill(LinearGradient(colors: [bar, bar.opacity(0.60)],
+                                                 startPoint: .leading, endPoint: .trailing))
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 6 : 0))
+                            .shadow(color: bar.opacity(0.50), radius: 4)
+                    }
+                }
+                .frame(height: 6)
+                HStack {
+                    Text(isOver
+                         ? "⚡ Over by $\(String(format: "%.0f", spent - limit))"
+                         : "✅ $\(String(format: "%.0f", limit - spent)) remaining")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(isOver ? .ajOrangeRed : .ajGreen)
+                    Spacer()
+                    Text("\(Int(pct * 100))% used")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.32))
+                }
+            }
+            .padding(14)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(LinearGradient(colors: [bar.opacity(0.14), Color.black.opacity(0.20)],
+                                             startPoint: .topLeading, endPoint: .bottomTrailing))
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(
+                            LinearGradient(colors: [bar.opacity(0.55), bar.opacity(0.10)],
+                                           startPoint: .top, endPoint: .bottom),
+                            lineWidth: 1.5
+                        )
+                }
+            )
+
+            // Update limit
+            VStack(alignment: .leading, spacing: 8) {
+                Text("UPDATE DAILY LIMIT")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.white.opacity(0.38))
+                    .tracking(1.5)
+                HStack(spacing: 10) {
+                    HStack(spacing: 4) {
+                        Text("$")
+                            .font(.system(size: 26, weight: .black))
+                            .foregroundColor(.ajGreen)
+                        TextField("\(Int(limit))", text: $limitText)
+                            .font(.system(size: 26, weight: .black))
+                            .foregroundColor(.white)
+                            .tint(.ajGreen)
+                            .keyboardType(.numberPad)
+                            .fixedSize()
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.07))
+                            .overlay(RoundedRectangle(cornerRadius: 14)
+                                .stroke(Color.ajGreen.opacity(0.40), lineWidth: 1))
+                    )
+                    Button { saveDailyLimit() } label: {
+                        Text(limitSaved ? "✓ Saved!" : "Save")
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundColor(limitSaved ? .ajGreen : .black)
+                            .padding(.horizontal, 18)
+                            .padding(.vertical, 14)
+                            .background(
+                                ZStack {
+                                    if limitSaved {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .fill(Color.ajGreen.opacity(0.18))
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .stroke(Color.ajGreen, lineWidth: 1.5)
+                                    } else {
+                                        RoundedRectangle(cornerRadius: 14)
+                                            .fill(LinearGradient(
+                                                colors: [.ajGreen, Color(red: 0, green: 0.7, blue: 0.3)],
+                                                startPoint: .top, endPoint: .bottom
+                                            ))
+                                    }
+                                }
+                            )
+                    }
+                }
+            }
+
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 32)
+    }
+
+    private func saveDailyLimit() {
+        guard let value = Double(limitText), value > 0 else { return }
+        appState.setDailyBudget(value)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        withAnimation { limitSaved = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            withAnimation { limitSaved = false }
         }
     }
 }

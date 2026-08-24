@@ -209,8 +209,10 @@ struct HealthView: View {
     @State private var showWeightLogger = false
     @State private var showTargetLogger = false
     @State private var showDisclaimer   = false
-    @State private var weightText = ""
-    @State private var targetText = ""
+    @State private var weightText       = ""
+    @State private var targetText       = ""
+    @State private var workoutPulse     = false
+    @State private var heartPulse       = false
 
     var body: some View {
         ZStack {
@@ -308,91 +310,169 @@ struct HealthView: View {
     // MARK: - Watch Rings Card
 
     private var watchRingsCard: some View {
-        AJCard {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
+        let hrColor = Color(red: 1.0, green: 0.28, blue: 0.38)
+
+        return VStack(alignment: .leading, spacing: 16) {
+            // Header
+            HStack {
+                HStack(spacing: 8) {
                     Image(systemName: "applewatch")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.ajOrange)
                     Text("TODAY FROM APPLE WATCH")
                         .font(.system(size: 10, weight: .black))
                         .foregroundColor(.ajOrange)
                         .tracking(2)
-                    Spacer()
-                    // Refresh button
-                    Button { hk.refresh() } label: {
-                        Image(systemName: hk.isRefreshing ? "arrow.clockwise" : "arrow.clockwise")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.ajOrange.opacity(0.8))
-                            .rotationEffect(.degrees(hk.isRefreshing ? 360 : 0))
-                            .animation(hk.isRefreshing
+                }
+                Spacer()
+                Button { hk.refresh() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.ajOrange.opacity(0.80))
+                        .rotationEffect(.degrees(hk.isRefreshing ? 360 : 0))
+                        .animation(
+                            hk.isRefreshing
                                 ? .linear(duration: 0.8).repeatForever(autoreverses: false)
                                 : .default,
-                                value: hk.isRefreshing)
+                            value: hk.isRefreshing
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
+            // Stats row
+            HStack(spacing: 0) {
+                ringsStat(value: "\(hk.todaySteps.formatted())",
+                          label: "Steps",    icon: "figure.walk", color: .green)
+                statDivider
+                ringsStat(value: "\(Int(hk.activeCalories))",
+                          label: "Cal",      icon: "flame.fill",  color: Color(red:1,green:0.3,blue:0.1))
+                statDivider
+                ringsStat(value: "\(hk.exerciseMinutes)m",
+                          label: "Exercise", icon: "bolt.fill",   color: Color(red:0.4,green:0.9,blue:0.3))
+                statDivider
+                ringsStat(value: "\(hk.standHours)h",
+                          label: "Stand",    icon: "person.fill", color: Color(red:0.4,green:0.76,blue:1.0))
+            }
+
+            // Heart rate featured row
+            ZStack {
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(hrColor.opacity(hk.heartRate != nil ? 0.10 : 0.04))
+                    .overlay(RoundedRectangle(cornerRadius: 14)
+                        .stroke(hrColor.opacity(hk.heartRate != nil ? 0.35 : 0.12), lineWidth: 1))
+
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(hrColor.opacity(0.18))
+                            .frame(width: 38, height: 38)
+                        Image(systemName: hk.heartRate != nil ? "heart.fill" : "heart")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(hrColor.opacity(hk.heartRate != nil ? 1.0 : 0.35))
+                            .scaleEffect(heartPulse ? 1.18 : 1.0)
+                            .animation(
+                                hk.heartRate != nil
+                                    ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true)
+                                    : .default,
+                                value: heartPulse
+                            )
                     }
-                    .buttonStyle(.plain)
-                }
+                    .shadow(color: hrColor.opacity(hk.heartRate != nil ? 0.45 : 0), radius: 8)
 
-                HStack(spacing: 0) {
-                    ringsStat(value: "\(hk.todaySteps.formatted())",
-                              label: "Steps", icon: "figure.walk", color: .green)
-                    statDivider
-                    ringsStat(value: "\(Int(hk.activeCalories))",
-                              label: "Cal", icon: "flame.fill", color: Color(red: 1, green: 0.3, blue: 0.1))
-                    statDivider
-                    ringsStat(value: "\(hk.exerciseMinutes)m",
-                              label: "Exercise", icon: "bolt.fill", color: .green)
-                    statDivider
-                    ringsStat(value: "\(hk.standHours)h",
-                              label: "Stand", icon: "person.fill",
-                              color: Color(red: 0.4, green: 0.76, blue: 1.0))
-                }
-
-                HStack(spacing: 6) {
                     if let bpm = hk.heartRate {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(Color(red: 1, green: 0.3, blue: 0.4))
-                        Text("\(Int(bpm)) bpm")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.7))
-                        if let d = hk.heartRateDate {
-                            Text("· \(d, style: .relative) ago")
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.3))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("HEART RATE")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(hrColor.opacity(0.70))
+                                .tracking(1.2)
+                            HStack(alignment: .firstTextBaseline, spacing: 4) {
+                                Text("\(Int(bpm))")
+                                    .font(.system(size: 26, weight: .black))
+                                    .foregroundColor(.white)
+                                Text("BPM")
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.45))
+                            }
                         }
                     } else {
-                        Image(systemName: "heart")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.25))
-                        Text("No recent heart rate")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.3))
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("HEART RATE")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(.white.opacity(0.25))
+                                .tracking(1.2)
+                            Text("No recent reading")
+                                .font(.system(size: 13))
+                                .foregroundColor(.white.opacity(0.30))
+                        }
                     }
+
                     Spacer()
-                    if let last = hk.lastRefreshed {
-                        Text("Updated \(last, style: .relative) ago")
+
+                    if let d = hk.heartRateDate {
+                        Text("\(d, style: .relative) ago")
+                            .font(.system(size: 10))
+                            .foregroundColor(.white.opacity(0.28))
+                    } else if let last = hk.lastRefreshed {
+                        Text("Updated\n\(last, style: .relative) ago")
                             .font(.system(size: 10))
                             .foregroundColor(.white.opacity(0.25))
+                            .multilineTextAlignment(.trailing)
                     }
                 }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
             }
         }
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(
+                        colors: [Color(red:0.10,green:0.06,blue:0.02), Color(red:0.05,green:0.02,blue:0.005)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [Color.ajOrange.opacity(0.14), .clear],
+                                         startPoint: .top, endPoint: .center))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [Color.white.opacity(0.10), .clear],
+                                         startPoint: .top, endPoint: .center))
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        LinearGradient(colors: [Color.ajOrange.opacity(0.55), Color.white.opacity(0.05)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1.2
+                    )
+            }
+            .shadow(color: Color.ajOrange.opacity(0.20), radius: 20, y: 6)
+        )
+        .onAppear { heartPulse = true }
     }
 
     private func ringsStat(value: String, label: String, icon: String, color: Color) -> some View {
-        VStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 16))
-                .foregroundColor(color)
+        VStack(spacing: 6) {
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [color.opacity(0.26), color.opacity(0.08)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 46, height: 46)
+                    .overlay(Circle().stroke(color.opacity(0.35), lineWidth: 1))
+                Image(systemName: icon)
+                    .font(.system(size: 19, weight: .semibold))
+                    .foregroundColor(color)
+            }
+            .shadow(color: color.opacity(0.35), radius: 6, y: 2)
             Text(value)
-                .font(.system(size: 15, weight: .black))
+                .font(.system(size: 16, weight: .black))
                 .foregroundColor(.white)
-                .minimumScaleFactor(0.7)
+                .minimumScaleFactor(0.65)
                 .lineLimit(1)
             Text(label)
-                .font(.system(size: 9))
-                .foregroundColor(.white.opacity(0.45))
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white.opacity(0.40))
         }
         .frame(maxWidth: .infinity)
     }
@@ -407,7 +487,7 @@ struct HealthView: View {
 
     private var recentWorkoutsCard: some View {
         AJCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text("RECENT WORKOUTS")
                     .font(.system(size: 10, weight: .black))
                     .foregroundColor(.ajOrange)
@@ -415,29 +495,48 @@ struct HealthView: View {
 
                 ForEach(hk.recentWorkouts.prefix(4), id: \.uuid) { workout in
                     HStack(spacing: 12) {
-                        Text(workoutEmoji(workout.workoutActivityType))
-                            .font(.system(size: 24))
-                            .frame(width: 36)
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(
+                                    colors: [Color.ajOrange.opacity(0.22), Color.ajOrange.opacity(0.06)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
+                                ))
+                                .frame(width: 42, height: 42)
+                                .overlay(Circle().stroke(Color.ajOrange.opacity(0.30), lineWidth: 1))
+                            Text(workoutEmoji(workout.workoutActivityType))
+                                .font(.system(size: 20))
+                        }
+                        .shadow(color: Color.ajOrange.opacity(0.20), radius: 5, y: 2)
+
                         VStack(alignment: .leading, spacing: 2) {
                             Text(workoutName(workout.workoutActivityType))
-                                .font(.system(size: 13, weight: .semibold))
+                                .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.white)
                             Text(workout.startDate, style: .date)
                                 .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.4))
+                                .foregroundColor(.white.opacity(0.38))
                         }
                         Spacer()
-                        VStack(alignment: .trailing, spacing: 2) {
+                        VStack(alignment: .trailing, spacing: 3) {
                             Text(durationString(workout.duration))
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 14, weight: .black))
                                 .foregroundColor(.ajOrange)
                             if let calType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned),
                                let cal = workout.statistics(for: calType)?.sumQuantity()?.doubleValue(for: .kilocalorie()) {
-                                Text("\(Int(cal)) cal")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.white.opacity(0.4))
+                                HStack(spacing: 3) {
+                                    Image(systemName: "flame.fill")
+                                        .font(.system(size: 9))
+                                        .foregroundColor(Color(red:1,green:0.45,blue:0.1))
+                                    Text("\(Int(cal)) cal")
+                                        .font(.system(size: 11, weight: .semibold))
+                                        .foregroundColor(.white.opacity(0.42))
+                                }
                             }
                         }
+                    }
+
+                    if workout.uuid != hk.recentWorkouts.prefix(4).last?.uuid {
+                        Divider().background(Color.white.opacity(0.07))
                     }
                 }
             }
@@ -492,32 +591,62 @@ struct HealthView: View {
     // MARK: - Gym Streak
 
     private var gymStreakCard: some View {
-        AJCard {
-            VStack(spacing: 18) {
-                HStack(alignment: .center) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("GYM STREAK")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundColor(.ajOrange)
-                            .tracking(2)
-                        HStack(alignment: .firstTextBaseline, spacing: 5) {
-                            Text("\(appState.gymStreak)")
-                                .font(.system(size: 44, weight: .black))
-                                .foregroundColor(.white)
-                            Text("days")
-                                .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.4))
-                        }
-                        Text(streakSubtitle)
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.45))
+        let accent: Color = appState.gymStreak >= 30 ? .ajGold
+                          : appState.gymStreak > 0   ? .ajOrange
+                          :                            .white.opacity(0.4)
+        let gradColors: [Color] = appState.gymStreak >= 30
+            ? [.ajGold, Color(red:1,green:0.65,blue:0)]
+            : appState.gymStreak > 0
+                ? [Color(red:1,green:0.65,blue:0.15), .ajOrangeRed]
+                : [.white.opacity(0.55), .white.opacity(0.35)]
+
+        return VStack(spacing: 18) {
+            HStack(alignment: .center) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("GYM STREAK")
+                        .font(.system(size: 10, weight: .black))
+                        .foregroundColor(accent)
+                        .tracking(2)
+                    HStack(alignment: .firstTextBaseline, spacing: 5) {
+                        Text("\(appState.gymStreak)")
+                            .font(.system(size: 52, weight: .black))
+                            .foregroundStyle(LinearGradient(colors: gradColors,
+                                                            startPoint: .top, endPoint: .bottom))
+                            .shadow(color: accent.opacity(0.40), radius: 8, y: 2)
+                        Text("days")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.40))
                     }
-                    Spacer()
-                    Text(streakEmoji).font(.system(size: 44))
+                    Text(streakSubtitle)
+                        .font(.system(size: 12))
+                        .foregroundColor(.white.opacity(0.45))
                 }
-                milestoneDots
+                Spacer()
+                Text(streakEmoji)
+                    .font(.system(size: 52))
+                    .shadow(color: accent.opacity(0.40), radius: 12)
             }
+            milestoneDots
         }
+        .padding(16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [accent.opacity(0.16), .clear],
+                                         startPoint: .topLeading, endPoint: .bottomTrailing))
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(LinearGradient(colors: [Color.white.opacity(0.10), .clear],
+                                         startPoint: .top, endPoint: .center))
+                RoundedRectangle(cornerRadius: 20)
+                    .strokeBorder(
+                        LinearGradient(colors: [accent.opacity(0.65), accent.opacity(0.10)],
+                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1.5
+                    )
+            }
+            .shadow(color: accent.opacity(0.25), radius: 18, y: 5)
+        )
     }
 
     private var streakSubtitle: String {
@@ -723,11 +852,12 @@ struct HealthView: View {
 
     private var rewardsCard: some View {
         AJCard {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 Text("HEALTH REWARDS")
                     .font(.system(size: 10, weight: .black))
-                    .foregroundColor(.ajOrange).tracking(2)
-                VStack(spacing: 8) {
+                    .foregroundColor(.ajOrange)
+                    .tracking(2)
+                VStack(spacing: 10) {
                     rewardRow("💪", "3-day gym streak",  25,  appState.gymStreakRewardsClaimed.contains(3))
                     rewardRow("🏋️", "7-day gym streak",  75,  appState.gymStreakRewardsClaimed.contains(7))
                     rewardRow("⚡", "30-day gym streak", 200, appState.gymStreakRewardsClaimed.contains(30))
@@ -739,15 +869,44 @@ struct HealthView: View {
     }
 
     private func rewardRow(_ icon: String, _ label: String, _ coins: Int, _ claimed: Bool) -> some View {
-        HStack(spacing: 10) {
-            Text(icon).font(.system(size: 18)).frame(width: 28)
-            Text(label).font(.system(size: 13, weight: .semibold))
-                .foregroundColor(claimed ? .white.opacity(0.35) : .white)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(claimed
+                          ? Color.green.opacity(0.12)
+                          : Color.ajGold.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                    .overlay(Circle().stroke(
+                        claimed ? Color.green.opacity(0.25) : Color.ajGold.opacity(0.25),
+                        lineWidth: 1
+                    ))
+                Text(icon).font(.system(size: 17))
+            }
+            Text(label)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(claimed ? .white.opacity(0.32) : .white)
+                .strikethrough(claimed, color: .white.opacity(0.25))
             Spacer()
             if claimed {
-                Image(systemName: "checkmark.circle.fill").foregroundColor(.green).font(.system(size: 16))
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(.green)
+                    Text("Claimed")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.green.opacity(0.7))
+                }
             } else {
-                Text("+\(coins) 🪙").font(.system(size: 12, weight: .bold)).foregroundColor(.ajGold)
+                Text("+\(coins) 🪙")
+                    .font(.system(size: 13, weight: .black))
+                    .foregroundColor(.ajGold)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(Color.ajGold.opacity(0.12))
+                            .overlay(Capsule().stroke(Color.ajGold.opacity(0.30), lineWidth: 1))
+                    )
             }
         }
     }
@@ -762,11 +921,32 @@ struct HealthView: View {
                 Text("Log Today's Workout")
                     .font(.system(size: 16, weight: .black))
             }
-            .foregroundColor(.black).frame(maxWidth: .infinity).padding(.vertical, 18)
-            .background(RoundedRectangle(cornerRadius: 16)
-                .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing))
-                .shadow(color: .ajOrange.opacity(0.4), radius: 10, y: 4))
+            .foregroundColor(.black)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(LinearGradient(
+                            colors: [Color(red:1.0,green:0.55,blue:0.10),
+                                     Color(red:1.0,green:0.32,blue:0.06),
+                                     Color(red:0.88,green:0.16,blue:0.04)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ))
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(LinearGradient(colors: [Color.white.opacity(0.28), .clear],
+                                             startPoint: .top, endPoint: .center))
+                    RoundedRectangle(cornerRadius: 18)
+                        .stroke(Color.ajOrange, lineWidth: 2.5)
+                        .scaleEffect(workoutPulse ? 1.10 : 1.0)
+                        .opacity(workoutPulse ? 0.0 : 0.75)
+                        .animation(.easeOut(duration: 1.6).repeatForever(autoreverses: false),
+                                   value: workoutPulse)
+                }
+                .shadow(color: Color.ajOrange.opacity(0.55), radius: 20, y: 6)
+            )
         }
+        .onAppear { workoutPulse = true }
     }
 
     // MARK: - Health Data Info

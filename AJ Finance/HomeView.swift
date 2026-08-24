@@ -20,6 +20,7 @@ struct HomeView: View {
     @State private var showMissions         = false
     @State private var showQuickAdd         = false
     @State private var showWeeklyCheckIn    = false
+    @State private var quickAddLimitMode    = false
 
     // Speech
     @State private var showSpeech    = true
@@ -299,15 +300,18 @@ struct HomeView: View {
         .sheet(isPresented: $showScanner)        { ReceiptScannerView() }
         .sheet(isPresented: $showAddGoal)        { AddGoalView() }
         .sheet(isPresented: $showShop)           { OutfitShopView() }
-        .sheet(isPresented: $showQuickAdd) {
-            QuickAddTransactionView(onLogged: {
-                burstCoins(5)
-                let msgs = ["That's what I'm talking about! 💪", "Logged and locked in 🔒", "Stack it up! 📈", "On the grind fr 🔥", "AJ proud of you rn 🫡"]
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    appState.currentSpeech = msgs.randomElement() ?? "Logged! 💪"
-                    scheduleSpeechHide(after: 4.0)
-                }
-            }).environment(appState)
+        .sheet(isPresented: $showQuickAdd, onDismiss: { quickAddLimitMode = false }) {
+            QuickAddTransactionView(
+                onLogged: {
+                    burstCoins(5)
+                    let msgs = ["That's what I'm talking about! 💪", "Logged and locked in 🔒", "Stack it up! 📈", "On the grind fr 🔥", "AJ proud of you rn 🫡"]
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        appState.currentSpeech = msgs.randomElement() ?? "Logged! 💪"
+                        scheduleSpeechHide(after: 4.0)
+                    }
+                },
+                startInLimitMode: quickAddLimitMode
+            ).environment(appState)
         }
         .sheet(isPresented: $showStore) {
             NavigationStack { StoreView() }.environment(appState)
@@ -1045,30 +1049,62 @@ struct HomeView: View {
     // MARK: - Goals
 
     private var goalPillsRow: some View {
-        Group {
-            if !appState.activeGoals.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(appState.activeGoals.prefix(3)) { miniGoalPill($0) }
-                        Button { showAddGoal = true } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 18)).foregroundColor(.ajOrange).padding(.horizontal, 4)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-            } else {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                dailyGoalPill
+                ForEach(appState.activeGoals.prefix(3)) { miniGoalPill($0) }
                 Button { showAddGoal = true } label: {
-                    Label("Set your first goal!", systemImage: "plus.circle.fill")
-                        .font(.system(size: 13, weight: .semibold)).foregroundColor(.ajOrange)
-                        .padding(.horizontal, 16).padding(.vertical, 8)
-                        .background(
-                            Capsule().fill(.ultraThinMaterial)
-                                .overlay(Capsule().strokeBorder(Color.ajOrange.opacity(0.40), lineWidth: 1))
-                        )
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 16)).foregroundColor(.ajOrange).padding(.horizontal, 4)
                 }
             }
+            .padding(.horizontal, 20)
         }
+    }
+
+    private var dailyGoalPill: some View {
+        let spent   = appState.todaySpent
+        let limit   = appState.dailyBudget
+        let pct     = min(spent / max(limit, 1), 1.0)
+        let isOver  = spent > limit
+        let accent: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
+
+        return HStack(spacing: 5) {
+            Text("🎯").font(.system(size: 12))
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Daily").font(.system(size: 10, weight: .bold)).foregroundColor(.white).lineLimit(1)
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 2).fill(Color.white.opacity(0.12)).frame(height: 3)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(LinearGradient(colors: [accent, accent.opacity(0.7)],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: max(48 * CGFloat(pct), pct > 0 ? 3 : 0), height: 3)
+                }
+                .frame(width: 48)
+            }
+            Text(isOver ? "over!" : "$\(String(format: "%.0f", max(limit - spent, 0)))")
+                .font(.system(size: 9, weight: .black))
+                .foregroundColor(accent)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 11).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(LinearGradient(
+                        colors: [accent.opacity(0.14), Color.black.opacity(0.18)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                RoundedRectangle(cornerRadius: 11)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.white.opacity(0.30), Color.white.opacity(0.06)],
+                            startPoint: .top, endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            }
+        )
     }
 
     private func miniGoalPill(_ goal: SavingsGoal) -> some View {
@@ -1236,28 +1272,35 @@ struct HomeView: View {
         VStack(spacing: 8) {
             // Budget setup nudge
             if appState.dailyBudget == 0 {
-                HStack(spacing: 10) {
-                    Text("💡").font(.system(size: 16))
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Set a daily budget")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(.white)
-                        Text("Track your spending and keep AJ healthy")
-                            .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.55))
+                Button {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    quickAddLimitMode = true
+                    showQuickAdd = true
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("💡").font(.system(size: 16))
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Set a daily budget")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.white)
+                            Text("Track your spending and keep AJ healthy")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.55))
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.ajOrange.opacity(0.7))
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.ajOrange.opacity(0.7))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.ajOrange.opacity(0.12))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                    )
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 14)
-                        .fill(Color.ajOrange.opacity(0.12))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
-                )
+                .buttonStyle(.plain)
             }
 
             // Missions peek

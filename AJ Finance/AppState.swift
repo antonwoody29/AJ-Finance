@@ -1364,6 +1364,11 @@ final class AppState {
         }
     }
 
+    func setDailyBudget(_ value: Double) {
+        dailyBudget = value
+        UserDefaults.standard.set(value, forKey: "aj_dailyBudget")
+    }
+
     // MARK: - Transaction Operations
 
     func addTransaction(_ tx: SpendEntry) {
