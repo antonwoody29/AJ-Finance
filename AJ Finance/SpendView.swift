@@ -1270,9 +1270,12 @@ struct QuickAddTransactionView: View {
     @State private var didLog            = false
     @State private var successScale      : CGFloat = 0.4
     @FocusState private var amountFocused: Bool
-    @State private var viewMode     = 0
-    @State private var limitText    = ""
-    @State private var limitSaved   = false
+    @State private var viewMode          = 0
+    @State private var limitText         = ""
+    @State private var limitSaved        = false
+    @State private var purchaseAmount    = ""
+    @State private var purchaseNote      = ""
+    @State private var purchaseLogged    = false
 
     var amount: Double { Double(amountText) ?? 0 }
     var hasAmount: Bool { amount > 0 }
@@ -1291,16 +1294,35 @@ struct QuickAddTransactionView: View {
                     .padding(.bottom, 18)
 
                 // ── Mode toggle ──
-                Picker("", selection: $viewMode) {
-                    Text("✏️  Log Spend").tag(0)
-                    Text("🎯  Daily Limit").tag(1)
+                HStack(spacing: 0) {
+                    Text("✏️  Log Spend")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(viewMode == 0 ? .black : .white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(viewMode == 0 ? Color.ajOrange : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.18)) { viewMode = 0 }
+                        }
+
+                    Text("🎯  Daily Limit")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(viewMode == 1 ? .black : .white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 44)
+                        .background(viewMode == 1 ? Color.ajGreen : Color.clear)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.18)) { viewMode = 1 }
+                            limitText = "\(Int(appState.dailyBudget))"
+                        }
                 }
-                .pickerStyle(.segmented)
+                .padding(4)
+                .background(Color.white.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 13))
                 .padding(.horizontal, 20)
-                .padding(.bottom, 14)
-                .onChange(of: viewMode) { _, new in
-                    if new == 1 { limitText = "\(Int(appState.dailyBudget))" }
-                }
+                .padding(.bottom, 16)
 
                 if viewMode == 0 {
 
@@ -1429,7 +1451,7 @@ struct QuickAddTransactionView: View {
                 }
             }
         }
-        .presentationDetents([.height(520), .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.hidden)
         .onAppear {
             if startInLimitMode {
@@ -1478,6 +1500,20 @@ struct QuickAddTransactionView: View {
             onLogged?()
             dismiss()
         }
+    }
+
+    private func modeTab(label: String, active: Bool, color: Color, action: @escaping () -> Void) -> some View {
+        Text(label)
+            .font(.system(size: 13, weight: .black))
+            .foregroundColor(active ? .black : .white.opacity(0.55))
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 11)
+                    .fill(active ? color : Color.clear)
+                    .shadow(color: active ? color.opacity(0.40) : .clear, radius: 5)
+            )
+            .contentShape(Rectangle())
+            .onTapGesture(perform: action)
     }
 
     private var dailyLimitForm: some View {
@@ -1553,6 +1589,76 @@ struct QuickAddTransactionView: View {
                 }
             )
 
+            // ── Log a purchase ──
+            VStack(alignment: .leading, spacing: 8) {
+                Text("LOG A PURCHASE")
+                    .font(.system(size: 9, weight: .black))
+                    .foregroundColor(.white.opacity(0.38))
+                    .tracking(1.5)
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Text("$")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.ajOrange)
+                        TextField("0", text: $purchaseAmount)
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                            .tint(.ajOrange)
+                            .keyboardType(.decimalPad)
+                            .frame(width: 64)
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 10)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.white.opacity(0.07))
+                            .overlay(RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                    )
+
+                    TextField("What are you buying?", text: $purchaseNote)
+                        .font(.system(size: 13))
+                        .foregroundColor(.white)
+                        .tint(.ajOrange)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white.opacity(0.07))
+                                .overlay(RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.white.opacity(0.12), lineWidth: 1))
+                        )
+                }
+
+                Button {
+                    logDailyPurchase()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: purchaseLogged ? "checkmark" : "minus.circle.fill")
+                            .font(.system(size: 14, weight: .bold))
+                        Text(purchaseLogged ? "Deducted!" : "Deduct from Daily")
+                            .font(.system(size: 14, weight: .black))
+                    }
+                    .foregroundColor(purchaseLogged ? .ajGreen : .black)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(
+                        ZStack {
+                            if purchaseLogged {
+                                RoundedRectangle(cornerRadius: 14).fill(Color.ajGreen.opacity(0.18))
+                                RoundedRectangle(cornerRadius: 14).stroke(Color.ajGreen, lineWidth: 1.5)
+                            } else {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
+                                                         startPoint: .leading, endPoint: .trailing))
+                            }
+                        }
+                    )
+                }
+                .disabled(Double(purchaseAmount) == nil || (Double(purchaseAmount) ?? 0) <= 0)
+            }
+
             // Update limit
             VStack(alignment: .leading, spacing: 8) {
                 Text("UPDATE DAILY LIMIT")
@@ -1619,6 +1725,19 @@ struct QuickAddTransactionView: View {
         withAnimation { limitSaved = true }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation { limitSaved = false }
+        }
+    }
+
+    private func logDailyPurchase() {
+        guard let amt = Double(purchaseAmount), amt > 0 else { return }
+        let entry = SpendEntry(amount: amt, category: .food, note: purchaseNote.isEmpty ? "Daily purchase" : purchaseNote)
+        appState.addTransaction(entry)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        purchaseAmount = ""
+        purchaseNote = ""
+        withAnimation { purchaseLogged = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation { purchaseLogged = false }
         }
     }
 }
