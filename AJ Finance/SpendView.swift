@@ -1270,7 +1270,6 @@ struct QuickAddTransactionView: View {
     @State private var didLog            = false
     @State private var successScale      : CGFloat = 0.4
     @FocusState private var amountFocused: Bool
-    @State private var viewMode     = 0
     @State private var limitText    = ""
     @State private var limitSaved   = false
 
@@ -1290,294 +1289,223 @@ struct QuickAddTransactionView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                // ── Unified log + budget bar ──
-                let _budget = appState.dailyBudget
-                let _spent  = appState.todaySpent
-                let _pct    = _budget > 0 ? min(_spent / _budget, 1.0) : 0.0
-                let _bc: Color = _spent > _budget ? .ajOrangeRed : _pct > 0.85 ? .ajOrange : .ajGreen
+                // ── Single unified scrollable view ──
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 0) {
 
-                ZStack(alignment: .leading) {
-                    // Sliding glow pill
-                    GeometryReader { geo in
-                        RoundedRectangle(cornerRadius: 13)
-                            .fill(viewMode == 0
-                                  ? LinearGradient(colors: [Color.ajOrange, Color.ajOrangeRed],
-                                                   startPoint: .topLeading, endPoint: .bottomTrailing)
-                                  : LinearGradient(colors: [Color(red:0.05,green:0.90,blue:0.45), Color.ajGreen],
-                                                   startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: geo.size.width / 2 - 4)
-                            .offset(x: viewMode == 0 ? 3 : geo.size.width / 2 + 1)
-                            .shadow(color: (viewMode == 0 ? Color.ajOrange : Color.ajGreen).opacity(0.55),
-                                    radius: 10, y: 3)
-                            .animation(.spring(response: 0.28, dampingFraction: 0.72), value: viewMode)
+                    // ── Big amount display ──
+                    ZStack {
+                        if hasAmount {
+                            RadialGradient(
+                                colors: [Color.ajOrange.opacity(0.18), Color.clear],
+                                center: .center, startRadius: 10, endRadius: 90)
+                            .frame(height: 120)
+                        }
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text("$")
+                                .font(.system(size: 42, weight: .black))
+                                .foregroundColor(hasAmount ? Color.ajOrange : .white.opacity(0.18))
+                                .offset(y: -6)
+                            TextField("0", text: $amountText)
+                                .font(.system(size: 72, weight: .black))
+                                .foregroundColor(.white)
+                                .tint(.ajOrange)
+                                .keyboardType(.decimalPad)
+                                .focused($amountFocused)
+                                .fixedSize()
+                        }
+                        .shadow(color: hasAmount ? Color.ajOrange.opacity(0.30) : .clear, radius: 20)
                     }
-                    .padding(3)
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 10)
 
-                    HStack(spacing: 0) {
-                        // LEFT: Log Spend
-                        HStack(spacing: 5) {
-                            Image(systemName: "pencil.line")
-                                .font(.system(size: 12, weight: .black))
-                            Text("Log Spend")
-                                .font(.system(size: 13, weight: .black))
-                        }
-                        .foregroundColor(viewMode == 0 ? .black : .white.opacity(0.45))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 46)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 0 }
-                        }
-
-                        // RIGHT: Daily budget status (live)
-                        HStack(spacing: 6) {
-                            Image(systemName: "target")
-                                .font(.system(size: 11, weight: .black))
-                            if _budget > 0 {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text("$\(Int(_spent)) / $\(Int(_budget))")
-                                        .font(.system(size: 10, weight: .black))
-                                        .lineLimit(1)
-                                    ZStack(alignment: .leading) {
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .fill(Color.black.opacity(0.22))
-                                            .frame(width: 52, height: 3)
-                                        RoundedRectangle(cornerRadius: 2)
-                                            .fill(viewMode == 1 ? Color.black.opacity(0.55) : _bc)
-                                            .frame(width: 52 * CGFloat(_pct), height: 3)
+                    // ── Quick-amount pills ──
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach([5, 10, 20, 50, 100], id: \.self) { v in
+                                let isSelected = amountText == "\(v)"
+                                Text("$\(v)")
+                                    .font(.system(size: 14, weight: .black))
+                                    .foregroundColor(isSelected ? .black : .ajOrange)
+                                    .padding(.horizontal, 18)
+                                    .padding(.vertical, 10)
+                                    .background(
+                                        ZStack {
+                                            if isSelected {
+                                                Capsule().fill(LinearGradient(
+                                                    colors: [.ajOrange, .ajOrangeRed],
+                                                    startPoint: .leading, endPoint: .trailing))
+                                                .shadow(color: Color.ajOrange.opacity(0.50), radius: 6)
+                                            } else {
+                                                Capsule().fill(Color.ajOrange.opacity(0.12))
+                                                Capsule().strokeBorder(Color.ajOrange.opacity(0.30), lineWidth: 1)
+                                            }
+                                        }
+                                    )
+                                    .contentShape(Capsule())
+                                    .onTapGesture {
+                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                            amountText = "\(v)"
+                                        }
+                                        amountFocused = false
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                     }
-                                }
-                            } else {
-                                Text("Daily Limit")
-                                    .font(.system(size: 13, weight: .black))
+                                    .scaleEffect(isSelected ? 1.04 : 1.0)
+                                    .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isSelected)
                             }
                         }
-                        .foregroundColor(viewMode == 1 ? .black : _bc.opacity(0.90))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 46)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 1 }
-                            limitText = "\(Int(appState.dailyBudget))"
-                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 4)
                     }
-                }
-                .frame(height: 52)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.07))
-                        RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
-                    }
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-                .padding(.horizontal, 20)
-                .padding(.bottom, 18)
+                    .padding(.bottom, 14)
 
-                if viewMode == 0 {
-
-                // ── Big amount display ──
-                ZStack {
-                    if hasAmount {
-                        RadialGradient(
-                            colors: [Color.ajOrange.opacity(0.18), Color.clear],
-                            center: .center, startRadius: 10, endRadius: 90)
-                        .frame(height: 120)
-                    }
-                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                        Text("$")
-                            .font(.system(size: 42, weight: .black))
-                            .foregroundColor(hasAmount ? Color.ajOrange : .white.opacity(0.18))
-                            .offset(y: -6)
-                        TextField("0", text: $amountText)
-                            .font(.system(size: 72, weight: .black))
-                            .foregroundColor(.white)
-                            .tint(.ajOrange)
-                            .keyboardType(.decimalPad)
-                            .focused($amountFocused)
-                            .fixedSize()
-                    }
-                    .shadow(color: hasAmount ? Color.ajOrange.opacity(0.30) : .clear, radius: 20)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 24)
-                .padding(.bottom, 10)
-
-                // ── Quick-amount pills ──
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach([5, 10, 20, 50, 100], id: \.self) { v in
-                            let isSelected = amountText == "\(v)"
-                            Text("$\(v)")
-                                .font(.system(size: 14, weight: .black))
-                                .foregroundColor(isSelected ? .black : .ajOrange)
-                                .padding(.horizontal, 18)
-                                .padding(.vertical, 10)
-                                .background(
+                    // ── Category scroll ──
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(SpendCategory.allCases) { cat in
+                                let isSelected = selectedCategory == cat
+                                VStack(spacing: 4) {
                                     ZStack {
+                                        Circle()
+                                            .fill(isSelected
+                                                ? LinearGradient(colors: [cat.color, cat.color.opacity(0.55)],
+                                                                 startPoint: .topLeading, endPoint: .bottomTrailing)
+                                                : LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.04)],
+                                                                 startPoint: .top, endPoint: .bottom))
+                                            .frame(width: 50, height: 50)
                                         if isSelected {
-                                            Capsule().fill(LinearGradient(
-                                                colors: [.ajOrange, .ajOrangeRed],
-                                                startPoint: .leading, endPoint: .trailing))
-                                            .shadow(color: Color.ajOrange.opacity(0.50), radius: 6)
-                                        } else {
-                                            Capsule().fill(Color.ajOrange.opacity(0.12))
-                                            Capsule().strokeBorder(Color.ajOrange.opacity(0.30), lineWidth: 1)
+                                            Circle()
+                                                .strokeBorder(cat.color.opacity(0.70), lineWidth: 2)
+                                                .frame(width: 50, height: 50)
                                         }
+                                        Text(cat.icon).font(.system(size: 24))
                                     }
-                                )
-                                .contentShape(Capsule())
+                                    .shadow(color: isSelected ? cat.color.opacity(0.55) : .clear, radius: 8)
+                                    Text(cat.rawValue)
+                                        .font(.system(size: 9, weight: .bold))
+                                        .foregroundColor(isSelected ? cat.color : .white.opacity(0.35))
+                                        .lineLimit(1)
+                                }
+                                .frame(width: 58)
+                                .scaleEffect(isSelected ? 1.08 : 1.0)
+                                .animation(.spring(response: 0.22, dampingFraction: 0.65), value: isSelected)
+                                .contentShape(Rectangle())
                                 .onTapGesture {
-                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-                                        amountText = "\(v)"
-                                    }
+                                    withAnimation { selectedCategory = cat }
                                     amountFocused = false
                                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                                 }
-                                .scaleEffect(isSelected ? 1.04 : 1.0)
-                                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isSelected)
+                            }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 6)
+                    }
+                    .padding(.bottom, 14)
+
+                    // ── Note + Log button ──
+                    HStack(spacing: 10) {
+                        HStack(spacing: 8) {
+                            ZStack {
+                                Circle().fill(Color.ajOrange.opacity(0.12)).frame(width: 28, height: 28)
+                                Image(systemName: "text.bubble.fill")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(.ajOrange.opacity(0.70))
+                            }
+                            TextField("Add a note…", text: $note)
+                                .font(.system(size: 13))
+                                .foregroundColor(.white)
+                                .tint(.ajOrange)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 9)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.06))
+                                RoundedRectangle(cornerRadius: 14).strokeBorder(
+                                    LinearGradient(colors: [Color.ajOrange.opacity(0.25), Color.white.opacity(0.08)],
+                                                   startPoint: .leading, endPoint: .trailing), lineWidth: 1)
+                            }
+                        )
+
+                        Button { logTransaction() } label: {
+                            ZStack {
+                                if hasAmount {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(LinearGradient(
+                                            colors: [Color.ajOrange, Color.ajOrangeRed],
+                                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(LinearGradient(
+                                            colors: [Color.white.opacity(0.18), Color.clear],
+                                            startPoint: .top, endPoint: .center))
+                                } else {
+                                    RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.05))
+                                    RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                                }
+                                VStack(spacing: 2) {
+                                    Text(hasAmount ? selectedCategory.icon : "✏️")
+                                        .font(.system(size: 16))
+                                    Text(hasAmount ? "LOG" : "LOG")
+                                        .font(.system(size: 10, weight: .black))
+                                        .foregroundColor(hasAmount ? .black : .white.opacity(0.22))
+                                }
+                            }
+                            .frame(width: 60, height: 46)
+                            .shadow(color: hasAmount ? Color.ajOrange.opacity(0.50) : .clear, radius: 12, y: 4)
+                        }
+                        .disabled(!hasAmount)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 4)
-                }
-                .padding(.bottom, 14)
+                    .padding(.bottom, 20)
 
-                // ── Category scroll ──
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(SpendCategory.allCases) { cat in
-                            let isSelected = selectedCategory == cat
-                            VStack(spacing: 4) {
-                                ZStack {
-                                    Circle()
-                                        .fill(isSelected
-                                            ? LinearGradient(colors: [cat.color, cat.color.opacity(0.55)],
-                                                             startPoint: .topLeading, endPoint: .bottomTrailing)
-                                            : LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.04)],
-                                                             startPoint: .top, endPoint: .bottom))
-                                        .frame(width: 50, height: 50)
-                                    if isSelected {
-                                        Circle()
-                                            .strokeBorder(cat.color.opacity(0.70), lineWidth: 2)
-                                            .frame(width: 50, height: 50)
-                                    }
-                                    Text(cat.icon).font(.system(size: 24))
-                                }
-                                .shadow(color: isSelected ? cat.color.opacity(0.55) : .clear, radius: 8)
-                                Text(cat.rawValue)
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(isSelected ? cat.color : .white.opacity(0.35))
-                                    .lineLimit(1)
-                            }
-                            .frame(width: 58)
-                            .scaleEffect(isSelected ? 1.08 : 1.0)
-                            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: isSelected)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                withAnimation { selectedCategory = cat }
-                                amountFocused = false
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            }
-                        }
+                    // ── Section divider ──
+                    HStack(spacing: 12) {
+                        Rectangle()
+                            .fill(LinearGradient(colors: [.clear, Color.white.opacity(0.10)], startPoint: .leading, endPoint: .trailing))
+                            .frame(height: 1)
+                        Text("SPENDING OVERVIEW")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.22))
+                            .tracking(1.5)
+                            .fixedSize()
+                        Rectangle()
+                            .fill(LinearGradient(colors: [Color.white.opacity(0.10), .clear], startPoint: .leading, endPoint: .trailing))
+                            .frame(height: 1)
                     }
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 6)
-                }
-                .padding(.bottom, 14)
+                    .padding(.bottom, 14)
 
-                // ── Note field ──
-                HStack(spacing: 10) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.ajOrange.opacity(0.12))
-                            .frame(width: 30, height: 30)
-                        Image(systemName: "text.bubble.fill")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.ajOrange.opacity(0.70))
-                    }
-                    TextField("Add a note…", text: $note)
-                        .font(.system(size: 14))
-                        .foregroundColor(.white)
-                        .tint(.ajOrange)
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.06))
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(
-                                LinearGradient(colors: [Color.ajOrange.opacity(0.25), Color.white.opacity(0.08)],
-                                               startPoint: .leading, endPoint: .trailing),
-                                lineWidth: 1)
-                    }
-                )
-                .padding(.horizontal, 20)
-                .padding(.bottom, 14)
+                    // ── Today status + budget setter ──
+                    compactTodayStatus
+                        .padding(.bottom, 12)
 
-                // ── Log button ──
-                Button { logTransaction() } label: {
-                    ZStack {
-                        if hasAmount {
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(LinearGradient(
-                                    colors: [Color.ajOrange, Color.ajOrangeRed, Color.ajOrange.opacity(0.80)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                            RoundedRectangle(cornerRadius: 18)
-                                .fill(LinearGradient(
-                                    colors: [Color.white.opacity(0.18), Color.clear],
-                                    startPoint: .top, endPoint: .center))
-                        } else {
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white.opacity(0.05))
-                            RoundedRectangle(cornerRadius: 12)
-                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                        }
-                        if hasAmount {
-                            HStack(spacing: 10) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.black.opacity(0.15))
-                                        .frame(width: 34, height: 34)
-                                    Text(selectedCategory.icon).font(.system(size: 18))
-                                }
-                                Text("Log  $\(String(format: "%.2f", amount))")
-                                    .font(.system(size: 17, weight: .black))
-                                    .foregroundColor(.black)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                        } else {
-                            Text("Enter an amount above")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.20))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 11)
-                        }
-                    }
-                    .shadow(color: hasAmount ? Color.ajOrange.opacity(0.50) : .clear, radius: 16, y: 6)
-                }
-                .disabled(!hasAmount)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 14)
+                    // ── 7-day trend chart ──
+                    weeklyTrendChart
+                        .padding(.bottom, 12)
 
-                todayLogSection
+                    // ── Monthly snapshot ──
+                    monthlySnapshot
+                        .padding(.bottom, 12)
 
-                } else {
-                    dailyLimitForm
-                }
+                    // ── Smart insights ──
+                    smartInsightsSection
+                        .padding(.bottom, 12)
+
+                    // ── Today's log ──
+                    todayLogSection
+                        .padding(.bottom, 24)
+
+                    } // inner VStack
+                } // ScrollView
+                .scrollDismissesKeyboard(.interactively)
             }
         }
         .presentationDetents([.large])
         .presentationDragIndicator(.hidden)
         .onAppear {
-            if startInLimitMode {
-                viewMode = 1
-                limitText = "\(Int(appState.dailyBudget))"
-            } else {
-                amountFocused = true
-            }
+            limitText = "\(Int(appState.dailyBudget))"
+            amountFocused = true
         }
         // ── Success overlay ──
         .overlay {
@@ -1620,611 +1548,358 @@ struct QuickAddTransactionView: View {
         }
     }
 
-    private func modeTab(label: String, active: Bool, color: Color, action: @escaping () -> Void) -> some View {
-        Text(label)
-            .font(.system(size: 13, weight: .black))
-            .foregroundColor(active ? .black : .white.opacity(0.55))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
-                RoundedRectangle(cornerRadius: 11)
-                    .fill(active ? color : Color.clear)
-                    .shadow(color: active ? color.opacity(0.40) : .clear, radius: 5)
-            )
-            .contentShape(Rectangle())
-            .onTapGesture(perform: action)
-    }
 
-    private var dailyLimitForm: some View {
-        let spent  = appState.todaySpent
+    // ── Compact today status + budget setter ──
+    @ViewBuilder
+    private var compactTodayStatus: some View {
         let limit  = appState.dailyBudget
+        let spent  = appState.todaySpent
         let pct    = limit > 0 ? min(spent / limit, 1.0) : 0
         let isOver = spent > limit && limit > 0
-        let accent: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
+        let clr: Color = isOver ? .ajOrangeRed : pct > 0.85 ? .ajOrange : .ajGreen
+        let remaining  = max(limit - spent, 0)
 
-        return ScrollView(showsIndicators: false) { VStack(spacing: 10) {
-
-            // ── Big progress card ──
-            VStack(spacing: 0) {
-                // Top row: label + status badge
-                HStack {
-                    Label("TODAY'S SPENDING", systemImage: "calendar.badge.clock")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.white.opacity(0.40))
-                        .tracking(1.2)
-                    Spacer()
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(isOver ? Color.ajOrangeRed : accent)
-                            .frame(width: 7, height: 7)
-                            .shadow(color: (isOver ? Color.ajOrangeRed : accent).opacity(0.90), radius: 4)
-                        Text(isOver ? "OVER LIMIT" : pct > 0.85 ? "NEAR LIMIT" : "ON TRACK")
-                            .font(.system(size: 9, weight: .black))
-                            .foregroundColor(isOver ? .ajOrangeRed : accent)
-                            .tracking(1)
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule().fill((isOver ? Color.ajOrangeRed : accent).opacity(0.14))
-                    )
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 10)
-                .padding(.bottom, 8)
-
-                // Divider
-                Rectangle()
-                    .fill(Color.white.opacity(0.07))
-                    .frame(height: 1)
-                    .padding(.horizontal, 14)
-
-                // Big numbers
-                HStack(alignment: .bottom, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        HStack(alignment: .firstTextBaseline, spacing: 3) {
-                            Text("$")
-                                .font(.system(size: 24, weight: .black))
-                                .foregroundColor(accent)
-                            Text(String(format: "%.0f", spent))
-                                .font(.system(size: 44, weight: .black))
-                                .foregroundColor(.white)
-                                .shadow(color: accent.opacity(0.25), radius: 10)
-                        }
-                        Text("of $\(String(format: "%.0f", limit)) limit")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.40))
-                    }
-                    Spacer()
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("\(Int(pct * 100))%")
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundColor(accent)
-                        Text("used")
-                            .font(.system(size: 10))
-                            .foregroundColor(.white.opacity(0.35))
-                    }
-                }
-                .padding(.horizontal, 14)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(Color.white.opacity(0.07))
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(LinearGradient(
-                                colors: [accent.opacity(0.70), accent],
-                                startPoint: .leading, endPoint: .trailing))
-                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 10 : 0))
-                            .shadow(color: accent.opacity(0.65), radius: 5)
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(LinearGradient(
-                                colors: [Color.white.opacity(0.20), Color.clear],
-                                startPoint: .top, endPoint: .center))
-                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 10 : 0))
-                    }
-                }
-                .frame(height: 10)
-                .padding(.horizontal, 14)
-                .padding(.bottom, 8)
-
-                // Status row
-                HStack {
-                    HStack(spacing: 4) {
-                        Image(systemName: isOver ? "bolt.fill" : "checkmark.circle.fill")
-                            .font(.system(size: 10, weight: .bold))
-                        Text(isOver
-                             ? "Over by $\(String(format: "%.0f", spent - limit))"
-                             : "$\(String(format: "%.0f", max(limit - spent, 0))) remaining today")
-                            .font(.system(size: 10, weight: .semibold))
-                    }
-                    .foregroundColor(isOver ? .ajOrangeRed : .ajGreen)
-                    Spacer()
-                }
-                .padding(.horizontal, 14)
-                .padding(.bottom, 10)
-            }
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06))
-                    RoundedRectangle(cornerRadius: 18)
-                        .fill(LinearGradient(
-                            colors: [accent.opacity(0.10), Color.black.opacity(0.25)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing))
-                    RoundedRectangle(cornerRadius: 18)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [accent.opacity(0.60), accent.opacity(0.08)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing),
-                            lineWidth: 1.5)
-                }
-            )
-
-            // ── Quick-stats row ──
-            HStack(spacing: 8) {
-                ForEach([
-                    ("$\(String(format: "%.0f", spent))", "SPENT",    isOver ? Color.ajOrangeRed : Color.ajOrange),
-                    ("$\(String(format: "%.0f", max(limit - spent, 0)))", "LEFT", Color.ajGreen),
-                    ("$\(String(format: "%.0f", limit))", "BUDGET",   Color.white.opacity(0.55))
-                ], id: \.1) { val, lbl, clr in
-                    VStack(spacing: 2) {
-                        Text(val)
-                            .font(.system(size: 14, weight: .black))
-                            .foregroundColor(clr)
-                        Text(lbl)
-                            .font(.system(size: 8, weight: .black))
-                            .foregroundColor(.white.opacity(0.35))
-                            .tracking(1)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.05))
-                            RoundedRectangle(cornerRadius: 12).strokeBorder(clr.opacity(0.18), lineWidth: 1)
-                        }
-                    )
-                }
-            }
-
-            // ── Budget streak card ──
-            if limit > 0 {
-                budgetStreakCard
-            }
-
-            // ── Daily limit reward card ──
-            if !isOver && limit > 0 && spent > 0 {
-                dailyLimitRewardCard
-            }
-
-            // ── Spending breakdown chart ──
-            spendingBreakdownChart
-
-            // ── Update daily limit ──
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.35))
-                    Text("SET DAILY BUDGET")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.white.opacity(0.35))
-                        .tracking(1.4)
-                }
-
-                HStack(spacing: 8) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.06))
-                        RoundedRectangle(cornerRadius: 14)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [Color.ajGreen.opacity(0.55), Color.ajGreen.opacity(0.15)],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing),
-                                lineWidth: 1.5)
-                        HStack(spacing: 4) {
-                            Text("$")
-                                .font(.system(size: 22, weight: .black))
-                                .foregroundColor(.ajGreen)
-                            TextField("\(Int(limit))", text: $limitText)
-                                .font(.system(size: 22, weight: .black))
-                                .foregroundColor(.white)
-                                .tint(.ajGreen)
-                                .keyboardType(.numberPad)
-                                .fixedSize()
-                            Spacer()
-                        }
-                        .padding(.horizontal, 12)
-                    }
-                    .frame(height: 44)
-
-                    Button { saveDailyLimit() } label: {
-                        ZStack {
-                            if limitSaved {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(Color.ajGreen.opacity(0.15))
-                                RoundedRectangle(cornerRadius: 14)
-                                    .strokeBorder(Color.ajGreen, lineWidth: 1.5)
-                            } else {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(LinearGradient(
-                                        colors: [Color(red:0.05, green:0.90, blue:0.45), .ajGreen],
-                                        startPoint: .topLeading, endPoint: .bottomTrailing))
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(LinearGradient(
-                                        colors: [Color.white.opacity(0.18), Color.clear],
-                                        startPoint: .top, endPoint: .center))
-                            }
-                            VStack(spacing: 2) {
-                                Image(systemName: limitSaved ? "checkmark" : "square.and.arrow.down.fill")
-                                    .font(.system(size: 12, weight: .black))
-                                Text(limitSaved ? "Saved" : "Save")
-                                    .font(.system(size: 10, weight: .black))
-                            }
-                            .foregroundColor(limitSaved ? .ajGreen : .black)
-                        }
-                        .frame(width: 56, height: 44)
-                        .shadow(color: limitSaved ? .clear : Color.ajGreen.opacity(0.45), radius: 8, y: 3)
-                    }
-                }
-            }
-
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 20)
-        } // ScrollView
-    }
-
-    @ViewBuilder
-    private var budgetStreakCard: some View {
-        let current = appState.dailyLimitStreak
-        let best    = appState.bestDailyLimitStreak
-        let pct     = min(Double(best) / 60.0, 1.0)
-        let nextMilestone: Int = best < 7 ? 7 : best < 14 ? 14 : best < 30 ? 30 : 60
-        let daysLeft = nextMilestone - best
-
-        VStack(spacing: 8) {
-            // Header row
+        VStack(spacing: 10) {
             HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.ajOrange)
-                    Text("BUDGET STREAK")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.white.opacity(0.40))
-                        .tracking(1.4)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("TODAY")
+                        .font(.system(size: 8, weight: .black))
+                        .foregroundColor(.white.opacity(0.35))
+                        .tracking(1.2)
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text("$\(Int(spent))")
+                            .font(.system(size: 26, weight: .black))
+                            .foregroundColor(.white)
+                        if limit > 0 {
+                            Text("/ $\(Int(limit))")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.38))
+                        }
+                    }
                 }
                 Spacer()
-                Text("Contributes to pet growth")
-                    .font(.system(size: 9))
-                    .foregroundColor(.white.opacity(0.28))
-            }
-
-            // Big streak + stats
-            HStack(alignment: .center, spacing: 0) {
-                // Current streak
-                VStack(spacing: 1) {
-                    HStack(alignment: .firstTextBaseline, spacing: 3) {
-                        Text("\(current)")
-                            .font(.system(size: 28, weight: .black))
-                            .foregroundColor(current > 0 ? .ajOrange : .white.opacity(0.20))
-                        Text("days")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.40))
-                            .offset(y: -2)
+                if limit > 0 {
+                    HStack(spacing: 4) {
+                        Circle().fill(clr).frame(width: 6, height: 6)
+                            .shadow(color: clr.opacity(0.90), radius: 3)
+                        Text(isOver
+                             ? "OVER $\(Int(spent - limit))"
+                             : "$\(Int(remaining)) LEFT")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(clr)
                     }
-                    Text("current")
-                        .font(.system(size: 9))
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(ZStack {
+                        Capsule().fill(clr.opacity(0.12))
+                        Capsule().strokeBorder(clr.opacity(0.28), lineWidth: 1)
+                    })
+                } else {
+                    Text("Set a limit below")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.white.opacity(0.28))
                 }
-                .frame(maxWidth: .infinity)
-
-                // Divider
-                Rectangle()
-                    .fill(Color.white.opacity(0.10))
-                    .frame(width: 1, height: 32)
-
-                // Best / goal
-                VStack(spacing: 6) {
-                    HStack(spacing: 14) {
-                        VStack(spacing: 2) {
-                            Text("\(best)")
-                                .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.ajGold)
-                            Text("best")
-                                .font(.system(size: 9))
-                                .foregroundColor(.white.opacity(0.28))
-                        }
-                        VStack(spacing: 2) {
-                            Text("60")
-                                .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.white.opacity(0.25))
-                            Text("goal")
-                                .font(.system(size: 9))
-                                .foregroundColor(.white.opacity(0.28))
-                        }
-                    }
-                }
-                .frame(maxWidth: .infinity)
             }
-
-            // Progress bar toward 60 days
-            VStack(spacing: 5) {
+            if limit > 0 {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.07))
-                        RoundedRectangle(cornerRadius: 6)
-                            .fill(LinearGradient(
-                                colors: [Color.ajOrange, Color.ajGold],
-                                startPoint: .leading, endPoint: .trailing))
+                        RoundedRectangle(cornerRadius: 5).fill(Color.white.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(LinearGradient(colors: [clr.opacity(0.70), clr], startPoint: .leading, endPoint: .trailing))
                             .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 8 : 0))
-                            .shadow(color: Color.ajOrange.opacity(0.50), radius: 4)
-                        // Milestone ticks
-                        ForEach([7, 14, 30], id: \.self) { tick in
-                            let x = geo.size.width * CGFloat(tick) / 60.0
-                            Rectangle()
-                                .fill(Color.white.opacity(0.30))
-                                .frame(width: 1.5, height: 10)
-                                .offset(x: x - 0.75)
-                        }
+                            .shadow(color: clr.opacity(0.50), radius: 4)
                     }
                 }
-                .frame(height: 10)
-
-                HStack {
-                    Text(best >= 60 ? "👑 Pet evolution unlocked via budget!" :
-                         "\(daysLeft) more days to next milestone")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(best >= 60 ? .ajGold : .white.opacity(0.35))
-                    Spacer()
-                    Text("7 · 14 · 30 · 60")
-                        .font(.system(size: 9))
-                        .foregroundColor(.white.opacity(0.20))
-                }
+                .frame(height: 8)
             }
 
-            // Pet growth hint
-            if best < 60 {
-                HStack(spacing: 6) {
-                    Text(appState.evolutionEmoji)
-                        .font(.system(size: 14))
-                    Text("60-day budget streak = 30-day regular streak for pet evolution")
-                        .font(.system(size: 9))
-                        .foregroundColor(.white.opacity(0.38))
-                        .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: 8) {
+                Text("Daily limit")
+                    .font(.system(size: 11)).foregroundColor(.white.opacity(0.35))
+                HStack(spacing: 2) {
+                    Text("$").font(.system(size: 14, weight: .black)).foregroundColor(.ajGreen)
+                    TextField("\(Int(limit))", text: $limitText)
+                        .font(.system(size: 14, weight: .black))
+                        .foregroundColor(.white).tint(.ajGreen)
+                        .keyboardType(.numberPad).fixedSize()
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.white.opacity(0.04))
-                )
-            }
-        }
-        .padding(10)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
-                RoundedRectangle(cornerRadius: 18)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [Color.ajOrange.opacity(0.40), Color.ajOrange.opacity(0.08)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 1)
-            }
-        )
-    }
+                .padding(.horizontal, 10).padding(.vertical, 5)
+                .background(ZStack {
+                    RoundedRectangle(cornerRadius: 10).fill(Color.white.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 10).strokeBorder(Color.ajGreen.opacity(0.28), lineWidth: 1)
+                })
 
-    @ViewBuilder
-    private var dailyLimitRewardCard: some View {
-        let claimed  = appState.hasClaimedDailyLimitRewardToday
-        let gems     = appState.dailyLimitRewardGems
-        let ratio    = appState.dailyBudget > 0 ? appState.todaySpent / appState.dailyBudget : 0
-        let tier: String = ratio <= 0.70 ? "CRUSHING IT" : ratio <= 0.90 ? "ON TRACK" : "GOAL MET"
-
-        ZStack {
-            // Background
-            RoundedRectangle(cornerRadius: 18)
-                .fill(LinearGradient(
-                    colors: [Color.ajGold.opacity(0.14), Color.black.opacity(0.30)],
-                    startPoint: .topLeading, endPoint: .bottomTrailing))
-            RoundedRectangle(cornerRadius: 18)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.ajGold.opacity(0.65), Color.ajGold.opacity(0.15)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1.5)
-
-            HStack(spacing: 10) {
-                // Trophy icon
-                ZStack {
-                    Circle()
-                        .fill(LinearGradient(
-                            colors: [Color.ajGold.opacity(0.30), Color.ajGold.opacity(0.10)],
-                            startPoint: .top, endPoint: .bottom))
-                        .frame(width: 40, height: 40)
-                    Text(claimed ? "✅" : "🏆")
-                        .font(.system(size: 20))
-                }
-                .shadow(color: Color.ajGold.opacity(0.50), radius: 6)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 6) {
-                        Text(tier)
-                            .font(.system(size: 9, weight: .black))
-                            .foregroundColor(.ajGold)
-                            .tracking(1.2)
-                        if !claimed {
-                            Text("· \(gems) 💎")
-                                .font(.system(size: 9, weight: .black))
-                                .foregroundColor(.ajGold.opacity(0.70))
-                        }
-                    }
-                    Text(claimed
-                         ? "Reward claimed! +\(gems) 💎 +20 XP"
-                         : "Stay under budget to earn \(gems) gems + 20 XP")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.75))
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer()
-
-                if !claimed {
-                    Text("Claim")
-                        .font(.system(size: 12, weight: .black))
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(
-                            ZStack {
-                                Capsule().fill(LinearGradient(
-                                    colors: [Color.ajGold, Color.ajGold.opacity(0.75)],
-                                    startPoint: .top, endPoint: .bottom))
-                                Capsule().fill(LinearGradient(
-                                    colors: [Color.white.opacity(0.20), Color.clear],
-                                    startPoint: .top, endPoint: .center))
-                            }
-                        )
-                        .shadow(color: Color.ajGold.opacity(0.45), radius: 6, y: 2)
-                        .onTapGesture {
-                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.65)) {
-                                appState.claimDailyLimitReward()
-                            }
-                        }
+                if limitSaved {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.ajGreen).font(.system(size: 14))
                 } else {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(.ajGold)
+                    Text("Update")
+                        .font(.system(size: 11, weight: .black)).foregroundColor(.black)
+                        .padding(.horizontal, 12).padding(.vertical, 5)
+                        .background(Capsule().fill(LinearGradient(
+                            colors: [Color(red:0.05,green:0.90,blue:0.45), Color.ajGreen],
+                            startPoint: .leading, endPoint: .trailing)))
+                        .onTapGesture { saveDailyLimit() }
                 }
+                Spacer()
             }
-            .padding(10)
         }
+        .padding(14)
+        .background(ZStack {
+            RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06))
+            RoundedRectangle(cornerRadius: 18)
+                .fill(LinearGradient(colors: [clr.opacity(0.08), .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
+            RoundedRectangle(cornerRadius: 18)
+                .strokeBorder(LinearGradient(
+                    colors: [clr.opacity(0.55), clr.opacity(0.10)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.5)
+        })
+        .padding(.horizontal, 20)
     }
 
-    // Returns (category, amount, pct, startArc, endArc) per category
-    private func buildBreakdown() -> [(SpendCategory, Double, Double, Double, Double)] {
-        let txns = appState.transactions
-            .filter { !$0.isSaving && Calendar.current.isDateInToday($0.date) }
-        let total = txns.reduce(0.0) { $0 + $1.amount }
-        guard total > 0 else { return [] }
-
-        let grouped = Dictionary(grouping: txns) { $0.category }
-        let sorted = grouped
-            .map { (cat: SpendCategory, items: [SpendEntry]) in
-                (cat, items.reduce(0.0) { $0 + $1.amount })
-            }
-            .sorted { $0.1 > $1.1 }
-
-        var result: [(SpendCategory, Double, Double, Double, Double)] = []
-        var cumulative = 0.0
-        let gap = 0.018
-        for (cat, amount) in sorted {
-            let pct  = amount / total
-            let start = cumulative + gap / 2
-            let end   = max(start + 0.001, cumulative + pct - gap / 2)
-            result.append((cat, amount, pct, start, end))
-            cumulative += pct
-        }
-        return result
-    }
-
+    // ── 7-day spending bar chart ──
     @ViewBuilder
-    private var spendingBreakdownChart: some View {
-        let breakdown = buildBreakdown()
-        let total = appState.todaySpent
+    private var weeklyTrendChart: some View {
+        let calendar  = Calendar.current
+        let today     = Date()
+        let limit     = appState.dailyBudget
+        let days: [Date] = (0..<7).reversed().compactMap {
+            calendar.date(byAdding: .day, value: -$0, to: today)
+        }
+        let maxVal: Double = {
+            let peak = days.map { d in
+                appState.transactions
+                    .filter { !$0.isSaving && calendar.isDate($0.date, inSameDayAs: d) }
+                    .reduce(0.0) { $0 + $1.amount }
+            }.max() ?? 0
+            return max(peak, limit > 0 ? limit * 1.1 : 1)
+        }()
 
-        if !breakdown.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                // Header
-                HStack(spacing: 6) {
-                    Image(systemName: "chart.pie.fill")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white.opacity(0.38))
-                    Text("SPENDING BREAKDOWN")
-                        .font(.system(size: 9, weight: .black))
-                        .foregroundColor(.white.opacity(0.38))
-                        .tracking(1.4)
-                }
-
-                HStack(alignment: .center, spacing: 14) {
-                    // ── Donut chart ──
-                    ZStack {
-                        Circle()
-                            .stroke(Color.white.opacity(0.07), lineWidth: 16)
-
-                        ForEach(breakdown.indices, id: \.self) { i in
-                            let (cat, _, _, start, end) = breakdown[i]
-                            Circle()
-                                .trim(from: CGFloat(start), to: CGFloat(end))
-                                .stroke(
-                                    LinearGradient(
-                                        colors: [cat.color, cat.color.opacity(0.65)],
-                                        startPoint: .topLeading, endPoint: .bottomTrailing),
-                                    style: StrokeStyle(lineWidth: 16, lineCap: .butt))
-                                .rotationEffect(.degrees(-90))
-                                .shadow(color: cat.color.opacity(0.40), radius: 3)
-                        }
-
-                        VStack(spacing: 1) {
-                            Text("$\(String(format: "%.0f", total))")
-                                .font(.system(size: 16, weight: .black))
-                                .foregroundColor(.white)
-                            Text("today")
-                                .font(.system(size: 8, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.35))
-                        }
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 5) {
+                Image(systemName: "chart.bar.fill").font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white.opacity(0.35))
+                Text("7-DAY TREND").font(.system(size: 9, weight: .black))
+                    .foregroundColor(.white.opacity(0.35)).tracking(1.4)
+                Spacer()
+                if limit > 0 {
+                    HStack(spacing: 4) {
+                        Rectangle().fill(Color.white.opacity(0.35)).frame(width: 12, height: 1.5)
+                        Text("$\(Int(limit)) limit").font(.system(size: 9)).foregroundColor(.white.opacity(0.28))
                     }
-                    .frame(width: 96, height: 96)
+                }
+            }
 
-                    // ── Category list ──
-                    VStack(alignment: .leading, spacing: 7) {
-                        ForEach(breakdown.prefix(5).indices, id: \.self) { i in
-                            let (cat, amount, pct, _, _) = breakdown[i]
-                            HStack(spacing: 6) {
-                                Circle()
-                                    .fill(cat.color)
-                                    .frame(width: 6, height: 6)
-                                    .shadow(color: cat.color.opacity(0.60), radius: 3)
-                                Text(cat.icon)
-                                    .font(.system(size: 11))
-                                Text(cat.rawValue)
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.80))
-                                    .lineLimit(1)
-                                Spacer(minLength: 2)
-                                Text("\(Int(pct * 100))%")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(cat.color)
-                                    .frame(width: 26, alignment: .trailing)
-                                Text("-$\(String(format: "%.0f", amount))")
-                                    .font(.system(size: 10, weight: .black))
-                                    .foregroundColor(.white)
-                                    .frame(width: 38, alignment: .trailing)
+            HStack(alignment: .bottom, spacing: 5) {
+                ForEach(days.indices, id: \.self) { i in
+                    let day = days[i]
+                    let dayTotal = appState.transactions
+                        .filter { !$0.isSaving && calendar.isDate($0.date, inSameDayAs: day) }
+                        .reduce(0.0) { $0 + $1.amount }
+                    let barPct  = maxVal > 0 ? min(dayTotal / maxVal, 1.0) : 0
+                    let limitPct = limit > 0 ? min(limit / maxVal, 1.0) : 0
+                    let isToday = calendar.isDateInToday(day)
+                    let isOver  = dayTotal > limit && limit > 0
+                    let clr: Color = dayTotal == 0 ? .white.opacity(0.06) : isOver ? .ajOrangeRed : .ajGreen
+                    let wdNames = ["S","M","T","W","T","F","S"]
+                    let wdIdx   = calendar.component(.weekday, from: day) - 1
+
+                    VStack(spacing: 4) {
+                        ZStack(alignment: .bottom) {
+                            RoundedRectangle(cornerRadius: 5)
+                                .fill(Color.white.opacity(0.06))
+                                .frame(height: 68)
+                            if dayTotal > 0 {
+                                RoundedRectangle(cornerRadius: 5)
+                                    .fill(LinearGradient(colors: [clr, clr.opacity(0.55)], startPoint: .top, endPoint: .bottom))
+                                    .frame(height: max(68 * CGFloat(barPct), 4))
+                                    .shadow(color: clr.opacity(0.40), radius: 4)
+                            }
+                            if limit > 0 {
+                                Rectangle()
+                                    .fill(Color.white.opacity(0.30))
+                                    .frame(height: 1.5)
+                                    .offset(y: -(68 * CGFloat(limitPct)))
                             }
                         }
-                        if breakdown.count > 5 {
-                            Text("+ \(breakdown.count - 5) more categories")
-                                .font(.system(size: 9))
-                                .foregroundColor(.white.opacity(0.28))
+                        Text(isToday ? "•" : wdNames[wdIdx])
+                            .font(.system(size: 9, weight: isToday ? .black : .regular))
+                            .foregroundColor(isToday ? .ajOrange : .white.opacity(0.30))
+                        if dayTotal > 0 {
+                            Text("$\(Int(dayTotal))")
+                                .font(.system(size: 7, weight: .bold))
+                                .foregroundColor(clr.opacity(0.80))
+                        } else {
+                            Text("—").font(.system(size: 8)).foregroundColor(.white.opacity(0.15))
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
             }
-            .padding(10)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.05))
-                    RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
-                }
-            )
         }
+        .padding(14)
+        .background(ZStack {
+            RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
+            RoundedRectangle(cornerRadius: 18).strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
+        })
+        .padding(.horizontal, 20)
+    }
+
+    // ── Monthly snapshot ──
+    @ViewBuilder
+    private var monthlySnapshot: some View {
+        let calendar   = Calendar.current
+        let now        = Date()
+        let comps      = calendar.dateComponents([.year, .month], from: now)
+        let startMonth = calendar.date(from: comps) ?? now
+        let dayOfMonth = calendar.component(.day, from: now)
+        let daysInMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
+        let daysLeft   = daysInMonth - dayOfMonth
+        let monthTotal = appState.transactions
+            .filter { !$0.isSaving && $0.date >= startMonth }
+            .reduce(0.0) { $0 + $1.amount }
+        let avgPerDay    = dayOfMonth > 0 ? monthTotal / Double(dayOfMonth) : 0
+        let projected    = avgPerDay * Double(daysInMonth)
+        let monthPct     = Double(dayOfMonth) / Double(daysInMonth)
+        let monthlyGoal  = appState.dailyBudget * Double(daysInMonth)
+        let projColor: Color = monthlyGoal > 0
+            ? (projected > monthlyGoal ? .ajOrangeRed : .ajGreen)
+            : .white.opacity(0.60)
+
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 5) {
+                Image(systemName: "calendar").font(.system(size: 9, weight: .bold))
+                    .foregroundColor(.white.opacity(0.35))
+                Text("THIS MONTH").font(.system(size: 9, weight: .black))
+                    .foregroundColor(.white.opacity(0.35)).tracking(1.4)
+            }
+
+            HStack(spacing: 8) {
+                ForEach([
+                    ("$\(Int(monthTotal))", "SPENT",     Color.ajOrange),
+                    ("$\(Int(avgPerDay))",  "AVG/DAY",   Color.white.opacity(0.60)),
+                    ("$\(Int(projected))",  "PROJECTED", projColor)
+                ], id: \.1) { val, lbl, clr in
+                    VStack(spacing: 2) {
+                        Text(val).font(.system(size: 15, weight: .black)).foregroundColor(clr)
+                        Text(lbl).font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.30)).tracking(1)
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, 9)
+                    .background(ZStack {
+                        RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.05))
+                        RoundedRectangle(cornerRadius: 12).strokeBorder(clr.opacity(0.18), lineWidth: 1)
+                    })
+                }
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4).fill(Color.white.opacity(0.07))
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(LinearGradient(colors: [Color.ajOrange.opacity(0.7), Color.ajOrange],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: geo.size.width * CGFloat(monthPct))
+                }
+            }
+            .frame(height: 5)
+
+            HStack {
+                Text("Day \(dayOfMonth) of \(daysInMonth)")
+                    .font(.system(size: 9)).foregroundColor(.white.opacity(0.28))
+                Spacer()
+                Text("\(daysLeft) days left")
+                    .font(.system(size: 9, weight: .semibold)).foregroundColor(.white.opacity(0.28))
+            }
+        }
+        .padding(14)
+        .background(ZStack {
+            RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
+            RoundedRectangle(cornerRadius: 18).strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
+        })
+        .padding(.horizontal, 20)
+    }
+
+    // ── Smart insights ──
+    @ViewBuilder
+    private var smartInsightsSection: some View {
+        let calendar   = Calendar.current
+        let now        = Date()
+        let comps      = calendar.dateComponents([.year, .month], from: now)
+        let startMonth = calendar.date(from: comps) ?? now
+        let last7Start = calendar.date(byAdding: .day, value: -7, to: now)!
+        let prior7Start = calendar.date(byAdding: .day, value: -14, to: now)!
+
+        let monthTxns  = appState.transactions.filter { !$0.isSaving && $0.date >= startMonth }
+        let last7Total = appState.transactions
+            .filter { !$0.isSaving && $0.date >= last7Start }.reduce(0.0) { $0 + $1.amount }
+        let prior7Total = appState.transactions
+            .filter { !$0.isSaving && $0.date >= prior7Start && $0.date < last7Start }
+            .reduce(0.0) { $0 + $1.amount }
+
+        let grouped    = Dictionary(grouping: monthTxns) { $0.category }
+        let topCatEntry = grouped.max(by: { a, b in
+            a.value.reduce(0.0) { $0 + $1.amount } < b.value.reduce(0.0) { $0 + $1.amount }
+        })
+        let monthTotal = monthTxns.reduce(0.0) { $0 + $1.amount }
+
+        let weekdayAvgs: [(Int, Double)] = (1...7).map { wd in
+            let txns = monthTxns.filter { calendar.component(.weekday, from: $0.date) == wd }
+            let days = Set(txns.map { calendar.startOfDay(for: $0.date) }).count
+            let total = txns.reduce(0.0) { $0 + $1.amount }
+            return (wd, days > 0 ? total / Double(days) : Double.infinity)
+        }
+        let bestDay = weekdayAvgs.filter { $0.1 < Double.infinity }.min(by: { $0.1 < $1.1 })
+        let dayNames = ["", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+        if !monthTxns.isEmpty {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 5) {
+                    Image(systemName: "lightbulb.fill").font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.ajGold)
+                    Text("TRENDS & INSIGHTS").font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.35)).tracking(1.4)
+                }
+
+                VStack(spacing: 6) {
+                    if prior7Total > 0 {
+                        let chg = ((last7Total - prior7Total) / prior7Total) * 100
+                        insightRow(
+                            icon: chg > 0 ? "arrow.up.right" : "arrow.down.right",
+                            color: chg > 0 ? Color.ajOrangeRed : Color.ajGreen,
+                            text: chg > 0
+                                ? "Spending up \(Int(abs(chg)))% vs last week"
+                                : "Down \(Int(abs(chg)))% vs last week — keep it up!")
+                    }
+                    if let (cat, catTxns) = topCatEntry, monthTotal > 0 {
+                        let pct = Int((catTxns.reduce(0.0) { $0 + $1.amount } / monthTotal) * 100)
+                        insightRow(icon: "star.fill", color: cat.color,
+                                   text: "\(cat.icon) \(cat.rawValue) is your #1 spend — \(pct)% of this month")
+                    }
+                    if let (wd, avg) = bestDay {
+                        insightRow(icon: "checkmark.circle.fill", color: Color.ajGreen,
+                                   text: "\(dayNames[wd])s are your best days — avg $\(Int(avg)) spent")
+                    }
+                }
+            }
+            .padding(14)
+            .background(ZStack {
+                RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: 18).strokeBorder(Color.ajGold.opacity(0.22), lineWidth: 1)
+            })
+            .padding(.horizontal, 20)
+        }
+    }
+
+    private func insightRow(icon: String, color: Color, text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: icon).font(.system(size: 11, weight: .bold))
+                .foregroundColor(color).frame(width: 18)
+            Text(text).font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.white.opacity(0.75))
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 8)
+        .background(RoundedRectangle(cornerRadius: 10).fill(color.opacity(0.08)))
     }
 
     @ViewBuilder
