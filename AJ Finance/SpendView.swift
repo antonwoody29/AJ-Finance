@@ -1767,6 +1767,11 @@ struct QuickAddTransactionView: View {
                 }
             }
 
+            // ── Budget streak card ──
+            if limit > 0 {
+                budgetStreakCard
+            }
+
             // ── Daily limit reward card ──
             if !isOver && limit > 0 && spent > 0 {
                 dailyLimitRewardCard
@@ -1848,6 +1853,147 @@ struct QuickAddTransactionView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
+    }
+
+    @ViewBuilder
+    private var budgetStreakCard: some View {
+        let current = appState.dailyLimitStreak
+        let best    = appState.bestDailyLimitStreak
+        let pct     = min(Double(best) / 60.0, 1.0)
+        let nextMilestone: Int = best < 7 ? 7 : best < 14 ? 14 : best < 30 ? 30 : 60
+        let daysLeft = nextMilestone - best
+
+        VStack(spacing: 10) {
+            // Header row
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.ajOrange)
+                    Text("BUDGET STREAK")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.40))
+                        .tracking(1.4)
+                }
+                Spacer()
+                Text("Contributes to pet growth")
+                    .font(.system(size: 9))
+                    .foregroundColor(.white.opacity(0.28))
+            }
+
+            // Big streak + stats
+            HStack(alignment: .center, spacing: 0) {
+                // Current streak
+                VStack(spacing: 2) {
+                    HStack(alignment: .firstTextBaseline, spacing: 3) {
+                        Text("\(current)")
+                            .font(.system(size: 40, weight: .black))
+                            .foregroundColor(current > 0 ? .ajOrange : .white.opacity(0.20))
+                        Text("days")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.40))
+                            .offset(y: -4)
+                    }
+                    Text("current")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.28))
+                }
+                .frame(maxWidth: .infinity)
+
+                // Divider
+                Rectangle()
+                    .fill(Color.white.opacity(0.10))
+                    .frame(width: 1, height: 44)
+
+                // Best / goal
+                VStack(spacing: 8) {
+                    HStack(spacing: 16) {
+                        VStack(spacing: 2) {
+                            Text("\(best)")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.ajGold)
+                            Text("best")
+                                .font(.system(size: 9))
+                                .foregroundColor(.white.opacity(0.28))
+                        }
+                        VStack(spacing: 2) {
+                            Text("60")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.white.opacity(0.25))
+                            Text("goal")
+                                .font(.system(size: 9))
+                                .foregroundColor(.white.opacity(0.28))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+
+            // Progress bar toward 60 days
+            VStack(spacing: 5) {
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 6).fill(Color.white.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(LinearGradient(
+                                colors: [Color.ajOrange, Color.ajGold],
+                                startPoint: .leading, endPoint: .trailing))
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 8 : 0))
+                            .shadow(color: Color.ajOrange.opacity(0.50), radius: 4)
+                        // Milestone ticks
+                        ForEach([7, 14, 30], id: \.self) { tick in
+                            let x = geo.size.width * CGFloat(tick) / 60.0
+                            Rectangle()
+                                .fill(Color.white.opacity(0.30))
+                                .frame(width: 1.5, height: 10)
+                                .offset(x: x - 0.75)
+                        }
+                    }
+                }
+                .frame(height: 10)
+
+                HStack {
+                    Text(best >= 60 ? "👑 Pet evolution unlocked via budget!" :
+                         "\(daysLeft) more days to next milestone")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(best >= 60 ? .ajGold : .white.opacity(0.35))
+                    Spacer()
+                    Text("7 · 14 · 30 · 60")
+                        .font(.system(size: 9))
+                        .foregroundColor(.white.opacity(0.20))
+                }
+            }
+
+            // Pet growth hint
+            if best < 60 {
+                HStack(spacing: 6) {
+                    Text(appState.evolutionEmoji)
+                        .font(.system(size: 16))
+                    Text("60-day budget streak = 30-day regular streak for pet evolution")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.38))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 7)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white.opacity(0.04))
+                )
+            }
+        }
+        .padding(14)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color.ajOrange.opacity(0.40), Color.ajOrange.opacity(0.08)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1)
+            }
+        )
     }
 
     @ViewBuilder

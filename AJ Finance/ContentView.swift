@@ -179,8 +179,8 @@ struct ContentView: View {
             .environment(appState)
             .environment(storeKit)
         }
-
-        if !appState.animalIsAlive {
+        .overlay {
+            if !appState.animalIsAlive {
                 RevivalOverlay()
                     .environment(appState)
                     .environment(storeKit)

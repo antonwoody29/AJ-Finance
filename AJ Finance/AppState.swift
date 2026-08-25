@@ -47,6 +47,8 @@ final class AppState {
     var animalFood: Double = 100.0
     var dailyBudget: Double = 100.0
     var lastDailyLimitRewardDate: String = ""
+    var dailyLimitStreak: Int = 0
+    var bestDailyLimitStreak: Int = 0
     var lastFoodDate: Date? = nil
     var needsDailyFoodCheck: Bool = false
 
@@ -390,11 +392,17 @@ final class AppState {
     // MARK: - Evolution
 
     // 0=Egg, 1=Baby, 2=Teen, 3=Final Form
+    // Budget streak at 60 days = equivalent to 30-day regular streak for pet evolution
+    var evolutionStreak: Int {
+        max(highestStreak, bestDailyLimitStreak / 2)
+    }
+
     var animalGrowthStage: Int {
-        // Final Form: 30-day streak AND $1,000+ saved
-        if highestStreak >= 30 && totalSaved >= 1000 { return 3 }
-        // Teen: 30-day streak AND $200+ saved
-        if highestStreak >= 30 && totalSaved >= 200 { return 2 }
+        let eff = evolutionStreak
+        // Final Form: effective 30-day streak AND $1,000+ saved
+        if eff >= 30 && totalSaved >= 1000 { return 3 }
+        // Teen: effective 30-day streak AND $200+ saved
+        if eff >= 30 && totalSaved >= 200  { return 2 }
         // Baby: at least 1 transaction logged WHILE this companion is active
         if (companionTxCounts[selectedAnimal.rawValue] ?? 0) > 0 { return 1 }
         // Egg: no transactions yet with this companion
@@ -421,25 +429,33 @@ final class AppState {
         case 0:
             return "Log your first transaction to hatch!"
         case 1:
-            let streakLeft  = max(0, 30 - highestStreak)
-            let savingsLeft = max(0, 200 - totalSaved)
-            if streakLeft > 0 && savingsLeft > 0 {
-                return "\(streakLeft)d streak + $\(Int(savingsLeft)) to save"
-            } else if streakLeft > 0 {
-                return "\(streakLeft) more streak days"
-            } else {
-                return "$\(Int(savingsLeft)) more to save"
+            let streakLeft   = max(0, 30 - evolutionStreak)
+            let budgetLeft   = max(0, 60 - bestDailyLimitStreak)
+            let savingsLeft  = max(0, 200 - totalSaved)
+            if streakLeft == 0 && savingsLeft == 0 { return "Ready to evolve! 🐾" }
+            var parts: [String] = []
+            if streakLeft > 0 {
+                let path = bestDailyLimitStreak > highestStreak
+                    ? "\(budgetLeft)d budget streak"
+                    : "\(streakLeft)d streak"
+                parts.append(path)
             }
+            if savingsLeft > 0 { parts.append("$\(Int(savingsLeft)) saved") }
+            return parts.joined(separator: " + ")
         case 2:
-            let streakLeft  = max(0, 30 - highestStreak)
-            let savingsLeft = max(0, 1000 - totalSaved)
-            if streakLeft > 0 && savingsLeft > 0 {
-                return "\(streakLeft)d streak + $\(Int(savingsLeft)) to save"
-            } else if streakLeft > 0 {
-                return "\(streakLeft) more streak days"
-            } else {
-                return "$\(Int(savingsLeft)) more to save"
+            let streakLeft   = max(0, 30 - evolutionStreak)
+            let budgetLeft   = max(0, 60 - bestDailyLimitStreak)
+            let savingsLeft  = max(0, 1000 - totalSaved)
+            if streakLeft == 0 && savingsLeft == 0 { return "Ready to evolve! 👑" }
+            var parts: [String] = []
+            if streakLeft > 0 {
+                let path = bestDailyLimitStreak > highestStreak
+                    ? "\(budgetLeft)d budget streak"
+                    : "\(streakLeft)d streak"
+                parts.append(path)
             }
+            if savingsLeft > 0 { parts.append("$\(Int(savingsLeft)) saved") }
+            return parts.joined(separator: " + ")
         default:
             return "👑 Final Form reached!"
         }
@@ -1386,13 +1402,40 @@ final class AppState {
     func claimDailyLimitReward() {
         guard !hasClaimedDailyLimitRewardToday else { return }
         guard dailyBudget > 0, todaySpent <= dailyBudget, todaySpent > 0 else { return }
-        let gems = dailyLimitRewardGems
-        awardGems(gems, reason: "Daily budget goal! 🎯")
+
         let today = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
+        let yesterday = DateFormatter.localizedString(
+            from: Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date(),
+            dateStyle: .short, timeStyle: .none)
+
+        // Extend or reset budget streak
+        if lastDailyLimitRewardDate == yesterday {
+            dailyLimitStreak += 1
+        } else {
+            dailyLimitStreak = 1
+        }
+
+        if dailyLimitStreak > bestDailyLimitStreak {
+            bestDailyLimitStreak = dailyLimitStreak
+            // Streak milestone bonus gems
+            switch bestDailyLimitStreak {
+            case 7:  awardGems(50,  reason: "7-day budget streak! 🔥")
+            case 14: awardGems(75,  reason: "14-day budget streak! ⚡")
+            case 30: awardGems(150, reason: "30-day budget streak! 💪")
+            case 60: awardGems(300, reason: "60-day budget streak — pet evolved! 👑")
+            default: break
+            }
+        }
+
+        awardGems(dailyLimitRewardGems, reason: "Daily budget goal! 🎯")
         lastDailyLimitRewardDate = today
-        UserDefaults.standard.set(today, forKey: "aj_dailyLimitRewardDate")
         xp += 20
+
+        UserDefaults.standard.set(today, forKey: "aj_dailyLimitRewardDate")
+        UserDefaults.standard.set(dailyLimitStreak,     forKey: "aj_budgetStreak")
+        UserDefaults.standard.set(bestDailyLimitStreak, forKey: "aj_bestBudgetStreak")
         UserDefaults.standard.set(xp, forKey: "aj_xp")
+        checkEvolutionRewards()
     }
 
     // MARK: - Transaction Operations
@@ -3114,7 +3157,9 @@ final class AppState {
         }
         animalFood = UserDefaults.standard.object(forKey: "aj_food") as? Double ?? 100.0
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
-        lastDailyLimitRewardDate = UserDefaults.standard.string(forKey: "aj_dailyLimitRewardDate") ?? ""
+        lastDailyLimitRewardDate  = UserDefaults.standard.string(forKey: "aj_dailyLimitRewardDate") ?? ""
+        dailyLimitStreak     = UserDefaults.standard.integer(forKey: "aj_budgetStreak")
+        bestDailyLimitStreak = UserDefaults.standard.integer(forKey: "aj_bestBudgetStreak")
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
         needsDailyFoodCheck = isSimBuild ? false : UserDefaults.standard.bool(forKey: "aj_needsFood")
         hasSobrietyGoal   = UserDefaults.standard.bool(forKey: "aj_sobrietyEnabled")
