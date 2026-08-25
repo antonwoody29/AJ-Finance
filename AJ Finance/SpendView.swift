@@ -1290,63 +1290,86 @@ struct QuickAddTransactionView: View {
                     .padding(.top, 10)
                     .padding(.bottom, 14)
 
-                // ── Mode toggle ──
-                HStack(spacing: 0) {
-                    ZStack {
-                        if viewMode == 0 {
-                            RoundedRectangle(cornerRadius: 11)
-                                .fill(LinearGradient(
-                                    colors: [Color.ajOrange, Color.ajOrangeRed],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .shadow(color: Color.ajOrange.opacity(0.55), radius: 8, y: 3)
-                        }
+                // ── Unified log + budget bar ──
+                let _budget = appState.dailyBudget
+                let _spent  = appState.todaySpent
+                let _pct    = _budget > 0 ? min(_spent / _budget, 1.0) : 0.0
+                let _bc: Color = _spent > _budget ? .ajOrangeRed : _pct > 0.85 ? .ajOrange : .ajGreen
+
+                ZStack(alignment: .leading) {
+                    // Sliding glow pill
+                    GeometryReader { geo in
+                        RoundedRectangle(cornerRadius: 13)
+                            .fill(viewMode == 0
+                                  ? LinearGradient(colors: [Color.ajOrange, Color.ajOrangeRed],
+                                                   startPoint: .topLeading, endPoint: .bottomTrailing)
+                                  : LinearGradient(colors: [Color(red:0.05,green:0.90,blue:0.45), Color.ajGreen],
+                                                   startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .frame(width: geo.size.width / 2 - 4)
+                            .offset(x: viewMode == 0 ? 3 : geo.size.width / 2 + 1)
+                            .shadow(color: (viewMode == 0 ? Color.ajOrange : Color.ajGreen).opacity(0.55),
+                                    radius: 10, y: 3)
+                            .animation(.spring(response: 0.28, dampingFraction: 0.72), value: viewMode)
+                    }
+                    .padding(3)
+
+                    HStack(spacing: 0) {
+                        // LEFT: Log Spend
                         HStack(spacing: 5) {
                             Image(systemName: "pencil.line")
                                 .font(.system(size: 12, weight: .black))
                             Text("Log Spend")
                                 .font(.system(size: 13, weight: .black))
                         }
-                        .foregroundColor(viewMode == 0 ? .black : .white.opacity(0.50))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 0 }
-                    }
+                        .foregroundColor(viewMode == 0 ? .black : .white.opacity(0.45))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 46)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 0 }
+                        }
 
-                    ZStack {
-                        if viewMode == 1 {
-                            RoundedRectangle(cornerRadius: 11)
-                                .fill(LinearGradient(
-                                    colors: [Color(red: 0.05, green: 0.90, blue: 0.45), Color.ajGreen],
-                                    startPoint: .topLeading, endPoint: .bottomTrailing))
-                                .shadow(color: Color.ajGreen.opacity(0.55), radius: 8, y: 3)
-                        }
-                        HStack(spacing: 5) {
+                        // RIGHT: Daily budget status (live)
+                        HStack(spacing: 6) {
                             Image(systemName: "target")
-                                .font(.system(size: 12, weight: .black))
-                            Text("Daily Limit")
-                                .font(.system(size: 13, weight: .black))
+                                .font(.system(size: 11, weight: .black))
+                            if _budget > 0 {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("$\(Int(_spent)) / $\(Int(_budget))")
+                                        .font(.system(size: 10, weight: .black))
+                                        .lineLimit(1)
+                                    ZStack(alignment: .leading) {
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(Color.black.opacity(0.22))
+                                            .frame(width: 52, height: 3)
+                                        RoundedRectangle(cornerRadius: 2)
+                                            .fill(viewMode == 1 ? Color.black.opacity(0.55) : _bc)
+                                            .frame(width: 52 * CGFloat(_pct), height: 3)
+                                    }
+                                }
+                            } else {
+                                Text("Daily Limit")
+                                    .font(.system(size: 13, weight: .black))
+                            }
                         }
-                        .foregroundColor(viewMode == 1 ? .black : .white.opacity(0.50))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 1 }
-                        limitText = "\(Int(appState.dailyBudget))"
+                        .foregroundColor(viewMode == 1 ? .black : _bc.opacity(0.90))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 46)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 1 }
+                            limitText = "\(Int(appState.dailyBudget))"
+                        }
                     }
                 }
-                .padding(4)
+                .frame(height: 52)
                 .background(
                     ZStack {
-                        RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07))
-                        RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
                     }
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)
 
