@@ -1270,12 +1270,9 @@ struct QuickAddTransactionView: View {
     @State private var didLog            = false
     @State private var successScale      : CGFloat = 0.4
     @FocusState private var amountFocused: Bool
-    @State private var viewMode          = 0
-    @State private var limitText         = ""
-    @State private var limitSaved        = false
-    @State private var purchaseAmount    = ""
-    @State private var purchaseNote      = ""
-    @State private var purchaseLogged    = false
+    @State private var viewMode     = 0
+    @State private var limitText    = ""
+    @State private var limitSaved   = false
 
     var amount: Double { Double(amountText) ?? 0 }
     var hasAmount: Bool { amount > 0 }
@@ -1288,164 +1285,262 @@ struct QuickAddTransactionView: View {
 
                 // ── Drag handle ──
                 Capsule()
-                    .fill(Color.white.opacity(0.20))
-                    .frame(width: 38, height: 4)
+                    .fill(Color.white.opacity(0.18))
+                    .frame(width: 36, height: 4)
                     .padding(.top, 10)
-                    .padding(.bottom, 18)
+                    .padding(.bottom, 14)
 
                 // ── Mode toggle ──
                 HStack(spacing: 0) {
-                    Text("✏️  Log Spend")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundColor(viewMode == 0 ? .black : .white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(viewMode == 0 ? Color.ajOrange : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.18)) { viewMode = 0 }
+                    ZStack {
+                        if viewMode == 0 {
+                            RoundedRectangle(cornerRadius: 11)
+                                .fill(LinearGradient(
+                                    colors: [Color.ajOrange, Color.ajOrangeRed],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .shadow(color: Color.ajOrange.opacity(0.55), radius: 8, y: 3)
                         }
+                        HStack(spacing: 5) {
+                            Image(systemName: "pencil.line")
+                                .font(.system(size: 12, weight: .black))
+                            Text("Log Spend")
+                                .font(.system(size: 13, weight: .black))
+                        }
+                        .foregroundColor(viewMode == 0 ? .black : .white.opacity(0.50))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 0 }
+                    }
 
-                    Text("🎯  Daily Limit")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundColor(viewMode == 1 ? .black : .white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(viewMode == 1 ? Color.ajGreen : Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 10))
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.18)) { viewMode = 1 }
-                            limitText = "\(Int(appState.dailyBudget))"
+                    ZStack {
+                        if viewMode == 1 {
+                            RoundedRectangle(cornerRadius: 11)
+                                .fill(LinearGradient(
+                                    colors: [Color(red: 0.05, green: 0.90, blue: 0.45), Color.ajGreen],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .shadow(color: Color.ajGreen.opacity(0.55), radius: 8, y: 3)
                         }
+                        HStack(spacing: 5) {
+                            Image(systemName: "target")
+                                .font(.system(size: 12, weight: .black))
+                            Text("Daily Limit")
+                                .font(.system(size: 13, weight: .black))
+                        }
+                        .foregroundColor(viewMode == 1 ? .black : .white.opacity(0.50))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        withAnimation(.spring(response: 0.28, dampingFraction: 0.72)) { viewMode = 1 }
+                        limitText = "\(Int(appState.dailyBudget))"
+                    }
                 }
                 .padding(4)
-                .background(Color.white.opacity(0.12))
-                .clipShape(RoundedRectangle(cornerRadius: 13))
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                    }
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 14))
                 .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.bottom, 18)
 
                 if viewMode == 0 {
 
                 // ── Big amount display ──
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("$")
-                        .font(.system(size: 54, weight: .black))
-                        .foregroundColor(hasAmount ? .ajOrange : .white.opacity(0.22))
-                    TextField("0", text: $amountText)
-                        .font(.system(size: 54, weight: .black))
-                        .foregroundColor(hasAmount ? .white : .white.opacity(0.22))
-                        .tint(.ajOrange)
-                        .keyboardType(.decimalPad)
-                        .focused($amountFocused)
-                        .fixedSize()
+                ZStack {
+                    if hasAmount {
+                        RadialGradient(
+                            colors: [Color.ajOrange.opacity(0.18), Color.clear],
+                            center: .center, startRadius: 10, endRadius: 90)
+                        .frame(height: 120)
+                    }
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                        Text("$")
+                            .font(.system(size: 42, weight: .black))
+                            .foregroundColor(hasAmount ? Color.ajOrange : .white.opacity(0.18))
+                            .offset(y: -6)
+                        TextField("0", text: $amountText)
+                            .font(.system(size: 72, weight: .black))
+                            .foregroundColor(.white)
+                            .tint(.ajOrange)
+                            .keyboardType(.decimalPad)
+                            .focused($amountFocused)
+                            .fixedSize()
+                    }
+                    .shadow(color: hasAmount ? Color.ajOrange.opacity(0.30) : .clear, radius: 20)
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
-                .padding(.bottom, 14)
+                .padding(.bottom, 10)
 
                 // ── Quick-amount pills ──
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach([5, 10, 20, 50, 100], id: \.self) { v in
-                            Button {
-                                amountText = "\(v)"
-                                amountFocused = false
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            } label: {
-                                Text("$\(v)")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .foregroundColor(.ajOrange)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 8)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.ajOrange.opacity(0.14))
-                                            .overlay(Capsule().stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
-                                    )
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .padding(.bottom, 18)
-
-                // ── Horizontal category scroll ──
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(SpendCategory.allCases) { cat in
-                            Button {
-                                selectedCategory = cat
-                                amountFocused = false
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                            } label: {
-                                VStack(spacing: 5) {
-                                    Text(cat.icon).font(.system(size: 26))
-                                    Text(cat.rawValue)
-                                        .font(.system(size: 10, weight: .semibold))
-                                        .foregroundColor(selectedCategory == cat ? cat.color : .white.opacity(0.40))
-                                        .lineLimit(1)
-                                }
-                                .frame(width: 64)
+                            let isSelected = amountText == "\(v)"
+                            Text("$\(v)")
+                                .font(.system(size: 14, weight: .black))
+                                .foregroundColor(isSelected ? .black : .ajOrange)
+                                .padding(.horizontal, 18)
                                 .padding(.vertical, 10)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(selectedCategory == cat ? cat.color.opacity(0.18) : Color.white.opacity(0.06))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14)
-                                                .stroke(selectedCategory == cat ? cat.color.opacity(0.65) : Color.clear, lineWidth: 1.5)
-                                        )
+                                    ZStack {
+                                        if isSelected {
+                                            Capsule().fill(LinearGradient(
+                                                colors: [.ajOrange, .ajOrangeRed],
+                                                startPoint: .leading, endPoint: .trailing))
+                                            .shadow(color: Color.ajOrange.opacity(0.50), radius: 6)
+                                        } else {
+                                            Capsule().fill(Color.ajOrange.opacity(0.12))
+                                            Capsule().strokeBorder(Color.ajOrange.opacity(0.30), lineWidth: 1)
+                                        }
+                                    }
                                 )
-                            }
-                            .buttonStyle(.plain)
+                                .contentShape(Capsule())
+                                .onTapGesture {
+                                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                        amountText = "\(v)"
+                                    }
+                                    amountFocused = false
+                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                }
+                                .scaleEffect(isSelected ? 1.04 : 1.0)
+                                .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isSelected)
                         }
                     }
                     .padding(.horizontal, 20)
+                    .padding(.vertical, 4)
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
 
-                // ── Inline note field ──
+                // ── Category scroll ──
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(SpendCategory.allCases) { cat in
+                            let isSelected = selectedCategory == cat
+                            VStack(spacing: 4) {
+                                ZStack {
+                                    Circle()
+                                        .fill(isSelected
+                                            ? LinearGradient(colors: [cat.color, cat.color.opacity(0.55)],
+                                                             startPoint: .topLeading, endPoint: .bottomTrailing)
+                                            : LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.04)],
+                                                             startPoint: .top, endPoint: .bottom))
+                                        .frame(width: 50, height: 50)
+                                    if isSelected {
+                                        Circle()
+                                            .strokeBorder(cat.color.opacity(0.70), lineWidth: 2)
+                                            .frame(width: 50, height: 50)
+                                    }
+                                    Text(cat.icon).font(.system(size: 24))
+                                }
+                                .shadow(color: isSelected ? cat.color.opacity(0.55) : .clear, radius: 8)
+                                Text(cat.rawValue)
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(isSelected ? cat.color : .white.opacity(0.35))
+                                    .lineLimit(1)
+                            }
+                            .frame(width: 58)
+                            .scaleEffect(isSelected ? 1.08 : 1.0)
+                            .animation(.spring(response: 0.22, dampingFraction: 0.65), value: isSelected)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                withAnimation { selectedCategory = cat }
+                                amountFocused = false
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 6)
+                }
+                .padding(.bottom, 14)
+
+                // ── Note field ──
                 HStack(spacing: 10) {
-                    Image(systemName: "text.bubble")
-                        .font(.system(size: 13))
-                        .foregroundColor(.white.opacity(0.35))
-                    TextField("Add a note (optional)", text: $note)
+                    ZStack {
+                        Circle()
+                            .fill(Color.ajOrange.opacity(0.12))
+                            .frame(width: 30, height: 30)
+                        Image(systemName: "text.bubble.fill")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.ajOrange.opacity(0.70))
+                    }
+                    TextField("Add a note…", text: $note)
                         .font(.system(size: 14))
                         .foregroundColor(.white)
                         .tint(.ajOrange)
                 }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 12)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
                 .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.white.opacity(0.07))
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.white.opacity(0.10), lineWidth: 1))
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(Color.white.opacity(0.06))
+                        RoundedRectangle(cornerRadius: 14)
+                            .strokeBorder(
+                                LinearGradient(colors: [Color.ajOrange.opacity(0.25), Color.white.opacity(0.08)],
+                                               startPoint: .leading, endPoint: .trailing),
+                                lineWidth: 1)
+                    }
                 )
                 .padding(.horizontal, 20)
-                .padding(.bottom, 16)
+                .padding(.bottom, 14)
 
-                // ── Log button — always visible ──
+                // ── Log button ──
                 Button { logTransaction() } label: {
-                    HStack(spacing: 8) {
-                        Text(selectedCategory.icon).font(.system(size: 20))
-                        Text(hasAmount
-                            ? "Log  $\(String(format: "%.2f", amount))"
-                            : "Enter an amount")
-                            .font(.system(size: 17, weight: .black))
-                            .foregroundColor(hasAmount ? .black : .white.opacity(0.30))
+                    ZStack {
+                        if hasAmount {
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(LinearGradient(
+                                    colors: [Color.ajOrange, Color.ajOrangeRed, Color.ajOrange.opacity(0.80)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing))
+                            RoundedRectangle(cornerRadius: 18)
+                                .fill(LinearGradient(
+                                    colors: [Color.white.opacity(0.18), Color.clear],
+                                    startPoint: .top, endPoint: .center))
+                        } else {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.white.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 12)
+                                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        }
+                        if hasAmount {
+                            HStack(spacing: 10) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.15))
+                                        .frame(width: 34, height: 34)
+                                    Text(selectedCategory.icon).font(.system(size: 18))
+                                }
+                                Text("Log  $\(String(format: "%.2f", amount))")
+                                    .font(.system(size: 17, weight: .black))
+                                    .foregroundColor(.black)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 18)
+                        } else {
+                            Text("Enter an amount above")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.20))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 11)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 17)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(hasAmount
-                                ? LinearGradient(colors: [.ajOrange, .ajOrangeRed], startPoint: .leading, endPoint: .trailing)
-                                : LinearGradient(colors: [Color.white.opacity(0.09), Color.white.opacity(0.05)], startPoint: .leading, endPoint: .trailing))
-                            .shadow(color: hasAmount ? Color.ajOrange.opacity(0.45) : .clear, radius: 14, y: 5)
-                    )
+                    .shadow(color: hasAmount ? Color.ajOrange.opacity(0.50) : .clear, radius: 16, y: 6)
                 }
                 .disabled(!hasAmount)
                 .padding(.horizontal, 20)
-                .padding(.bottom, 32)
+                .padding(.bottom, 14)
+
+                todayLogSection
+
                 } else {
                     dailyLimitForm
                 }
@@ -1517,197 +1612,226 @@ struct QuickAddTransactionView: View {
     }
 
     private var dailyLimitForm: some View {
-        let spent   = appState.todaySpent
-        let limit   = appState.dailyBudget
-        let pct     = limit > 0 ? min(spent / limit, 1.0) : 0
-        let isOver  = spent > limit && limit > 0
-        let bar: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
+        let spent  = appState.todaySpent
+        let limit  = appState.dailyBudget
+        let pct    = limit > 0 ? min(spent / limit, 1.0) : 0
+        let isOver = spent > limit && limit > 0
+        let accent: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
 
-        return VStack(spacing: 18) {
-            // Today's progress card
-            VStack(spacing: 10) {
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("TODAY'S SPENDING")
+        return VStack(spacing: 16) {
+
+            // ── Big progress card ──
+            VStack(spacing: 0) {
+                // Top row: label + status badge
+                HStack {
+                    Label("TODAY'S SPENDING", systemImage: "calendar.badge.clock")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.40))
+                        .tracking(1.2)
+                    Spacer()
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(isOver ? Color.ajOrangeRed : accent)
+                            .frame(width: 7, height: 7)
+                            .shadow(color: (isOver ? Color.ajOrangeRed : accent).opacity(0.90), radius: 4)
+                        Text(isOver ? "OVER LIMIT" : pct > 0.85 ? "NEAR LIMIT" : "ON TRACK")
                             .font(.system(size: 9, weight: .black))
-                            .foregroundColor(.white.opacity(0.38))
-                            .tracking(1.5)
-                        HStack(alignment: .firstTextBaseline, spacing: 5) {
-                            Text("$\(String(format: "%.0f", spent))")
-                                .font(.system(size: 36, weight: .black))
+                            .foregroundColor(isOver ? .ajOrangeRed : accent)
+                            .tracking(1)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule().fill((isOver ? Color.ajOrangeRed : accent).opacity(0.14))
+                    )
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 14)
+                .padding(.bottom, 10)
+
+                // Divider
+                Rectangle()
+                    .fill(Color.white.opacity(0.07))
+                    .frame(height: 1)
+                    .padding(.horizontal, 16)
+
+                // Big numbers
+                HStack(alignment: .bottom, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                            Text("$")
+                                .font(.system(size: 32, weight: .black))
+                                .foregroundColor(accent)
+                            Text(String(format: "%.0f", spent))
+                                .font(.system(size: 58, weight: .black))
                                 .foregroundColor(.white)
-                            Text("of $\(String(format: "%.0f", limit))")
-                                .font(.system(size: 13))
-                                .foregroundColor(.white.opacity(0.38))
+                                .shadow(color: accent.opacity(0.25), radius: 12)
                         }
+                        Text("of $\(String(format: "%.0f", limit)) limit")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.40))
                     }
                     Spacer()
-                    ZStack {
-                        Circle()
-                            .fill(bar.opacity(0.16))
-                            .frame(width: 50, height: 50)
-                        Text(isOver ? "🔴" : pct > 0.85 ? "⚠️" : "✅")
-                            .font(.system(size: 24))
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("\(Int(pct * 100))%")
+                            .font(.system(size: 28, weight: .black))
+                            .foregroundColor(accent)
+                        Text("used")
+                            .font(.system(size: 11))
+                            .foregroundColor(.white.opacity(0.35))
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+                .padding(.bottom, 10)
+
+                // Thick progress bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(Color.white.opacity(0.08))
-                        Capsule()
-                            .fill(LinearGradient(colors: [bar, bar.opacity(0.60)],
-                                                 startPoint: .leading, endPoint: .trailing))
-                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 6 : 0))
-                            .shadow(color: bar.opacity(0.50), radius: 4)
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.white.opacity(0.07))
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(LinearGradient(
+                                colors: [accent.opacity(0.70), accent],
+                                startPoint: .leading, endPoint: .trailing))
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 12 : 0))
+                            .shadow(color: accent.opacity(0.65), radius: 6)
+                        // Shine overlay
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(LinearGradient(
+                                colors: [Color.white.opacity(0.20), Color.clear],
+                                startPoint: .top, endPoint: .center))
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 12 : 0))
                     }
                 }
-                .frame(height: 6)
+                .frame(height: 14)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 10)
+
+                // Status row
                 HStack {
-                    Text(isOver
-                         ? "⚡ Over by $\(String(format: "%.0f", spent - limit))"
-                         : "✅ $\(String(format: "%.0f", limit - spent)) remaining")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(isOver ? .ajOrangeRed : .ajGreen)
+                    HStack(spacing: 4) {
+                        Image(systemName: isOver ? "bolt.fill" : "checkmark.circle.fill")
+                            .font(.system(size: 11, weight: .bold))
+                        Text(isOver
+                             ? "Over by $\(String(format: "%.0f", spent - limit))"
+                             : "$\(String(format: "%.0f", max(limit - spent, 0))) remaining today")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundColor(isOver ? .ajOrangeRed : .ajGreen)
                     Spacer()
-                    Text("\(Int(pct * 100))% used")
-                        .font(.system(size: 10))
-                        .foregroundColor(.white.opacity(0.32))
                 }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 14)
             }
-            .padding(14)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(LinearGradient(colors: [bar.opacity(0.14), Color.black.opacity(0.20)],
-                                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                    RoundedRectangle(cornerRadius: 16)
+                    RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(LinearGradient(
+                            colors: [accent.opacity(0.10), Color.black.opacity(0.25)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing))
+                    RoundedRectangle(cornerRadius: 20)
                         .strokeBorder(
-                            LinearGradient(colors: [bar.opacity(0.55), bar.opacity(0.10)],
-                                           startPoint: .top, endPoint: .bottom),
-                            lineWidth: 1.5
-                        )
+                            LinearGradient(
+                                colors: [accent.opacity(0.60), accent.opacity(0.08)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing),
+                            lineWidth: 1.5)
                 }
             )
 
-            // ── Log a purchase ──
-            VStack(alignment: .leading, spacing: 8) {
-                Text("LOG A PURCHASE")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundColor(.white.opacity(0.38))
-                    .tracking(1.5)
-                HStack(spacing: 8) {
-                    HStack(spacing: 4) {
-                        Text("$")
-                            .font(.system(size: 20, weight: .black))
-                            .foregroundColor(.ajOrange)
-                        TextField("0", text: $purchaseAmount)
-                            .font(.system(size: 20, weight: .black))
-                            .foregroundColor(.white)
-                            .tint(.ajOrange)
-                            .keyboardType(.decimalPad)
-                            .frame(width: 64)
+            // ── Quick-stats row ──
+            HStack(spacing: 10) {
+                ForEach([
+                    ("$\(String(format: "%.0f", spent))", "SPENT",    isOver ? Color.ajOrangeRed : Color.ajOrange),
+                    ("$\(String(format: "%.0f", max(limit - spent, 0)))", "LEFT", Color.ajGreen),
+                    ("$\(String(format: "%.0f", limit))", "BUDGET",   Color.white.opacity(0.55))
+                ], id: \.1) { val, lbl, clr in
+                    VStack(spacing: 3) {
+                        Text(val)
+                            .font(.system(size: 17, weight: .black))
+                            .foregroundColor(clr)
+                        Text(lbl)
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.35))
+                            .tracking(1)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.white.opacity(0.07))
-                            .overlay(RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
-                    )
-
-                    TextField("What are you buying?", text: $purchaseNote)
-                        .font(.system(size: 13))
-                        .foregroundColor(.white)
-                        .tint(.ajOrange)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 10)
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.white.opacity(0.07))
-                                .overlay(RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.white.opacity(0.12), lineWidth: 1))
-                        )
-                }
-
-                Button {
-                    logDailyPurchase()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: purchaseLogged ? "checkmark" : "minus.circle.fill")
-                            .font(.system(size: 14, weight: .bold))
-                        Text(purchaseLogged ? "Deducted!" : "Deduct from Daily")
-                            .font(.system(size: 14, weight: .black))
-                    }
-                    .foregroundColor(purchaseLogged ? .ajGreen : .black)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
+                    .padding(.vertical, 12)
                     .background(
                         ZStack {
-                            if purchaseLogged {
-                                RoundedRectangle(cornerRadius: 14).fill(Color.ajGreen.opacity(0.18))
-                                RoundedRectangle(cornerRadius: 14).stroke(Color.ajGreen, lineWidth: 1.5)
-                            } else {
-                                RoundedRectangle(cornerRadius: 14)
-                                    .fill(LinearGradient(colors: [.ajOrange, .ajOrangeRed],
-                                                         startPoint: .leading, endPoint: .trailing))
-                            }
+                            RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 14).strokeBorder(clr.opacity(0.18), lineWidth: 1)
                         }
                     )
                 }
-                .disabled(Double(purchaseAmount) == nil || (Double(purchaseAmount) ?? 0) <= 0)
             }
 
-            // Update limit
-            VStack(alignment: .leading, spacing: 8) {
-                Text("UPDATE DAILY LIMIT")
-                    .font(.system(size: 9, weight: .black))
-                    .foregroundColor(.white.opacity(0.38))
-                    .tracking(1.5)
+            // ── Update daily limit ──
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.35))
+                    Text("SET DAILY BUDGET")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.35))
+                        .tracking(1.4)
+                }
+
                 HStack(spacing: 10) {
-                    HStack(spacing: 4) {
-                        Text("$")
-                            .font(.system(size: 26, weight: .black))
-                            .foregroundColor(.ajGreen)
-                        TextField("\(Int(limit))", text: $limitText)
-                            .font(.system(size: 26, weight: .black))
-                            .foregroundColor(.white)
-                            .tint(.ajGreen)
-                            .keyboardType(.numberPad)
-                            .fixedSize()
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.06))
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [Color.ajGreen.opacity(0.55), Color.ajGreen.opacity(0.15)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1.5)
+                        HStack(spacing: 4) {
+                            Text("$")
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundColor(.ajGreen)
+                            TextField("\(Int(limit))", text: $limitText)
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundColor(.white)
+                                .tint(.ajGreen)
+                                .keyboardType(.numberPad)
+                                .fixedSize()
+                            Spacer()
+                        }
+                        .padding(.horizontal, 14)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.white.opacity(0.07))
-                            .overlay(RoundedRectangle(cornerRadius: 14)
-                                .stroke(Color.ajGreen.opacity(0.40), lineWidth: 1))
-                    )
+                    .frame(height: 56)
+
                     Button { saveDailyLimit() } label: {
-                        Text(limitSaved ? "✓ Saved!" : "Save")
-                            .font(.system(size: 15, weight: .black))
+                        ZStack {
+                            if limitSaved {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color.ajGreen.opacity(0.15))
+                                RoundedRectangle(cornerRadius: 16)
+                                    .strokeBorder(Color.ajGreen, lineWidth: 1.5)
+                            } else {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(LinearGradient(
+                                        colors: [Color(red:0.05, green:0.90, blue:0.45), .ajGreen],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(LinearGradient(
+                                        colors: [Color.white.opacity(0.18), Color.clear],
+                                        startPoint: .top, endPoint: .center))
+                            }
+                            VStack(spacing: 2) {
+                                Image(systemName: limitSaved ? "checkmark" : "square.and.arrow.down.fill")
+                                    .font(.system(size: 14, weight: .black))
+                                Text(limitSaved ? "Saved" : "Save")
+                                    .font(.system(size: 11, weight: .black))
+                            }
                             .foregroundColor(limitSaved ? .ajGreen : .black)
-                            .padding(.horizontal, 18)
-                            .padding(.vertical, 14)
-                            .background(
-                                ZStack {
-                                    if limitSaved {
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .fill(Color.ajGreen.opacity(0.18))
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(Color.ajGreen, lineWidth: 1.5)
-                                    } else {
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .fill(LinearGradient(
-                                                colors: [.ajGreen, Color(red: 0, green: 0.7, blue: 0.3)],
-                                                startPoint: .top, endPoint: .bottom
-                                            ))
-                                    }
-                                }
-                            )
+                        }
+                        .frame(width: 64, height: 56)
+                        .shadow(color: limitSaved ? .clear : Color.ajGreen.opacity(0.45), radius: 10, y: 4)
                     }
                 }
             }
@@ -1716,6 +1840,136 @@ struct QuickAddTransactionView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
+    }
+
+    @ViewBuilder
+    private var todayLogSection: some View {
+        let todayTxns = appState.transactions
+            .filter { !$0.isSaving && Calendar.current.isDateInToday($0.date) }
+            .sorted { $0.date > $1.date }
+        let budget = appState.dailyBudget
+
+        if !todayTxns.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                // Header
+                HStack(alignment: .center) {
+                    HStack(spacing: 6) {
+                        ZStack {
+                            Circle().fill(Color.ajOrange.opacity(0.15)).frame(width: 22, height: 22)
+                            Image(systemName: "list.bullet.rectangle")
+                                .font(.system(size: 10, weight: .black))
+                                .foregroundColor(.ajOrange)
+                        }
+                        Text("TODAY'S LOG")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(.white.opacity(0.50))
+                            .tracking(1.4)
+                    }
+                    Spacer()
+                    if budget > 0 {
+                        HStack(spacing: 3) {
+                            Text("$\(String(format: "%.0f", appState.todaySpent))")
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundColor(.ajOrange)
+                            Text("/ $\(String(format: "%.0f", budget))")
+                                .font(.system(size: 11))
+                                .foregroundColor(.white.opacity(0.35))
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Capsule().fill(Color.ajOrange.opacity(0.12)))
+                    }
+                }
+
+                // Transaction rows
+                VStack(spacing: 5) {
+                    ForEach(todayTxns.prefix(5)) { txn in
+                        HStack(spacing: 0) {
+                            // Left accent bar
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(LinearGradient(
+                                    colors: [txn.category.color, txn.category.color.opacity(0.30)],
+                                    startPoint: .top, endPoint: .bottom))
+                                .frame(width: 3)
+                                .padding(.vertical, 8)
+
+                            // Icon
+                            ZStack {
+                                Circle()
+                                    .fill(LinearGradient(
+                                        colors: [txn.category.color.opacity(0.25), txn.category.color.opacity(0.10)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing))
+                                    .frame(width: 38, height: 38)
+                                Text(txn.category.icon)
+                                    .font(.system(size: 18))
+                            }
+                            .padding(.leading, 10)
+
+                            // Label + subtitle
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(txn.note.isEmpty ? txn.category.rawValue : txn.note)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundColor(.white)
+                                    .lineLimit(1)
+                                HStack(spacing: 6) {
+                                    Text(txn.date, style: .relative)
+                                        .font(.system(size: 10))
+                                        .foregroundColor(.white.opacity(0.30))
+                                    if budget > 0 {
+                                        let pct = Int((txn.amount / budget) * 100)
+                                        Text("· \(pct)% of daily")
+                                            .font(.system(size: 10))
+                                            .foregroundColor(txn.category.color.opacity(0.70))
+                                    }
+                                }
+                            }
+                            .padding(.leading, 10)
+
+                            Spacer()
+
+                            // Amount
+                            VStack(alignment: .trailing, spacing: 2) {
+                                Text("-$\(String(format: "%.2f", txn.amount))")
+                                    .font(.system(size: 14, weight: .black))
+                                    .foregroundColor(.white)
+                                if budget > 0 {
+                                    let pct = min(txn.amount / budget, 1.0)
+                                    GeometryReader { g in
+                                        ZStack(alignment: .leading) {
+                                            Capsule().fill(Color.white.opacity(0.08))
+                                            Capsule()
+                                                .fill(txn.category.color.opacity(0.70))
+                                                .frame(width: g.size.width * CGFloat(pct))
+                                        }
+                                    }
+                                    .frame(width: 44, height: 3)
+                                }
+                            }
+                            .padding(.trailing, 12)
+                        }
+                        .frame(height: 56)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14)
+                                    .fill(Color.white.opacity(0.05))
+                                RoundedRectangle(cornerRadius: 14)
+                                    .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+                            }
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                }
+
+                if todayTxns.count > 5 {
+                    Text("+ \(todayTxns.count - 5) more transactions today")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.30))
+                        .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 24)
+        }
     }
 
     private func saveDailyLimit() {
@@ -1728,18 +1982,6 @@ struct QuickAddTransactionView: View {
         }
     }
 
-    private func logDailyPurchase() {
-        guard let amt = Double(purchaseAmount), amt > 0 else { return }
-        let entry = SpendEntry(amount: amt, category: .food, note: purchaseNote.isEmpty ? "Daily purchase" : purchaseNote)
-        appState.addTransaction(entry)
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
-        purchaseAmount = ""
-        purchaseNote = ""
-        withAnimation { purchaseLogged = true }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            withAnimation { purchaseLogged = false }
-        }
-    }
 }
 
 // MARK: - Spend Roast Sheet

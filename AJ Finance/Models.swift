@@ -1076,7 +1076,7 @@ enum SpendCategory: String, CaseIterable, Codable, Identifiable {
         case .gas:           return "⛽"
         case .entertainment: return "🎬"
         case .coffee:        return "☕"
-        case .health:        return "💊"
+        case .health:        return "❤️"
         case .travel:        return "✈️"
         case .other:         return "📦"
         }
