@@ -1618,7 +1618,7 @@ struct QuickAddTransactionView: View {
         let isOver = spent > limit && limit > 0
         let accent: Color = pct < 0.70 ? .ajGreen : pct < 0.90 ? .ajOrange : .ajOrangeRed
 
-        return VStack(spacing: 16) {
+        return ScrollView(showsIndicators: false) { VStack(spacing: 10) {
 
             // ── Big progress card ──
             VStack(spacing: 0) {
@@ -1645,93 +1645,92 @@ struct QuickAddTransactionView: View {
                         Capsule().fill((isOver ? Color.ajOrangeRed : accent).opacity(0.14))
                     )
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 14)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 14)
+                .padding(.top, 10)
+                .padding(.bottom, 8)
 
                 // Divider
                 Rectangle()
                     .fill(Color.white.opacity(0.07))
                     .frame(height: 1)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 14)
 
                 // Big numbers
                 HStack(alignment: .bottom, spacing: 0) {
                     VStack(alignment: .leading, spacing: 0) {
-                        HStack(alignment: .firstTextBaseline, spacing: 4) {
+                        HStack(alignment: .firstTextBaseline, spacing: 3) {
                             Text("$")
-                                .font(.system(size: 32, weight: .black))
+                                .font(.system(size: 24, weight: .black))
                                 .foregroundColor(accent)
                             Text(String(format: "%.0f", spent))
-                                .font(.system(size: 58, weight: .black))
+                                .font(.system(size: 44, weight: .black))
                                 .foregroundColor(.white)
-                                .shadow(color: accent.opacity(0.25), radius: 12)
+                                .shadow(color: accent.opacity(0.25), radius: 10)
                         }
                         Text("of $\(String(format: "%.0f", limit)) limit")
-                            .font(.system(size: 12, weight: .semibold))
+                            .font(.system(size: 11, weight: .semibold))
                             .foregroundColor(.white.opacity(0.40))
                     }
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: 2) {
                         Text("\(Int(pct * 100))%")
-                            .font(.system(size: 28, weight: .black))
+                            .font(.system(size: 22, weight: .black))
                             .foregroundColor(accent)
                         Text("used")
-                            .font(.system(size: 11))
+                            .font(.system(size: 10))
                             .foregroundColor(.white.opacity(0.35))
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 14)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
 
-                // Thick progress bar
+                // Progress bar
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 6)
                             .fill(Color.white.opacity(0.07))
-                        RoundedRectangle(cornerRadius: 8)
+                        RoundedRectangle(cornerRadius: 6)
                             .fill(LinearGradient(
                                 colors: [accent.opacity(0.70), accent],
                                 startPoint: .leading, endPoint: .trailing))
-                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 12 : 0))
-                            .shadow(color: accent.opacity(0.65), radius: 6)
-                        // Shine overlay
-                        RoundedRectangle(cornerRadius: 8)
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 10 : 0))
+                            .shadow(color: accent.opacity(0.65), radius: 5)
+                        RoundedRectangle(cornerRadius: 6)
                             .fill(LinearGradient(
                                 colors: [Color.white.opacity(0.20), Color.clear],
                                 startPoint: .top, endPoint: .center))
-                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 12 : 0))
+                            .frame(width: max(geo.size.width * CGFloat(pct), pct > 0 ? 10 : 0))
                     }
                 }
-                .frame(height: 14)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+                .frame(height: 10)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 8)
 
                 // Status row
                 HStack {
                     HStack(spacing: 4) {
                         Image(systemName: isOver ? "bolt.fill" : "checkmark.circle.fill")
-                            .font(.system(size: 11, weight: .bold))
+                            .font(.system(size: 10, weight: .bold))
                         Text(isOver
                              ? "Over by $\(String(format: "%.0f", spent - limit))"
                              : "$\(String(format: "%.0f", max(limit - spent, 0))) remaining today")
-                            .font(.system(size: 11, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                     }
                     .foregroundColor(isOver ? .ajOrangeRed : .ajGreen)
                     Spacer()
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 14)
+                .padding(.horizontal, 14)
+                .padding(.bottom, 10)
             }
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 20).fill(Color.white.opacity(0.06))
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 18)
                         .fill(LinearGradient(
                             colors: [accent.opacity(0.10), Color.black.opacity(0.25)],
                             startPoint: .topLeading, endPoint: .bottomTrailing))
-                    RoundedRectangle(cornerRadius: 20)
+                    RoundedRectangle(cornerRadius: 18)
                         .strokeBorder(
                             LinearGradient(
                                 colors: [accent.opacity(0.60), accent.opacity(0.08)],
@@ -1741,15 +1740,15 @@ struct QuickAddTransactionView: View {
             )
 
             // ── Quick-stats row ──
-            HStack(spacing: 10) {
+            HStack(spacing: 8) {
                 ForEach([
                     ("$\(String(format: "%.0f", spent))", "SPENT",    isOver ? Color.ajOrangeRed : Color.ajOrange),
                     ("$\(String(format: "%.0f", max(limit - spent, 0)))", "LEFT", Color.ajGreen),
                     ("$\(String(format: "%.0f", limit))", "BUDGET",   Color.white.opacity(0.55))
                 ], id: \.1) { val, lbl, clr in
-                    VStack(spacing: 3) {
+                    VStack(spacing: 2) {
                         Text(val)
-                            .font(.system(size: 17, weight: .black))
+                            .font(.system(size: 14, weight: .black))
                             .foregroundColor(clr)
                         Text(lbl)
                             .font(.system(size: 8, weight: .black))
@@ -1757,11 +1756,11 @@ struct QuickAddTransactionView: View {
                             .tracking(1)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+                    .padding(.vertical, 8)
                     .background(
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14).fill(Color.white.opacity(0.05))
-                            RoundedRectangle(cornerRadius: 14).strokeBorder(clr.opacity(0.18), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.05))
+                            RoundedRectangle(cornerRadius: 12).strokeBorder(clr.opacity(0.18), lineWidth: 1)
                         }
                     )
                 }
@@ -1781,7 +1780,7 @@ struct QuickAddTransactionView: View {
             spendingBreakdownChart
 
             // ── Update daily limit ──
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 10, weight: .bold))
@@ -1792,11 +1791,11 @@ struct QuickAddTransactionView: View {
                         .tracking(1.4)
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: 8) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 14)
                             .fill(Color.white.opacity(0.06))
-                        RoundedRectangle(cornerRadius: 16)
+                        RoundedRectangle(cornerRadius: 14)
                             .strokeBorder(
                                 LinearGradient(
                                     colors: [Color.ajGreen.opacity(0.55), Color.ajGreen.opacity(0.15)],
@@ -1804,55 +1803,55 @@ struct QuickAddTransactionView: View {
                                 lineWidth: 1.5)
                         HStack(spacing: 4) {
                             Text("$")
-                                .font(.system(size: 28, weight: .black))
+                                .font(.system(size: 22, weight: .black))
                                 .foregroundColor(.ajGreen)
                             TextField("\(Int(limit))", text: $limitText)
-                                .font(.system(size: 28, weight: .black))
+                                .font(.system(size: 22, weight: .black))
                                 .foregroundColor(.white)
                                 .tint(.ajGreen)
                                 .keyboardType(.numberPad)
                                 .fixedSize()
                             Spacer()
                         }
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, 12)
                     }
-                    .frame(height: 56)
+                    .frame(height: 44)
 
                     Button { saveDailyLimit() } label: {
                         ZStack {
                             if limitSaved {
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 14)
                                     .fill(Color.ajGreen.opacity(0.15))
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 14)
                                     .strokeBorder(Color.ajGreen, lineWidth: 1.5)
                             } else {
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 14)
                                     .fill(LinearGradient(
                                         colors: [Color(red:0.05, green:0.90, blue:0.45), .ajGreen],
                                         startPoint: .topLeading, endPoint: .bottomTrailing))
-                                RoundedRectangle(cornerRadius: 16)
+                                RoundedRectangle(cornerRadius: 14)
                                     .fill(LinearGradient(
                                         colors: [Color.white.opacity(0.18), Color.clear],
                                         startPoint: .top, endPoint: .center))
                             }
                             VStack(spacing: 2) {
                                 Image(systemName: limitSaved ? "checkmark" : "square.and.arrow.down.fill")
-                                    .font(.system(size: 14, weight: .black))
+                                    .font(.system(size: 12, weight: .black))
                                 Text(limitSaved ? "Saved" : "Save")
-                                    .font(.system(size: 11, weight: .black))
+                                    .font(.system(size: 10, weight: .black))
                             }
                             .foregroundColor(limitSaved ? .ajGreen : .black)
                         }
-                        .frame(width: 64, height: 56)
-                        .shadow(color: limitSaved ? .clear : Color.ajGreen.opacity(0.45), radius: 10, y: 4)
+                        .frame(width: 56, height: 44)
+                        .shadow(color: limitSaved ? .clear : Color.ajGreen.opacity(0.45), radius: 8, y: 3)
                     }
                 }
             }
 
-            Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 32)
+        .padding(.bottom, 20)
+        } // ScrollView
     }
 
     @ViewBuilder
@@ -1863,12 +1862,12 @@ struct QuickAddTransactionView: View {
         let nextMilestone: Int = best < 7 ? 7 : best < 14 ? 14 : best < 30 ? 30 : 60
         let daysLeft = nextMilestone - best
 
-        VStack(spacing: 10) {
+        VStack(spacing: 8) {
             // Header row
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.ajOrange)
                     Text("BUDGET STREAK")
                         .font(.system(size: 9, weight: .black))
@@ -1884,15 +1883,15 @@ struct QuickAddTransactionView: View {
             // Big streak + stats
             HStack(alignment: .center, spacing: 0) {
                 // Current streak
-                VStack(spacing: 2) {
+                VStack(spacing: 1) {
                     HStack(alignment: .firstTextBaseline, spacing: 3) {
                         Text("\(current)")
-                            .font(.system(size: 40, weight: .black))
+                            .font(.system(size: 28, weight: .black))
                             .foregroundColor(current > 0 ? .ajOrange : .white.opacity(0.20))
                         Text("days")
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(.white.opacity(0.40))
-                            .offset(y: -4)
+                            .offset(y: -2)
                     }
                     Text("current")
                         .font(.system(size: 9))
@@ -1903,14 +1902,14 @@ struct QuickAddTransactionView: View {
                 // Divider
                 Rectangle()
                     .fill(Color.white.opacity(0.10))
-                    .frame(width: 1, height: 44)
+                    .frame(width: 1, height: 32)
 
                 // Best / goal
-                VStack(spacing: 8) {
-                    HStack(spacing: 16) {
+                VStack(spacing: 6) {
+                    HStack(spacing: 14) {
                         VStack(spacing: 2) {
                             Text("\(best)")
-                                .font(.system(size: 20, weight: .black))
+                                .font(.system(size: 16, weight: .black))
                                 .foregroundColor(.ajGold)
                             Text("best")
                                 .font(.system(size: 9))
@@ -1918,7 +1917,7 @@ struct QuickAddTransactionView: View {
                         }
                         VStack(spacing: 2) {
                             Text("60")
-                                .font(.system(size: 20, weight: .black))
+                                .font(.system(size: 16, weight: .black))
                                 .foregroundColor(.white.opacity(0.25))
                             Text("goal")
                                 .font(.system(size: 9))
@@ -1968,21 +1967,21 @@ struct QuickAddTransactionView: View {
             if best < 60 {
                 HStack(spacing: 6) {
                     Text(appState.evolutionEmoji)
-                        .font(.system(size: 16))
+                        .font(.system(size: 14))
                     Text("60-day budget streak = 30-day regular streak for pet evolution")
-                        .font(.system(size: 10))
+                        .font(.system(size: 9))
                         .foregroundColor(.white.opacity(0.38))
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 5)
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
+                    RoundedRectangle(cornerRadius: 8)
                         .fill(Color.white.opacity(0.04))
                 )
             }
         }
-        .padding(14)
+        .padding(10)
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
@@ -2016,20 +2015,20 @@ struct QuickAddTransactionView: View {
                         startPoint: .topLeading, endPoint: .bottomTrailing),
                     lineWidth: 1.5)
 
-            HStack(spacing: 14) {
+            HStack(spacing: 10) {
                 // Trophy icon
                 ZStack {
                     Circle()
                         .fill(LinearGradient(
                             colors: [Color.ajGold.opacity(0.30), Color.ajGold.opacity(0.10)],
                             startPoint: .top, endPoint: .bottom))
-                        .frame(width: 52, height: 52)
+                        .frame(width: 40, height: 40)
                     Text(claimed ? "✅" : "🏆")
-                        .font(.system(size: 26))
+                        .font(.system(size: 20))
                 }
-                .shadow(color: Color.ajGold.opacity(0.50), radius: 8)
+                .shadow(color: Color.ajGold.opacity(0.50), radius: 6)
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(tier)
                             .font(.system(size: 9, weight: .black))
@@ -2043,8 +2042,8 @@ struct QuickAddTransactionView: View {
                     }
                     Text(claimed
                          ? "Reward claimed! +\(gems) 💎 +20 XP"
-                         : "Stay under budget all day to earn \(gems) gems + 20 XP")
-                        .font(.system(size: 12, weight: .semibold))
+                         : "Stay under budget to earn \(gems) gems + 20 XP")
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.white.opacity(0.75))
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -2053,10 +2052,10 @@ struct QuickAddTransactionView: View {
 
                 if !claimed {
                     Text("Claim")
-                        .font(.system(size: 13, weight: .black))
+                        .font(.system(size: 12, weight: .black))
                         .foregroundColor(.black)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
                         .background(
                             ZStack {
                                 Capsule().fill(LinearGradient(
@@ -2067,7 +2066,7 @@ struct QuickAddTransactionView: View {
                                     startPoint: .top, endPoint: .center))
                             }
                         )
-                        .shadow(color: Color.ajGold.opacity(0.45), radius: 8, y: 3)
+                        .shadow(color: Color.ajGold.opacity(0.45), radius: 6, y: 2)
                         .onTapGesture {
                             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.65)) {
@@ -2076,11 +2075,11 @@ struct QuickAddTransactionView: View {
                         }
                 } else {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 22))
+                        .font(.system(size: 18))
                         .foregroundColor(.ajGold)
                 }
             }
-            .padding(14)
+            .padding(10)
         }
     }
 
@@ -2117,7 +2116,7 @@ struct QuickAddTransactionView: View {
         let total = appState.todaySpent
 
         if !breakdown.isEmpty {
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 // Header
                 HStack(spacing: 6) {
                     Image(systemName: "chart.pie.fill")
@@ -2129,11 +2128,11 @@ struct QuickAddTransactionView: View {
                         .tracking(1.4)
                 }
 
-                HStack(alignment: .center, spacing: 18) {
+                HStack(alignment: .center, spacing: 14) {
                     // ── Donut chart ──
                     ZStack {
                         Circle()
-                            .stroke(Color.white.opacity(0.07), lineWidth: 20)
+                            .stroke(Color.white.opacity(0.07), lineWidth: 16)
 
                         ForEach(breakdown.indices, id: \.self) { i in
                             let (cat, _, _, start, end) = breakdown[i]
@@ -2143,62 +2142,62 @@ struct QuickAddTransactionView: View {
                                     LinearGradient(
                                         colors: [cat.color, cat.color.opacity(0.65)],
                                         startPoint: .topLeading, endPoint: .bottomTrailing),
-                                    style: StrokeStyle(lineWidth: 20, lineCap: .butt))
+                                    style: StrokeStyle(lineWidth: 16, lineCap: .butt))
                                 .rotationEffect(.degrees(-90))
-                                .shadow(color: cat.color.opacity(0.40), radius: 4)
+                                .shadow(color: cat.color.opacity(0.40), radius: 3)
                         }
 
-                        VStack(spacing: 2) {
+                        VStack(spacing: 1) {
                             Text("$\(String(format: "%.0f", total))")
-                                .font(.system(size: 20, weight: .black))
+                                .font(.system(size: 16, weight: .black))
                                 .foregroundColor(.white)
                             Text("today")
-                                .font(.system(size: 9, weight: .semibold))
+                                .font(.system(size: 8, weight: .semibold))
                                 .foregroundColor(.white.opacity(0.35))
                         }
                     }
-                    .frame(width: 120, height: 120)
+                    .frame(width: 96, height: 96)
 
                     // ── Category list ──
-                    VStack(alignment: .leading, spacing: 9) {
+                    VStack(alignment: .leading, spacing: 7) {
                         ForEach(breakdown.prefix(5).indices, id: \.self) { i in
                             let (cat, amount, pct, _, _) = breakdown[i]
-                            HStack(spacing: 7) {
+                            HStack(spacing: 6) {
                                 Circle()
                                     .fill(cat.color)
-                                    .frame(width: 7, height: 7)
+                                    .frame(width: 6, height: 6)
                                     .shadow(color: cat.color.opacity(0.60), radius: 3)
                                 Text(cat.icon)
-                                    .font(.system(size: 13))
+                                    .font(.system(size: 11))
                                 Text(cat.rawValue)
-                                    .font(.system(size: 11, weight: .semibold))
+                                    .font(.system(size: 10, weight: .semibold))
                                     .foregroundColor(.white.opacity(0.80))
                                     .lineLimit(1)
-                                Spacer(minLength: 4)
+                                Spacer(minLength: 2)
                                 Text("\(Int(pct * 100))%")
-                                    .font(.system(size: 10, weight: .bold))
+                                    .font(.system(size: 9, weight: .bold))
                                     .foregroundColor(cat.color)
-                                    .frame(width: 28, alignment: .trailing)
+                                    .frame(width: 26, alignment: .trailing)
                                 Text("-$\(String(format: "%.0f", amount))")
-                                    .font(.system(size: 11, weight: .black))
+                                    .font(.system(size: 10, weight: .black))
                                     .foregroundColor(.white)
-                                    .frame(width: 42, alignment: .trailing)
+                                    .frame(width: 38, alignment: .trailing)
                             }
                         }
                         if breakdown.count > 5 {
                             Text("+ \(breakdown.count - 5) more categories")
-                                .font(.system(size: 10))
+                                .font(.system(size: 9))
                                 .foregroundColor(.white.opacity(0.28))
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
             }
-            .padding(14)
+            .padding(10)
             .background(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
-                    RoundedRectangle(cornerRadius: 18)
+                    RoundedRectangle(cornerRadius: 16).fill(Color.white.opacity(0.05))
+                    RoundedRectangle(cornerRadius: 16)
                         .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
                 }
             )
