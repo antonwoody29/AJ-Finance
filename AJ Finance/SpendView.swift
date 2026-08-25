@@ -1767,6 +1767,14 @@ struct QuickAddTransactionView: View {
                 }
             }
 
+            // ── Daily limit reward card ──
+            if !isOver && limit > 0 && spent > 0 {
+                dailyLimitRewardCard
+            }
+
+            // ── Spending breakdown chart ──
+            spendingBreakdownChart
+
             // ── Update daily limit ──
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
@@ -1840,6 +1848,215 @@ struct QuickAddTransactionView: View {
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
+    }
+
+    @ViewBuilder
+    private var dailyLimitRewardCard: some View {
+        let claimed  = appState.hasClaimedDailyLimitRewardToday
+        let gems     = appState.dailyLimitRewardGems
+        let ratio    = appState.dailyBudget > 0 ? appState.todaySpent / appState.dailyBudget : 0
+        let tier: String = ratio <= 0.70 ? "CRUSHING IT" : ratio <= 0.90 ? "ON TRACK" : "GOAL MET"
+
+        ZStack {
+            // Background
+            RoundedRectangle(cornerRadius: 18)
+                .fill(LinearGradient(
+                    colors: [Color.ajGold.opacity(0.14), Color.black.opacity(0.30)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing))
+            RoundedRectangle(cornerRadius: 18)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.ajGold.opacity(0.65), Color.ajGold.opacity(0.15)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: 1.5)
+
+            HStack(spacing: 14) {
+                // Trophy icon
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(
+                            colors: [Color.ajGold.opacity(0.30), Color.ajGold.opacity(0.10)],
+                            startPoint: .top, endPoint: .bottom))
+                        .frame(width: 52, height: 52)
+                    Text(claimed ? "✅" : "🏆")
+                        .font(.system(size: 26))
+                }
+                .shadow(color: Color.ajGold.opacity(0.50), radius: 8)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Text(tier)
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.ajGold)
+                            .tracking(1.2)
+                        if !claimed {
+                            Text("· \(gems) 💎")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(.ajGold.opacity(0.70))
+                        }
+                    }
+                    Text(claimed
+                         ? "Reward claimed! +\(gems) 💎 +20 XP"
+                         : "Stay under budget all day to earn \(gems) gems + 20 XP")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.75))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer()
+
+                if !claimed {
+                    Text("Claim")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(
+                            ZStack {
+                                Capsule().fill(LinearGradient(
+                                    colors: [Color.ajGold, Color.ajGold.opacity(0.75)],
+                                    startPoint: .top, endPoint: .bottom))
+                                Capsule().fill(LinearGradient(
+                                    colors: [Color.white.opacity(0.20), Color.clear],
+                                    startPoint: .top, endPoint: .center))
+                            }
+                        )
+                        .shadow(color: Color.ajGold.opacity(0.45), radius: 8, y: 3)
+                        .onTapGesture {
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.65)) {
+                                appState.claimDailyLimitReward()
+                            }
+                        }
+                } else {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(.ajGold)
+                }
+            }
+            .padding(14)
+        }
+    }
+
+    // Returns (category, amount, pct, startArc, endArc) per category
+    private func buildBreakdown() -> [(SpendCategory, Double, Double, Double, Double)] {
+        let txns = appState.transactions
+            .filter { !$0.isSaving && Calendar.current.isDateInToday($0.date) }
+        let total = txns.reduce(0.0) { $0 + $1.amount }
+        guard total > 0 else { return [] }
+
+        let grouped = Dictionary(grouping: txns) { $0.category }
+        let sorted = grouped
+            .map { (cat: SpendCategory, items: [SpendEntry]) in
+                (cat, items.reduce(0.0) { $0 + $1.amount })
+            }
+            .sorted { $0.1 > $1.1 }
+
+        var result: [(SpendCategory, Double, Double, Double, Double)] = []
+        var cumulative = 0.0
+        let gap = 0.018
+        for (cat, amount) in sorted {
+            let pct  = amount / total
+            let start = cumulative + gap / 2
+            let end   = max(start + 0.001, cumulative + pct - gap / 2)
+            result.append((cat, amount, pct, start, end))
+            cumulative += pct
+        }
+        return result
+    }
+
+    @ViewBuilder
+    private var spendingBreakdownChart: some View {
+        let breakdown = buildBreakdown()
+        let total = appState.todaySpent
+
+        if !breakdown.isEmpty {
+            VStack(alignment: .leading, spacing: 14) {
+                // Header
+                HStack(spacing: 6) {
+                    Image(systemName: "chart.pie.fill")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white.opacity(0.38))
+                    Text("SPENDING BREAKDOWN")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.38))
+                        .tracking(1.4)
+                }
+
+                HStack(alignment: .center, spacing: 18) {
+                    // ── Donut chart ──
+                    ZStack {
+                        Circle()
+                            .stroke(Color.white.opacity(0.07), lineWidth: 20)
+
+                        ForEach(breakdown.indices, id: \.self) { i in
+                            let (cat, _, _, start, end) = breakdown[i]
+                            Circle()
+                                .trim(from: CGFloat(start), to: CGFloat(end))
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [cat.color, cat.color.opacity(0.65)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing),
+                                    style: StrokeStyle(lineWidth: 20, lineCap: .butt))
+                                .rotationEffect(.degrees(-90))
+                                .shadow(color: cat.color.opacity(0.40), radius: 4)
+                        }
+
+                        VStack(spacing: 2) {
+                            Text("$\(String(format: "%.0f", total))")
+                                .font(.system(size: 20, weight: .black))
+                                .foregroundColor(.white)
+                            Text("today")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.35))
+                        }
+                    }
+                    .frame(width: 120, height: 120)
+
+                    // ── Category list ──
+                    VStack(alignment: .leading, spacing: 9) {
+                        ForEach(breakdown.prefix(5).indices, id: \.self) { i in
+                            let (cat, amount, pct, _, _) = breakdown[i]
+                            HStack(spacing: 7) {
+                                Circle()
+                                    .fill(cat.color)
+                                    .frame(width: 7, height: 7)
+                                    .shadow(color: cat.color.opacity(0.60), radius: 3)
+                                Text(cat.icon)
+                                    .font(.system(size: 13))
+                                Text(cat.rawValue)
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.80))
+                                    .lineLimit(1)
+                                Spacer(minLength: 4)
+                                Text("\(Int(pct * 100))%")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(cat.color)
+                                    .frame(width: 28, alignment: .trailing)
+                                Text("-$\(String(format: "%.0f", amount))")
+                                    .font(.system(size: 11, weight: .black))
+                                    .foregroundColor(.white)
+                                    .frame(width: 42, alignment: .trailing)
+                            }
+                        }
+                        if breakdown.count > 5 {
+                            Text("+ \(breakdown.count - 5) more categories")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white.opacity(0.28))
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(14)
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.05))
+                    RoundedRectangle(cornerRadius: 18)
+                        .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
+                }
+            )
+        }
     }
 
     @ViewBuilder

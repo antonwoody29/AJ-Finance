@@ -46,6 +46,7 @@ final class AppState {
     // MARK: - Food System (UserDefaults)
     var animalFood: Double = 100.0
     var dailyBudget: Double = 100.0
+    var lastDailyLimitRewardDate: String = ""
     var lastFoodDate: Date? = nil
     var needsDailyFoodCheck: Bool = false
 
@@ -1367,6 +1368,31 @@ final class AppState {
     func setDailyBudget(_ value: Double) {
         dailyBudget = value
         UserDefaults.standard.set(value, forKey: "aj_dailyBudget")
+    }
+
+    var hasClaimedDailyLimitRewardToday: Bool {
+        let today = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
+        return lastDailyLimitRewardDate == today
+    }
+
+    var dailyLimitRewardGems: Int {
+        guard dailyBudget > 0, todaySpent > 0 else { return 0 }
+        let ratio = todaySpent / dailyBudget
+        if ratio <= 0.70 { return 35 }
+        if ratio <= 0.90 { return 25 }
+        return 15
+    }
+
+    func claimDailyLimitReward() {
+        guard !hasClaimedDailyLimitRewardToday else { return }
+        guard dailyBudget > 0, todaySpent <= dailyBudget, todaySpent > 0 else { return }
+        let gems = dailyLimitRewardGems
+        awardGems(gems, reason: "Daily budget goal! 🎯")
+        let today = DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .none)
+        lastDailyLimitRewardDate = today
+        UserDefaults.standard.set(today, forKey: "aj_dailyLimitRewardDate")
+        xp += 20
+        UserDefaults.standard.set(xp, forKey: "aj_xp")
     }
 
     // MARK: - Transaction Operations
@@ -3088,6 +3114,7 @@ final class AppState {
         }
         animalFood = UserDefaults.standard.object(forKey: "aj_food") as? Double ?? 100.0
         dailyBudget = UserDefaults.standard.object(forKey: "aj_dailyBudget") as? Double ?? 100.0
+        lastDailyLimitRewardDate = UserDefaults.standard.string(forKey: "aj_dailyLimitRewardDate") ?? ""
         lastFoodDate = UserDefaults.standard.object(forKey: "aj_lastFood") as? Date
         needsDailyFoodCheck = isSimBuild ? false : UserDefaults.standard.bool(forKey: "aj_needsFood")
         hasSobrietyGoal   = UserDefaults.standard.bool(forKey: "aj_sobrietyEnabled")
