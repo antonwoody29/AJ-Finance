@@ -802,35 +802,49 @@ struct SpendView: View {
                     ForEach(Array(zip(days, totals)), id: \.0) { day, total in
                         let frac    = CGFloat(maxTotal > 0 ? total / maxTotal : 0)
                         let isPeak  = total == maxTotal && total > 0
-                        let barColor: Color = isPeak       ? Color(red: 1.0, green: 0.32, blue: 0.18)
-                            : frac > 0.60 ? .ajOrange
-                            : frac > 0.20 ? Color(red: 0.18, green: 0.82, blue: 0.44)
-                            :               Color.white.opacity(0.09)
+                        let isHigh  = frac > 0.65
+                        let isMid   = frac > 0.25
+                        let barColor: Color = isPeak ? .ajOrangeRed
+                            : isHigh ? .ajOrange
+                            : isMid  ? .ajGreen
+                            :          Color.white.opacity(0.12)
+                        let glowOpacity: Double = isPeak ? 0.70 : isHigh ? 0.40 : isMid ? 0.20 : 0
 
                         VStack(spacing: 5) {
-                            Text(total > 0 ? "$\(Int(total))" : " ")
-                                .font(.system(size: 8, weight: isPeak ? .black : .regular))
-                                .foregroundColor(isPeak ? .ajOrangeRed : .white.opacity(0.32))
+                            // Amount label — show for all days with spending
+                            Text(total > 0 ? "$\(Int(total))" : "")
+                                .font(.system(size: 8, weight: isPeak ? .black : .medium))
+                                .foregroundColor(isPeak ? .ajOrangeRed : isHigh ? .ajOrange.opacity(0.8) : .white.opacity(0.28))
                                 .lineLimit(1)
-                                .minimumScaleFactor(0.7)
+                                .minimumScaleFactor(0.6)
+                                .frame(height: 12)
 
-                            GeometryReader { geo in
-                                VStack(spacing: 0) {
-                                    Spacer(minLength: 0)
-                                    RoundedRectangle(cornerRadius: 4)
+                            // Bar with background track
+                            ZStack(alignment: .bottom) {
+                                // Track
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(Color.white.opacity(0.06))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                                // Fill
+                                if total > 0 {
+                                    RoundedRectangle(cornerRadius: 6)
                                         .fill(LinearGradient(
-                                            colors: [barColor, barColor.opacity(0.55)],
+                                            colors: [barColor, barColor.opacity(0.50)],
                                             startPoint: .top, endPoint: .bottom
                                         ))
-                                        .frame(height: max(4, geo.size.height * frac))
-                                        .shadow(color: isPeak ? barColor.opacity(0.55) : .clear, radius: 5)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: max(6, 72 * frac))
+                                        .shadow(color: barColor.opacity(glowOpacity), radius: isPeak ? 10 : 5, y: 2)
                                 }
                             }
-                            .frame(height: 64)
+                            .frame(height: 72)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
 
+                            // Day label
                             Text(day)
-                                .font(.system(size: 9, weight: .semibold))
-                                .foregroundColor(isPeak ? .white.opacity(0.85) : .white.opacity(0.40))
+                                .font(.system(size: 9, weight: isPeak ? .black : .medium))
+                                .foregroundColor(isPeak ? .white : .white.opacity(0.38))
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -895,55 +909,76 @@ struct SpendView: View {
     }
 
     private var categoryBreakdownCard: some View {
-        AJCard {
+        let total  = max(1, appState.spendingByCategory.values.reduce(0, +))
+        let sorted = SpendCategory.allCases.compactMap { cat -> (SpendCategory, Double)? in
+            let amt = appState.spendingByCategory[cat] ?? 0
+            return amt > 0 ? (cat, amt) : nil
+        }.sorted { $0.1 > $1.1 }
+
+        return AJCard {
             VStack(alignment: .leading, spacing: 14) {
                 Text("CATEGORY BREAKDOWN")
                     .font(.system(size: 11, weight: .black))
                     .foregroundColor(.ajOrange)
                     .tracking(2)
 
-                let maxAmount = appState.spendingByCategory.values.max() ?? 1
+                if sorted.isEmpty {
+                    Text("No spending logged yet this month")
+                        .font(.system(size: 13))
+                        .foregroundColor(.white.opacity(0.35))
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 8)
+                } else {
+                    VStack(spacing: 12) {
+                        ForEach(Array(sorted.enumerated()), id: \.offset) { idx, pair in
+                            let (cat, amt) = pair
+                            let pct = amt / total
+                            let isTop = idx == 0
 
-                ForEach(SpendCategory.allCases) { cat in
-                    let amt = appState.spendingByCategory[cat] ?? 0
-                    if amt > 0 {
-                        HStack(spacing: 10) {
-                            Text(cat.icon).font(.system(size: 18))
-                            VStack(alignment: .leading, spacing: 4) {
-                                HStack {
+                            VStack(spacing: 6) {
+                                HStack(spacing: 10) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(cat.color.opacity(0.18))
+                                            .frame(width: 30, height: 30)
+                                        Text(cat.icon)
+                                            .font(.system(size: 15))
+                                    }
                                     Text(cat.rawValue)
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.white)
+                                        .font(.system(size: 13, weight: isTop ? .black : .semibold))
+                                        .foregroundColor(isTop ? .white : .white.opacity(0.80))
                                     Spacer()
-                                    Text("$\(String(format: "%.2f", amt))")
-                                        .font(.system(size: 13, weight: .bold))
+                                    Text("\(Int(pct * 100))%")
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(cat.color.opacity(0.80))
+                                    Text("$\(String(format: "%.0f", amt))")
+                                        .font(.system(size: 14, weight: .black))
                                         .foregroundColor(cat.color)
                                 }
+
                                 GeometryReader { geo in
                                     ZStack(alignment: .leading) {
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(Color.white.opacity(0.08))
-                                        RoundedRectangle(cornerRadius: 3)
-                                            .fill(cat.color)
-                                            .frame(width: geo.size.width * CGFloat(amt / max(maxAmount, 1)))
-                                            .animation(.spring(response: 0.6), value: amt)
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(cat.color.opacity(0.10))
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(LinearGradient(
+                                                colors: [cat.color, cat.color.opacity(0.60)],
+                                                startPoint: .leading, endPoint: .trailing
+                                            ))
+                                            .frame(width: max(12, geo.size.width * CGFloat(pct)))
+                                            .shadow(color: cat.color.opacity(isTop ? 0.60 : 0.25), radius: isTop ? 10 : 4, y: 2)
+                                            .animation(.spring(response: 0.65, dampingFraction: 0.78), value: pct)
                                     }
                                 }
-                                .frame(height: 6)
+                                .frame(height: isTop ? 14 : 10)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            }
+
+                            if idx < sorted.count - 1 {
+                                Divider().background(Color.white.opacity(0.05))
                             }
                         }
                     }
-                }
-
-                if appState.spendingByCategory.values.allSatisfy({ $0 == 0 }) {
-                    HStack {
-                        Spacer()
-                        Text("No spending logged yet this month")
-                            .font(.system(size: 14))
-                            .foregroundColor(.white.opacity(0.4))
-                        Spacer()
-                    }
-                    .padding(.vertical, 8)
                 }
             }
         }
@@ -952,51 +987,118 @@ struct SpendView: View {
     // MARK: - Spending Forecast Card
 
     private var spendingForecastCard: some View {
-        let calendar = Calendar.current
-        let now = Date()
-        let day = calendar.component(.day, from: now)
-        let daysInMonth = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
-        let daysElapsed = max(1, day)
-        let daysRemaining = daysInMonth - daysElapsed
-        let dailyAvg = appState.totalSpent / Double(daysElapsed)
-        let projected = dailyAvg * Double(daysInMonth)
-        let totalBudget = appState.categoryBudgets.values.reduce(0, +)
-        let isOver = totalBudget > 0 && projected > totalBudget
-        let accentColor: Color = totalBudget == 0 ? .white : (isOver ? .red : Color(red: 0.2, green: 0.85, blue: 0.5))
+        let calendar     = Calendar.current
+        let now          = Date()
+        let day          = calendar.component(.day, from: now)
+        let daysInMonth  = calendar.range(of: .day, in: .month, for: now)?.count ?? 30
+        let daysElapsed  = max(1, day)
+        let daysLeft     = daysInMonth - daysElapsed
+        let dailyAvg     = appState.totalSpent / Double(daysElapsed)
+        let projected    = dailyAvg * Double(daysInMonth)
+        let monthBudget  = appState.dailyBudget * Double(daysInMonth)
+        let hasBudget    = monthBudget > 0
+        let isOver       = hasBudget && projected > monthBudget
+        let accentColor: Color = !hasBudget ? .ajOrange : (isOver ? .ajOrangeRed : .ajGreen)
+        let fraction: Double   = hasBudget ? min(projected / monthBudget, 1.0) : Double(daysElapsed) / Double(daysInMonth)
 
         return AJCard {
-            VStack(spacing: 10) {
+            VStack(spacing: 14) {
                 HStack {
                     Text("SPENDING FORECAST")
                         .font(.system(size: 10, weight: .black))
                         .foregroundColor(.ajOrange)
                         .tracking(2)
                     Spacer()
-                    Text("\(daysRemaining)d left")
+                    Text("\(daysLeft)d left")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.white.opacity(0.35))
                 }
 
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("~$\(Int(projected))")
-                        .font(.system(size: 34, weight: .black))
-                        .foregroundColor(accentColor)
-                    Text("projected this month")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.45))
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 20) {
+                    // Arc gauge
+                    ZStack {
+                        // Background track (270° arc)
+                        Circle()
+                            .trim(from: 0.0, to: 0.75)
+                            .stroke(Color.white.opacity(0.08), style: StrokeStyle(lineWidth: 11, lineCap: .round))
+                            .rotationEffect(.degrees(135))
 
-                HStack(spacing: 8) {
-                    Label("$\(String(format: "%.0f", dailyAvg))/day avg", systemImage: "chart.bar.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.4))
-                    Spacer()
-                    if totalBudget > 0 {
-                        Text(isOver ? "⚠️ Pace over budget" : "✅ On track")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(isOver ? .red : Color(red: 0.2, green: 0.85, blue: 0.5))
+                        // Filled arc
+                        Circle()
+                            .trim(from: 0.0, to: CGFloat(0.75 * fraction))
+                            .stroke(
+                                LinearGradient(
+                                    colors: isOver
+                                        ? [.ajOrangeRed, Color(red: 1, green: 0.2, blue: 0.1)]
+                                        : hasBudget
+                                            ? [.ajGreen, .ajOrange]
+                                            : [.ajOrange, Color(red: 1, green: 0.7, blue: 0.1)],
+                                    startPoint: .leading, endPoint: .trailing
+                                ),
+                                style: StrokeStyle(lineWidth: 11, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(135))
+                            .shadow(color: accentColor.opacity(0.55), radius: 8, y: 2)
+                            .animation(.spring(response: 0.8, dampingFraction: 0.75), value: fraction)
+
+                        // Center label
+                        VStack(spacing: 1) {
+                            if hasBudget {
+                                Text("\(Int(fraction * 100))%")
+                                    .font(.system(size: 18, weight: .black))
+                                    .foregroundColor(accentColor)
+                                Text("of budget")
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.38))
+                            } else {
+                                Text("Day \(day)")
+                                    .font(.system(size: 13, weight: .black))
+                                    .foregroundColor(.ajOrange)
+                                Text("of \(daysInMonth)")
+                                    .font(.system(size: 8, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.38))
+                            }
+                        }
                     }
+                    .frame(width: 90, height: 90)
+
+                    // Stats column
+                    VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("~$\(Int(projected))")
+                                .font(.system(size: 28, weight: .black))
+                                .foregroundColor(accentColor)
+                            Text("projected this month")
+                                .font(.system(size: 10))
+                                .foregroundColor(.white.opacity(0.38))
+                        }
+                        HStack(spacing: 18) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("$\(String(format: "%.0f", dailyAvg))")
+                                    .font(.system(size: 14, weight: .black))
+                                    .foregroundColor(.white.opacity(0.85))
+                                Text("avg / day")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(.white.opacity(0.35))
+                            }
+                            if hasBudget {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text("$\(Int(monthBudget))")
+                                        .font(.system(size: 14, weight: .black))
+                                        .foregroundColor(.white.opacity(0.50))
+                                    Text("budget")
+                                        .font(.system(size: 9))
+                                        .foregroundColor(.white.opacity(0.35))
+                                }
+                            }
+                        }
+                        if hasBudget {
+                            Text(isOver ? "⚠️ Above pace" : "✅ On track")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(accentColor)
+                        }
+                    }
+                    Spacer()
                 }
             }
         }
