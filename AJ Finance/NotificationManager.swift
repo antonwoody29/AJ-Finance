@@ -1902,13 +1902,11 @@ struct NotificationManager {
             AJID.fit7am, AJID.fit12pm, AJID.fit530pm,
             AJID.compliment, AJID.saying,
         ])
-        // Daily (4 per day max)
+        // Daily (4 per day max — morning, lunch fact, evening, streak protector)
         scheduleMorningGreetings(animalName: animalName, hour: reminderHour, minute: reminderMinute, enabled: reminderEnabled)
         scheduleStreakProtector(animalName: animalName)
         scheduleEveningCheckIn(animalName: animalName)
         scheduleDailyMoneyFact(animalName: animalName)
-        scheduleDailyCompliment(animalName: animalName)
-        scheduleDailySaying(animalName: animalName)
         // Weekly (Mon/Fri/Sat/Sun specials only)
         scheduleWeeklySummary()
         scheduleWeekendCheckIn(animalName: animalName)
@@ -2077,7 +2075,7 @@ struct NotificationManager {
     // MARK: - Daily Schedulers
 
     private static func scheduleMorningGreetings(animalName: String, hour: Int, minute: Int, enabled: Bool) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.morning, AJID.morningMon, AJID.morningFri])
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.morning, AJID.morningMon, AJID.morningFri, AJID.compliment])
         guard enabled else { return }
 
         let cMon = content(title: "\(animalName) 💼", body: AJCopy.pick(AJCopy.monday, key: "monday"), badge: 0)
@@ -2088,7 +2086,12 @@ struct NotificationManager {
         var friComps = DateComponents(); friComps.weekday = 6; friComps.hour = hour; friComps.minute = minute
         schedule(id: AJID.morningFri, content: cFri, trigger: calendar(friComps, repeats: true))
 
-        let cGen = content(title: "\(animalName) ⭐", body: AJCopy.pick(AJCopy.morning, key: "morning"), badge: 0)
+        // General morning: rotate between morning greetings and compliments in a single notification
+        let allCompliments = AJCopy.compliments + AJCopy.compliments2
+        let morningBody = Bool.random()
+            ? AJCopy.pick(AJCopy.morning, key: "morning")
+            : AJCopy.pickSequential(allCompliments, key: "compliment")
+        let cGen = content(title: "\(animalName) ⭐", body: morningBody, badge: 0)
         var genComps = DateComponents(); genComps.hour = hour; genComps.minute = minute
         schedule(id: AJID.morning, content: cGen, trigger: calendar(genComps, repeats: true))
     }
@@ -2101,8 +2104,13 @@ struct NotificationManager {
     }
 
     private static func scheduleEveningCheckIn(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.evening])
-        let c = content(title: "\(animalName) evening 📊", body: AJCopy.pick(AJCopy.evening, key: "evening"), badge: 0)
+        center.removePendingNotificationRequests(withIdentifiers: [AJID.evening, AJID.saying])
+        // Rotate between evening check-in messages and daily sayings in a single 6:30pm notification
+        let allSayings = AJCopy.dailySayings + AJCopy.dailySayings2
+        let eveningBody = Bool.random()
+            ? AJCopy.pick(AJCopy.evening, key: "evening")
+            : AJCopy.pickSequential(allSayings, key: "saying")
+        let c = content(title: "\(animalName) evening 📊", body: eveningBody, badge: 0)
         var comps = DateComponents(); comps.hour = 18; comps.minute = 30
         schedule(id: AJID.evening, content: c, trigger: calendar(comps, repeats: true))
     }

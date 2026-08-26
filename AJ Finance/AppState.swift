@@ -1058,6 +1058,54 @@ final class AppState {
             return selectedAnimal.tagline
         }
 
+        // 1-in-5 chance: show a motivational quote instead of time-of-day line
+        let motivationalQuotes: [String] = [
+            "The secret to getting ahead is getting started. 💙",
+            "Small consistent actions beat big sporadic ones every time. 📈",
+            "You don't need to be perfect. You need to be present.",
+            "Every expert was once a beginner. Keep showing up.",
+            "Discipline is just doing what needs to be done even when you don't feel like it.",
+            "Your future self is watching you make today's decisions. Make them proud.",
+            "Financial freedom isn't a destination. It's a direction. Keep moving.",
+            "The best investment you'll ever make is in your habits.",
+            "Wealth is built in the quiet moments of consistent choices.",
+            "You are one decision away from a completely different life. Choose wisely. 💪",
+            "Delayed gratification is a superpower. You're training it every day.",
+            "The goal isn't to be rich. It's to be free. Same direction though. 🔥",
+            "Success is just failure that hasn't stopped trying yet. 💙",
+            "Comparison is the thief of financial joy. Run your own race.",
+            "Every time you say no to something you don't need, you're saying yes to something you actually want.",
+            "You're not behind. You're building at the exact right pace for you.",
+            "The version of you that has everything figured out started exactly where you are now.",
+            "Hard times build character. Character builds wealth. You're in the process. 💙",
+            "You can't pour from an empty account — fill yours first.",
+            "Today's choices are tomorrow's results. Choose intentionally.",
+            "Progress over perfection. Always.",
+            "Momentum is real. One logged receipt starts something.",
+            "Nobody built a life they're proud of by accident. Every move counts.",
+            "Financial confidence comes from financial awareness. You're building both.",
+            "The day you start taking your money seriously is the day everything changes. 💰",
+            "You're not just tracking money. You're tracking your future.",
+            "The habits you stack now will carry you through the hard seasons.",
+            "Consistency compounds. Every time you show up, interest is accruing.",
+            "You already have what it takes. You just need to use it. 🔥",
+            "What you do today is an investment in the person you'll be in 5 years.",
+            "Your relationship with money is a reflection of the relationship with yourself. Tend to both. 💙",
+            "The most powerful financial tool you have? Your next decision.",
+            "Patience + consistency + intention = the whole formula. You got this.",
+            "Rich is a mindset before it's a bank balance. Start there.",
+            "You're not managing money. You're building a life. Keep building. 🏗️",
+            "Showing up when it's hard is exactly what separates dreamers from doers.",
+            "Every dollar tracked is a dollar that works for you, not against you.",
+            "The economy doesn't determine your wealth. Your habits do.",
+            "Being broke is temporary. Bad habits are the real emergency.",
+            "You chose to open this app today. That's already ahead of most people. 💪",
+        ]
+
+        if Int.random(in: 0..<5) == 0 {
+            return motivationalQuotes.randomElement()!
+        }
+
         switch hour {
         case 5..<12:  return morningLines.randomElement()!
         case 12..<17: return afternoonLines.randomElement()!

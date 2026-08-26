@@ -25,6 +25,7 @@ struct HomeView: View {
     // Speech
     @State private var showSpeech    = true
     @State private var speechWorkItem: DispatchWorkItem? = nil
+    @State private var usedTapIndices: Set<Int> = []
 
     // World interaction
     @State private var decorTap: Int? = nil
@@ -86,6 +87,7 @@ struct HomeView: View {
     ]
 
     private let tapSpeeches = [
+        // Personality / reactions
         "AYOOOO WATCH THE FUR 😭",
         "Bestie you scared the shit outta me 😭",
         "Oh we touching things now? 👀",
@@ -185,7 +187,71 @@ struct HomeView: View {
         "Which is concerning honestly.",
         "Friendship level increased 💙",
         "Tiny hug sent 🫂",
-        "Thanks for checking on me bestie 🥺"
+        "Thanks for checking on me bestie 🥺",
+        // Extended pool — personality
+        "Did you tap me or did destiny tap you? 🌌",
+        "I was doing math in my head. You ruined it.",
+        "The math was not mathing anyway so same.",
+        "Your energy walked in before you did.",
+        "Strong 'I have an idea' energy. Should I be scared? 👀",
+        "Bestie what is your intention here 😭",
+        "Tapping me is a whole personality trait at this point.",
+        "You pass the vibe check. Barely. 😌",
+        "That tap had flavor. I'll allow it.",
+        "You tapped wrong. Do it again 🤨 (kidding)",
+        "Character development arc loading… 📈",
+        "The main character energy is IMMACULATE today.",
+        "You showed up. That already puts you ahead. 💪",
+        "I feel like something good is about to happen.",
+        "Good things take time. So does loading. Please wait ⌛",
+        "That tap healed 3 years of trauma. Thank you. 💙",
+        "I actually giggled internally. Very professional of me.",
+        "Permission to be your hype person today? ✅",
+        "Hyping yourself up by tapping tiny animals — valid. 💅",
+        "The confidence, the audacity, the glow — I see it.",
+        "You're built different and I genuinely mean that.",
+        "Whatever you're working through, you got this. 💙",
+        "Not all heroes wear capes. Some tap animals. 🦸",
+        "You have survived 100% of your worst days. That's elite.",
+        "Small wins still count. Log them. Celebrate them.",
+        "Progress isn't always loud. Sometimes it's quiet and consistent.",
+        "You don't have to be perfect. You just have to keep going.",
+        "Being here matters. Being intentional matters more. 💙",
+        "The fact you opened this app says something about you.",
+        "That something is: you care about your future. 🔥",
+        // Extended pool — financial motivation
+        "One logged receipt = one step toward freedom. Truly.",
+        "Financial glow-up is a whole journey. We're on it together.",
+        "Your future self is literally building you a thank-you card rn 🃏",
+        "Every dollar you track is a dollar you control. Power. 💪",
+        "Budgeting isn't restriction. It's direction.",
+        "You're not broke. You're pre-rich. Stay the course.",
+        "The goal isn't perfection. It's awareness. You're aware. That's huge.",
+        "Spending with intention hits different than spending on autopilot.",
+        "Rich isn't a number. It's a feeling of control. Chase that.",
+        "Future you has a savings account that slaps. Keep building it.",
+        "The habits you build now are the foundation of everything later.",
+        "Discipline today is freedom tomorrow. For real for real.",
+        "Every 'no' to impulse spending is a 'yes' to something better.",
+        "You're planting seeds. The harvest is coming. 🌱",
+        "Compound interest is patient. You should be too.",
+        "The best time to start was yesterday. The second best is right now.",
+        "Logging your spending is a radical act of self-love honestly.",
+        "Financial peace is built one logged receipt at a time.",
+        "You're not behind. You're on your own timeline. Keep going.",
+        "The comeback is always stronger than the setback. Trust that.",
+        // Fun chaos
+        "Don't look now but your goals are watching 👀",
+        "The algorithm has no idea what we're building over here 😌",
+        "Unhinged financial behavior? Nah. This is growth. 💅",
+        "Petition to make 'logging receipts' a love language. Signed. ✍️",
+        "We're not reckless. We're bold with receipts.",
+        "Send this tap to your savings account 💸",
+        "This interaction has been added to our friendship history.",
+        "Court of AJ rules: you are found not guilty of giving up. 🔨",
+        "Breaking: local person taps animal, immediately becomes more financially aware. 📰",
+        "Scientists say tapping animals daily increases financial IQ by 40%. I made that up. Tap anyway.",
+        "You looked at this screen and chose to do something. That's it. That's the win.",
     ]
     private let longPressSpeeches = [
         "OHHHH WE GOING OFF TODAY 🔥🔥", "BIG HUG ENERGY ACTIVATED 💪",
@@ -840,7 +906,7 @@ struct HomeView: View {
             || appState.streak == 0
         appState.currentSpeech = useContextual
             ? contextualTapSpeech()
-            : (tapSpeeches.randomElement() ?? "Hey! 👋")
+            : pickTapSpeech()
         showBubble()
         burstCoins(1)
         resetBehavior()
@@ -856,6 +922,17 @@ struct HomeView: View {
                 }
             }
         }
+    }
+
+    private func pickTapSpeech() -> String {
+        // Reset when more than half the pool has been used
+        if usedTapIndices.count >= tapSpeeches.count / 2 {
+            usedTapIndices.removeAll()
+        }
+        let available = tapSpeeches.indices.filter { !usedTapIndices.contains($0) }
+        let idx = available.randomElement() ?? tapSpeeches.indices.randomElement() ?? 0
+        usedTapIndices.insert(idx)
+        return tapSpeeches[idx]
     }
 
     private func handleLongPress() {
