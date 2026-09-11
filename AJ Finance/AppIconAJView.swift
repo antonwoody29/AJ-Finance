@@ -167,7 +167,8 @@ struct AppIconPreviewScreen: View {
     @State private var exportPath = ""
 
     var body: some View {
-        let w = UIScreen.main.bounds.width
+        GeometryReader { proxy in
+        let w = proxy.size.width
         ZStack {
             Color.black.ignoresSafeArea()
             VStack(spacing: 24) {
@@ -206,6 +207,7 @@ struct AppIconPreviewScreen: View {
             }
         }
         .task { await exportIcon() }
+        } // GeometryReader
     }
 
     private func exportIcon() async {

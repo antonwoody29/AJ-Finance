@@ -2522,9 +2522,6 @@ struct MonthlyTrendChart: View {
 
         GeometryReader { geo in
             let chartH = geo.size.height - 16
-            let count  = CGFloat(items.count)
-            let barW   = max(2.5, (geo.size.width - (count - 1) * 2) / count)
-
             ZStack(alignment: .bottomLeading) {
                 // Subtle grid lines
                 VStack(spacing: 0) {

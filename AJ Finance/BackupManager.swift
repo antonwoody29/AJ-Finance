@@ -107,7 +107,7 @@ final class BackupManager {
         query.sortDescriptors = [NSSortDescriptor(key: "savedAt", ascending: false)]
 
         let result  = try await db.records(matching: query, desiredKeys: ["savedAt"])
-        let records = try result.matchResults.compactMap { try? $0.1.get() }
+        let records = result.matchResults.compactMap { try? $0.1.get() }
         guard let first = records.first else { return nil }
 
         let raw  = first.recordID.recordName        // "backup_XXXXXXXX"

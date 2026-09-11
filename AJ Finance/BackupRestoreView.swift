@@ -203,12 +203,14 @@ struct BackupRestoreView: View {
                             Text("Last backed up")
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundColor(.white)
-                            Text(date, style: .relative)
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.50))
-                            + Text(" ago")
-                                .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.50))
+                            HStack(spacing: 2) {
+                                Text(date, style: .relative)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.50))
+                                Text("ago")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.white.opacity(0.50))
+                            }
                         }
                         Spacer()
                     }

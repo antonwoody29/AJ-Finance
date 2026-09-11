@@ -44,7 +44,7 @@ final class HealthKitManager: ObservableObject {
     func requestAuthorization() {
         guard isAvailable else { return }
         store.requestAuthorization(toShare: shareTypes, read: readTypes) { [weak self] granted, _ in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.authorized = granted
                 if granted {
                     self?.fetchAll()
@@ -87,7 +87,7 @@ final class HealthKitManager: ObservableObject {
         guard let type = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
         if let old = stepObserver { store.stop(old) }
         let q = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, _ in
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
                 self?.fetchSteps()
                 self?.fetchCalories()
                 self?.fetchExerciseMinutes()
@@ -102,7 +102,7 @@ final class HealthKitManager: ObservableObject {
         guard let type = HKQuantityType.quantityType(forIdentifier: .heartRate) else { return }
         if let old = hrObserver { store.stop(old) }
         let q = HKObserverQuery(sampleType: type, predicate: nil) { [weak self] _, completion, _ in
-            Task { @MainActor in self?.fetchHeartRate() }
+            Task { @MainActor [weak self] in self?.fetchHeartRate() }
             completion()
         }
         store.execute(q)
@@ -117,7 +117,7 @@ final class HealthKitManager: ObservableObject {
         let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
         let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = Int(stats?.sumQuantity()?.doubleValue(for: .count()) ?? 0)
-            Task { @MainActor in self?.todaySteps = val }
+            Task { @MainActor [weak self] in self?.todaySteps = val }
         }
         store.execute(q)
     }
@@ -128,7 +128,7 @@ final class HealthKitManager: ObservableObject {
         let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
         let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = stats?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
-            Task { @MainActor in self?.activeCalories = val }
+            Task { @MainActor [weak self] in self?.activeCalories = val }
         }
         store.execute(q)
     }
@@ -139,7 +139,7 @@ final class HealthKitManager: ObservableObject {
         let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
         let q = HKStatisticsQuery(quantityType: type, quantitySamplePredicate: pred, options: .cumulativeSum) { [weak self] _, stats, _ in
             let val = Int(stats?.sumQuantity()?.doubleValue(for: .minute()) ?? 0)
-            Task { @MainActor in self?.exerciseMinutes = val }
+            Task { @MainActor [weak self] in self?.exerciseMinutes = val }
         }
         store.execute(q)
     }
@@ -150,7 +150,7 @@ final class HealthKitManager: ObservableObject {
         let pred  = HKQuery.predicateForSamples(withStart: start, end: Date())
         let q = HKSampleQuery(sampleType: type, predicate: pred, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { [weak self] _, samples, _ in
             let stood = samples?.filter { ($0 as? HKCategorySample)?.value == HKCategoryValueAppleStandHour.stood.rawValue }.count ?? 0
-            Task { @MainActor in self?.standHours = stood }
+            Task { @MainActor [weak self] in self?.standHours = stood }
         }
         store.execute(q)
     }
