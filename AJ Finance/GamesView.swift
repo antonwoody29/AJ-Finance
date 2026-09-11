@@ -107,33 +107,112 @@ struct GamesView: View {
     }
 
     private var animalBanner: some View {
-        AJCard {
-            HStack(spacing: 14) {
-                Text(appState.selectedAnimal.emoji)
-                    .font(.system(size: 46))
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("Play & Level Up!")
-                        .font(.system(size: 17, weight: .black))
-                        .foregroundColor(.white)
-                    Text("Win games to earn 🪙 coins and ⭐ XP. Dress up \(appState.selectedAnimal.rawValue) in the outfit shop!")
-                        .font(.system(size: 12))
-                        .foregroundColor(.white.opacity(0.6))
-                        .lineLimit(3)
-                    HStack(spacing: 12) {
-                        Text("🪙 \(appState.animalCoins)")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundColor(.ajGold)
-                        Text("⭐ Lv.\(appState.level)")
-                            .font(.system(size: 13, weight: .black))
-                            .foregroundColor(.ajOrange)
-                        Text("current")
+        ZStack {
+            RoundedRectangle(cornerRadius: 22)
+                .fill(LinearGradient(
+                    colors: [Color(red: 0.18, green: 0.08, blue: 0.01), Color(red: 0.06, green: 0.02, blue: 0.005)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing
+                ))
+            RoundedRectangle(cornerRadius: 22)
+                .fill(RadialGradient(
+                    colors: [Color.ajOrange.opacity(0.22), .clear],
+                    center: UnitPoint(x: 0.15, y: 0.5),
+                    startRadius: 0,
+                    endRadius: 170
+                ))
+            RoundedRectangle(cornerRadius: 22)
+                .fill(LinearGradient(colors: [Color.white.opacity(0.08), .clear],
+                                     startPoint: .top, endPoint: .center))
+            RoundedRectangle(cornerRadius: 22)
+                .strokeBorder(
+                    LinearGradient(colors: [Color.ajOrange.opacity(0.52), Color.white.opacity(0.05)],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing),
+                    lineWidth: 1.2
+                )
+
+            HStack(spacing: 16) {
+                // Animal with ambient glow
+                ZStack {
+                    Circle()
+                        .fill(Color.ajOrange.opacity(0.20))
+                        .frame(width: 88, height: 88)
+                        .blur(radius: 12)
+                    Text(appState.selectedAnimal.emoji)
+                        .font(.system(size: 66))
+                        .shadow(color: Color.ajOrange.opacity(0.45), radius: 14)
+                }
+                .frame(width: 80)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("GAME ROOM 🎮")
+                            .font(.system(size: 9, weight: .black))
+                            .foregroundColor(.ajOrange.opacity(0.75))
+                            .tracking(2)
+                        Text("Play & Level Up!")
+                            .font(.system(size: 20, weight: .black))
+                            .foregroundColor(.white)
+                        Text("Earn coins and XP to grow \(appState.selectedAnimal.rawValue)")
                             .font(.system(size: 11))
-                            .foregroundColor(.white.opacity(0.4))
+                            .foregroundColor(.white.opacity(0.48))
+                    }
+
+                    // Health bar
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Text("❤️ Health")
+                                .font(.system(size: 9, weight: .semibold))
+                                .foregroundColor(.white.opacity(0.38))
+                            Spacer()
+                            Text("\(Int(appState.animalHealth))%")
+                                .font(.system(size: 9, weight: .black))
+                                .foregroundColor(.ajGreen)
+                        }
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.white.opacity(0.08))
+                                Capsule()
+                                    .fill(LinearGradient(
+                                        colors: [.ajGreen, Color(red: 0, green: 0.72, blue: 0.32)],
+                                        startPoint: .leading, endPoint: .trailing
+                                    ))
+                                    .frame(width: max(geo.size.width * CGFloat(appState.animalHealth / 100), 4))
+                                    .shadow(color: Color.ajGreen.opacity(0.50), radius: 4)
+                            }
+                        }
+                        .frame(height: 4)
+                    }
+
+                    // Stat badges
+                    HStack(spacing: 6) {
+                        bannerBadge("🪙", "\(appState.animalCoins)", .ajGold)
+                        bannerBadge("⭐", "Lv.\(appState.level)", .ajOrange)
+                        if appState.streak > 0 {
+                            bannerBadge("🔥", "\(appState.streak)d", Color(red: 1, green: 0.55, blue: 0.10))
+                        }
                     }
                 }
             }
+            .padding(18)
         }
+        .shadow(color: Color.ajOrange.opacity(0.20), radius: 22, y: 8)
         .padding(.horizontal, 16)
+    }
+
+    private func bannerBadge(_ icon: String, _ value: String, _ color: Color) -> some View {
+        HStack(spacing: 4) {
+            Text(icon).font(.system(size: 11))
+            Text(value)
+                .font(.system(size: 11, weight: .black))
+                .foregroundColor(color)
+        }
+        .padding(.horizontal, 9)
+        .padding(.vertical, 5)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.14))
+                .overlay(Capsule().stroke(color.opacity(0.30), lineWidth: 0.8))
+        )
     }
 
     private var onlineSection: some View {

@@ -20,7 +20,7 @@ extension Color {
 struct ContentView: View {
     @State private var appState        = AppState()
     @State private var storeKit        = StoreKitManager()
-    @State private var tab: Int        = 0
+    @State private var tab: Int        = 4
     @State private var showMenu        = false
     @State private var showSplash      = true
     @State private var pendingResetToken: String? = nil
