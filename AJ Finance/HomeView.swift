@@ -1344,7 +1344,7 @@ struct HomeView: View {
     // MARK: - Bottom actions
 
     private var bottomActions: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 10) {
             // Budget setup nudge
             if appState.dailyBudget == 0 {
                 Button {
@@ -1353,14 +1353,14 @@ struct HomeView: View {
                     showQuickAdd = true
                 } label: {
                     HStack(spacing: 10) {
-                        Text("💡").font(.system(size: 16))
+                        Text("💡").font(.system(size: 15))
                         VStack(alignment: .leading, spacing: 1) {
                             Text("Set a daily budget")
                                 .font(.system(size: 13, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("Track your spending and keep AJ healthy")
+                            Text("Track spending and keep your pet happy")
                                 .font(.system(size: 11))
-                                .foregroundColor(.white.opacity(0.55))
+                                .foregroundColor(.white.opacity(0.50))
                         }
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -1371,71 +1371,80 @@ struct HomeView: View {
                     .padding(.vertical, 10)
                     .background(
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(Color.ajOrange.opacity(0.12))
-                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.35), lineWidth: 1))
+                            .fill(Color.ajOrange.opacity(0.10))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.ajOrange.opacity(0.30), lineWidth: 1))
                     )
                 }
                 .buttonStyle(.plain)
             }
 
-            // Missions peek
+            // Mission card
             if let firstPending = appState.dailyMissions.first(where: { !$0.isCompleted }) {
                 Button { showMissions = true } label: {
-                    let done = appState.dailyMissions.filter(\.isCompleted).count
+                    let done  = appState.dailyMissions.filter(\.isCompleted).count
                     let total = appState.dailyMissions.count
-                    let progress = total > 0 ? CGFloat(done) / CGFloat(total) : 0
-                    VStack(spacing: 0) {
-                        HStack(spacing: 10) {
-                            Text(firstPending.icon).font(.system(size: 16))
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text("MISSION")
+                    let pct   = total > 0 ? CGFloat(done) / CGFloat(total) : 0
+
+                    HStack(spacing: 12) {
+                        // Icon badge
+                        ZStack {
+                            Circle()
+                                .fill(Color.ajOrange.opacity(0.18))
+                                .frame(width: 40, height: 40)
+                            Text(firstPending.icon)
+                                .font(.system(size: 20))
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 6) {
+                                Text("DAILY MISSION")
                                     .font(.system(size: 8, weight: .black))
                                     .foregroundColor(.ajOrange)
-                                    .tracking(1.5)
-                                Text(firstPending.title)
-                                    .font(.system(size: 12, weight: .bold))
-                                    .foregroundColor(.white)
-                                    .lineLimit(1)
+                                    .tracking(1.2)
+                                Spacer()
+                                Text("\(done)/\(total)")
+                                    .font(.system(size: 11, weight: .black))
+                                    .foregroundColor(.ajGold)
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white.opacity(0.30))
                             }
-                            Spacer()
-                            Text("\(done)/\(total)")
-                                .font(.system(size: 11, weight: .black))
-                                .foregroundColor(.ajGold)
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundColor(.white.opacity(0.35))
-                        }
-                        GeometryReader { g in
-                            ZStack(alignment: .leading) {
-                                Capsule().fill(Color.white.opacity(0.10))
-                                Capsule()
-                                    .fill(LinearGradient(
-                                        colors: [.ajOrange, Color(red: 1.0, green: 0.72, blue: 0.10)],
-                                        startPoint: .leading, endPoint: .trailing
-                                    ))
-                                    .frame(width: max(g.size.width * 0.04, g.size.width * progress))
+                            Text(firstPending.title)
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                            GeometryReader { g in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(Color.white.opacity(0.08))
+                                    Capsule()
+                                        .fill(LinearGradient(
+                                            colors: [.ajOrange, Color(red: 1.0, green: 0.75, blue: 0.15)],
+                                            startPoint: .leading, endPoint: .trailing
+                                        ))
+                                        .frame(width: max(8, g.size.width * pct))
+                                        .shadow(color: .ajOrange.opacity(0.5), radius: 4)
+                                }
                             }
+                            .frame(height: 5)
                         }
-                        .frame(height: 4)
-                        .padding(.top, 7)
                     }
                     .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
+                    .padding(.vertical, 11)
                     .background(
                         ZStack {
-                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                            RoundedRectangle(cornerRadius: 14)
+                            RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial)
+                            RoundedRectangle(cornerRadius: 16)
                                 .fill(LinearGradient(
-                                    colors: [Color.ajOrange.opacity(0.12), Color.black.opacity(0.20)],
-                                    startPoint: .top, endPoint: .bottom
+                                    colors: [Color.ajOrange.opacity(0.10), Color.black.opacity(0.15)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing
                                 ))
-                            RoundedRectangle(cornerRadius: 14)
+                            RoundedRectangle(cornerRadius: 16)
                                 .strokeBorder(
                                     LinearGradient(
-                                        colors: [Color.ajOrange.opacity(0.50), Color.ajOrange.opacity(0.10)],
-                                        startPoint: .top, endPoint: .bottom
-                                    ),
-                                    lineWidth: 1
+                                        colors: [Color.ajOrange.opacity(0.45), Color.ajOrange.opacity(0.08)],
+                                        startPoint: .topLeading, endPoint: .bottomTrailing
+                                    ), lineWidth: 1
                                 )
                         }
                     )
@@ -1443,170 +1452,110 @@ struct HomeView: View {
                 .buttonStyle(.plain)
             }
 
-            // Hero CTA
+            // Snap Receipt hero button
             Button {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                 showScanner = true
             } label: {
                 HStack(spacing: 10) {
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 18, weight: .bold))
-                    Text("📸 Snap Receipt")
-                        .font(.system(size: 15, weight: .black))
+                    ZStack {
+                        Circle()
+                            .fill(Color.black.opacity(0.20))
+                            .frame(width: 34, height: 34)
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    Text("Snap Receipt")
+                        .font(.system(size: 16, weight: .black))
+                        .foregroundColor(.black)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundColor(.black.opacity(0.45))
                 }
-                .foregroundColor(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 14)
                 .background(
                     ZStack {
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
                                 colors: [
-                                    Color(red: 1.0, green: 0.55, blue: 0.10),
-                                    Color(red: 1.0, green: 0.38, blue: 0.08),
-                                    Color(red: 0.90, green: 0.22, blue: 0.05)
+                                    Color(red: 1.0, green: 0.58, blue: 0.12),
+                                    Color(red: 1.0, green: 0.36, blue: 0.06),
+                                    Color(red: 0.88, green: 0.20, blue: 0.04)
                                 ],
                                 startPoint: .topLeading, endPoint: .bottomTrailing
                             ))
                         RoundedRectangle(cornerRadius: 18)
                             .fill(LinearGradient(
-                                colors: [Color.white.opacity(0.30), .clear],
+                                colors: [Color.white.opacity(0.25), .clear],
                                 startPoint: .top, endPoint: .center
                             ))
                         RoundedRectangle(cornerRadius: 18)
-                            .stroke(Color.ajOrange, lineWidth: 2.5)
-                            .scaleEffect(receiptPulse ? 1.09 : 1.0)
-                            .opacity(receiptPulse ? 0.0 : 0.8)
-                            .animation(
-                                .easeOut(duration: 1.6).repeatForever(autoreverses: false),
-                                value: receiptPulse
-                            )
+                            .stroke(Color.white.opacity(0.18), lineWidth: 1)
+                        // Pulse ring
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(Color.ajOrange, lineWidth: 2)
+                            .scaleEffect(receiptPulse ? 1.08 : 1.0)
+                            .opacity(receiptPulse ? 0.0 : 0.7)
+                            .animation(.easeOut(duration: 1.8).repeatForever(autoreverses: false), value: receiptPulse)
                     }
-                    .shadow(color: Color(red: 1.0, green: 0.45, blue: 0.10).opacity(0.70), radius: 22, y: 6)
+                    .shadow(color: Color(red: 1.0, green: 0.40, blue: 0.08).opacity(0.65), radius: 20, y: 6)
                 )
             }
             .onAppear { receiptPulse = true }
 
-            // Secondary row
-            HStack(spacing: 8) {
-                Button {
+            // Unified dock row
+            HStack(spacing: 0) {
+                dockButton(emoji: "✏️", label: "LOG", color: Color(red: 0.22, green: 0.92, blue: 0.50)) {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showQuickAdd = true
-                } label: {
-                    VStack(spacing: 3) {
-                        Text("✏️").font(.system(size: 18))
-                        Text("LOG").font(.system(size: 11, weight: .black))
-                            .foregroundColor(Color(red: 0.28, green: 0.92, blue: 0.52))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color(red: 0.10, green: 0.70, blue: 0.30).opacity(0.28),
-                                             Color(red: 0.04, green: 0.40, blue: 0.16).opacity(0.20)],
-                                    startPoint: .top, endPoint: .bottom
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color.white.opacity(0.18), .clear],
-                                    startPoint: .top, endPoint: .center
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [Color(red: 0.20, green: 0.90, blue: 0.46).opacity(0.60),
-                                                 Color(red: 0.10, green: 0.50, blue: 0.24).opacity(0.20)],
-                                        startPoint: .top, endPoint: .bottom
-                                    ),
-                                    lineWidth: 1.5
-                                )
-                        }
-                        .shadow(color: Color(red: 0.10, green: 0.80, blue: 0.35).opacity(0.28), radius: 10, y: 4)
-                    )
                 }
-
-                Button {
+                dockDivider
+                dockButton(emoji: "🛍️", label: "SHOP", color: Color(red: 0.76, green: 0.52, blue: 1.0)) {
                     UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     showShop = true
-                } label: {
-                    VStack(spacing: 3) {
-                        Text("🛍️").font(.system(size: 18))
-                        Text("Shop").font(.system(size: 11, weight: .black))
-                            .foregroundColor(Color(red: 0.76, green: 0.52, blue: 1.0))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color(red: 0.52, green: 0.22, blue: 0.90).opacity(0.28),
-                                             Color(red: 0.28, green: 0.10, blue: 0.52).opacity(0.20)],
-                                    startPoint: .top, endPoint: .bottom
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color.white.opacity(0.18), .clear],
-                                    startPoint: .top, endPoint: .center
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [Color(red: 0.76, green: 0.44, blue: 1.0).opacity(0.60),
-                                                 Color(red: 0.44, green: 0.20, blue: 0.70).opacity(0.20)],
-                                        startPoint: .top, endPoint: .bottom
-                                    ),
-                                    lineWidth: 1.5
-                                )
-                        }
-                        .shadow(color: Color(red: 0.60, green: 0.30, blue: 1.0).opacity(0.28), radius: 10, y: 4)
-                    )
                 }
-
-                Button {
+                dockDivider
+                dockButton(emoji: "🎡", label: "WHEEL", color: Color(red: 1.0, green: 0.82, blue: 0.20)) {
                     UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     showStore = true
-                } label: {
-                    VStack(spacing: 3) {
-                        Text("🎡").font(.system(size: 18))
-                        Text("Wheel").font(.system(size: 11, weight: .black))
-                            .foregroundColor(Color(red: 1.0, green: 0.82, blue: 0.20))
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 13)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color(red: 0.80, green: 0.58, blue: 0.06).opacity(0.30),
-                                             Color(red: 0.50, green: 0.34, blue: 0.02).opacity(0.20)],
-                                    startPoint: .top, endPoint: .bottom
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .fill(LinearGradient(
-                                    colors: [Color.white.opacity(0.18), .clear],
-                                    startPoint: .top, endPoint: .center
-                                ))
-                            RoundedRectangle(cornerRadius: 14)
-                                .strokeBorder(
-                                    LinearGradient(
-                                        colors: [Color(red: 1.0, green: 0.80, blue: 0.20).opacity(0.65),
-                                                 Color(red: 0.70, green: 0.50, blue: 0.08).opacity(0.20)],
-                                        startPoint: .top, endPoint: .bottom
-                                    ),
-                                    lineWidth: 1.5
-                                )
-                        }
-                        .shadow(color: Color(red: 1.0, green: 0.78, blue: 0.10).opacity(0.28), radius: 10, y: 4)
-                    )
                 }
             }
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 18).fill(.ultraThinMaterial)
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(Color.white.opacity(0.04))
+                    RoundedRectangle(cornerRadius: 18)
+                        .strokeBorder(Color.white.opacity(0.10), lineWidth: 1)
+                }
+                .shadow(color: .black.opacity(0.30), radius: 12, y: 4)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 18))
         }
+    }
+
+    private func dockButton(emoji: String, label: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                Text(emoji).font(.system(size: 22))
+                Text(label)
+                    .font(.system(size: 10, weight: .black))
+                    .foregroundColor(color)
+                    .tracking(0.5)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var dockDivider: some View {
+        Rectangle()
+            .fill(Color.white.opacity(0.08))
+            .frame(width: 1, height: 44)
     }
 }
 
