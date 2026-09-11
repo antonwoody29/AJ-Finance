@@ -124,9 +124,7 @@ struct GoalsView: View {
     }
 
     private var lifeScoreCard: some View {
-        AJCard {
-            LifeMeterView()
-        }
+        LifeMeterView()
     }
 
     private var trophyCard: some View {

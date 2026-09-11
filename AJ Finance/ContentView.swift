@@ -728,228 +728,202 @@ struct LifeMeterView: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
-            // Rank badge
-            HStack(spacing: 6) {
-                Image(systemName: rankSystemImage)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundColor(rankColor)
-                Text(rank.rawValue)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundColor(rankColor)
-                    .tracking(2.2)
-                Image(systemName: rankSystemImage)
-                    .font(.system(size: 10, weight: .black))
-                    .foregroundColor(rankColor)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(rankColor.opacity(0.12))
-                    .overlay(Capsule().strokeBorder(rankColor.opacity(0.45), lineWidth: 1))
-            )
-            .shadow(color: rankColor.opacity(0.55), radius: 10)
+        VStack(spacing: 0) {
+            // Top header row
+            HStack {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("LIFE SCORE")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.40))
+                        .tracking(2.0)
+                    Text("\(Int(overallScore * 100))%")
+                        .font(.system(size: 36, weight: .black))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [scoreColor, scoreColor.opacity(0.75)],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: scoreColor.opacity(0.55), radius: 12)
+                }
 
+                Spacer()
+
+                // Rank badge (right-aligned)
+                HStack(spacing: 5) {
+                    Image(systemName: rankSystemImage)
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(rankColor)
+                    Text(rank.rawValue)
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(rankColor)
+                        .tracking(2.0)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(rankColor.opacity(0.14))
+                        .overlay(Capsule().strokeBorder(rankColor.opacity(0.50), lineWidth: 1))
+                )
+                .shadow(color: rankColor.opacity(0.40), radius: 8)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
+
+            // Ring + pet
             ZStack {
-                // Pulsing outer ring
+                // Ambient glow
                 Circle()
-                    .stroke(scoreColor.opacity(pulseOpacity * 0.55), lineWidth: 3)
-                    .frame(width: 172 * pulseScale, height: 172 * pulseScale)
-                    .blur(radius: 2)
+                    .fill(RadialGradient(
+                        colors: [scoreColor.opacity(0.20), .clear],
+                        center: .center, startRadius: 10, endRadius: 90
+                    ))
+                    .frame(width: 180, height: 180)
+
+                // Pulse ring
+                Circle()
+                    .stroke(scoreColor.opacity(pulseOpacity * 0.50), lineWidth: 2)
+                    .frame(width: 180 * pulseScale, height: 180 * pulseScale)
+                    .blur(radius: 3)
                     .onAppear {
                         withAnimation(.easeInOut(duration: 2.4).repeatForever(autoreverses: true)) {
-                            pulseScale = 1.10
-                            pulseOpacity = 0.18
+                            pulseScale = 1.08
+                            pulseOpacity = 0.15
                         }
                     }
 
-                // Ambient color glow behind ring (score-colored radial)
+                // Track
                 Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [scoreColor.opacity(0.18), .clear],
-                            center: .center, startRadius: 20, endRadius: 86
-                        )
-                    )
-                    .frame(width: 172, height: 172)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 14)
+                    .frame(width: 160, height: 160)
 
-                // Soft white ambient
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.white.opacity(0.10), .clear],
-                            center: .center, startRadius: 34, endRadius: 78
-                        )
-                    )
-                    .frame(width: 172, height: 172)
-
-                // Track ring
-                Circle()
-                    .stroke(Color.white.opacity(0.10), lineWidth: 16)
-                    .frame(width: 156, height: 156)
-
-                // Per-metric colored arcs — triple-layer neon
+                // Arcs
                 ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
                     let filled = max(seg.start, seg.start + seg.width * seg.score)
-
-                    // Outer wide bloom
                     Circle()
                         .trim(from: seg.start, to: filled)
-                        .stroke(seg.color.opacity(0.40), style: StrokeStyle(lineWidth: 38, lineCap: .butt))
-                        .frame(width: 156, height: 156)
+                        .stroke(seg.color.opacity(0.35), style: StrokeStyle(lineWidth: 32, lineCap: .butt))
+                        .frame(width: 160, height: 160)
                         .rotationEffect(.degrees(-90))
-                        .blur(radius: 14)
-
-                    // Mid bloom
-                    Circle()
-                        .trim(from: seg.start, to: filled)
-                        .stroke(seg.color.opacity(0.65), style: StrokeStyle(lineWidth: 22, lineCap: .butt))
-                        .frame(width: 156, height: 156)
-                        .rotationEffect(.degrees(-90))
-                        .blur(radius: 6)
-
-                    // Crisp neon core
+                        .blur(radius: 10)
                     Circle()
                         .trim(from: seg.start, to: filled)
                         .stroke(
-                            LinearGradient(
-                                colors: [seg.color.opacity(0.85), seg.color],
-                                startPoint: .leading, endPoint: .trailing
-                            ),
-                            style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                            LinearGradient(colors: [seg.color.opacity(0.90), seg.color],
+                                           startPoint: .leading, endPoint: .trailing),
+                            style: StrokeStyle(lineWidth: 14, lineCap: .round)
                         )
-                        .frame(width: 156, height: 156)
+                        .frame(width: 160, height: 160)
                         .rotationEffect(.degrees(-90))
                         .animation(.spring(response: 0.75, dampingFraction: 0.78), value: seg.score)
-                        .shadow(color: seg.color, radius: 10)
-                        .shadow(color: seg.color.opacity(0.60), radius: 20)
+                        .shadow(color: seg.color, radius: 8)
+                        .shadow(color: seg.color.opacity(0.50), radius: 16)
                 }
 
-                // Animal form in center
+                // Pet
                 AnimalBodyView(
                     type: appState.selectedAnimal,
                     mood: appState.animalMood,
-                    size: 92,
+                    size: 88,
                     isWalking: false,
                     outfit: appState.equippedOutfit,
                     evolutionStage: appState.animalGrowthStage
                 )
-                .frame(width: 92, height: 92)
+                .frame(width: 88, height: 88)
                 .clipShape(Circle())
             }
-            .frame(width: 172, height: 172)
+            .frame(width: 180, height: 180)
+            .padding(.bottom, 20)
 
-            // Score badge
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(scoreColor)
-                    .frame(width: 9, height: 9)
-                    .shadow(color: scoreColor, radius: 5)
-                    .shadow(color: scoreColor.opacity(0.60), radius: 10)
-                Text("\(Int(overallScore * 100))%")
-                    .font(.system(size: 17, weight: .black))
-                    .foregroundColor(.white)
-                    .shadow(color: scoreColor.opacity(0.70), radius: 6)
-                Text("Life Score")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.60))
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(scoreColor.opacity(0.22))
-                    .overlay(Capsule().strokeBorder(scoreColor.opacity(0.65), lineWidth: 1))
-            )
-            .shadow(color: scoreColor.opacity(0.45), radius: 12)
-
-            // Metric pills
-            HStack(spacing: 8) {
-                ForEach(Array(segments.enumerated()), id: \.offset) { _, seg in
-                    meterPill(seg.icon, seg.label, Int(seg.score * 100), color: seg.color)
-                }
-            }
-            .padding(.horizontal, 12)
-
-            if !appState.hasSobrietyGoal {
-                Button { showSobrietySetup = true } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "plus.circle")
-                        Text("Track Sobriety")
+            // Metric strip
+            HStack(spacing: 0) {
+                ForEach(Array(segments.enumerated()), id: \.offset) { idx, seg in
+                    if idx > 0 {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.07))
+                            .frame(width: 1, height: 36)
                     }
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.white.opacity(0.40))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Capsule().stroke(Color.white.opacity(0.18), lineWidth: 1))
+                    VStack(spacing: 3) {
+                        HStack(spacing: 4) {
+                            Text(seg.icon).font(.system(size: 13))
+                            Text("\(Int(seg.score * 100))%")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundColor(seg.color)
+                                .shadow(color: seg.color.opacity(0.60), radius: 4)
+                        }
+                        Text(seg.label.uppercased())
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.35))
+                            .tracking(0.8)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.plain)
+
+                if !appState.hasSobrietyGoal {
+                    if !segments.isEmpty {
+                        Rectangle()
+                            .fill(Color.white.opacity(0.07))
+                            .frame(width: 1, height: 36)
+                    }
+                    Button { showSobrietySetup = true } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(.white.opacity(0.30))
+                            Text("SOBRIETY")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundColor(.white.opacity(0.25))
+                                .tracking(0.8)
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 14)
+            .background(
+                Rectangle()
+                    .fill(Color.white.opacity(0.04))
+            )
+            .overlay(
+                Rectangle()
+                    .fill(Color.white.opacity(0.07))
+                    .frame(height: 1),
+                alignment: .top
+            )
         }
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 22).fill(.ultraThinMaterial)
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(LinearGradient(
+                        colors: [rankColor.opacity(0.12), Color.black.opacity(0.30)],
+                        startPoint: .topLeading, endPoint: .bottomTrailing
+                    ))
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.10), .clear],
+                        startPoint: .top, endPoint: .center
+                    ))
+                RoundedRectangle(cornerRadius: 22)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [rankColor.opacity(0.55), rankColor.opacity(0.10)],
+                            startPoint: .topLeading, endPoint: .bottomTrailing
+                        ), lineWidth: 1.5
+                    )
+            }
+            .shadow(color: rankColor.opacity(0.25), radius: 20, y: 6)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 22))
         .sheet(isPresented: $showSobrietySetup) {
             SobrietySetupSheet().environment(appState)
         }
     }
 
-    private func meterPill(_ icon: String, _ label: String, _ pct: Int, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 4) {
-                Text(icon).font(.system(size: 16))
-                Text("\(pct)%")
-                    .font(.system(size: 17, weight: .black))
-                    .foregroundColor(.white)
-                    .lineLimit(1)
-                    .fixedSize()
-                    .shadow(color: color.opacity(0.80), radius: 6)
-                    .shadow(color: color.opacity(0.40), radius: 12)
-                Spacer()
-            }
-            Text(label.uppercased())
-                .font(.system(size: 8, weight: .black))
-                .foregroundColor(color.opacity(0.85))
-                .tracking(0.8)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    Capsule().fill(Color.white.opacity(0.08))
-                    Capsule()
-                        .fill(LinearGradient(
-                            colors: [color, color.opacity(0.55)],
-                            startPoint: .leading, endPoint: .trailing
-                        ))
-                        .frame(width: max(geo.size.width * 0.04, geo.size.width * CGFloat(pct) / 100))
-                        .shadow(color: color, radius: 6)
-                        .shadow(color: color.opacity(0.55), radius: 12)
-                }
-            }
-            .frame(height: 5)
-        }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 10)
-        .frame(maxWidth: .infinity)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 14).fill(.ultraThinMaterial)
-                RoundedRectangle(cornerRadius: 14)
-                    .fill(LinearGradient(
-                        colors: [color.opacity(0.28), Color.black.opacity(0.22)],
-                        startPoint: .topLeading, endPoint: .bottomTrailing
-                    ))
-                RoundedRectangle(cornerRadius: 14)
-                    .strokeBorder(
-                        LinearGradient(
-                            colors: [color.opacity(0.80), color.opacity(0.20)],
-                            startPoint: .top, endPoint: .bottom
-                        ),
-                        lineWidth: 1
-                    )
-            }
-        )
-        .shadow(color: color.opacity(0.25), radius: 8)
-    }
 }
 
 // MARK: - Sobriety Setup Sheet
