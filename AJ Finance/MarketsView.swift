@@ -261,8 +261,19 @@ struct MarketsView: View {
     // MARK: Header
 
     private var headerSection: some View {
-        VStack(spacing: 8) {
-            HStack {
+        let btc        = cryptoService.cryptos.first { $0.symbol.lowercased() == "btc" }
+        let totalCap   = cryptoService.cryptos.reduce(0.0) { $0 + $1.market_cap }
+        let upCount    = cryptoService.cryptos.filter { ($0.price_change_percentage_24h ?? 0) >= 0 }.count
+        let downCount  = cryptoService.cryptos.count - upCount
+        let watchCount = appState.cryptoWatchlistIds.count + appState.stockWatchlistIds.count
+        let capText    = totalCap >= 1_000_000_000_000
+                            ? String(format: "$%.2fT", totalCap / 1_000_000_000_000)
+                            : String(format: "$%.0fB", totalCap / 1_000_000_000)
+
+        return VStack(alignment: .leading, spacing: 12) {
+
+            // ── Title row ──────────────────────────────────────────
+            HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("📈 Markets")
                         .font(.system(size: 22, weight: .black))
@@ -274,19 +285,109 @@ struct MarketsView: View {
                     }
                 }
                 Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("\(appState.cryptoWatchlistIds.count + appState.stockWatchlistIds.count)")
-                        .font(.system(size: 22, weight: .black))
-                        .foregroundColor(.ajOrange)
-                    Text("watching")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.40))
+                if watchCount > 0 {
+                    HStack(spacing: 4) {
+                        Text("⭐").font(.system(size: 11))
+                        Text("\(watchCount) watching")
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundColor(.ajGold)
+                    }
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(
+                        Capsule().fill(Color.ajGold.opacity(0.13))
+                            .overlay(Capsule().stroke(Color.ajGold.opacity(0.28), lineWidth: 1))
+                    )
+                } else {
+                    Text("nothing watching")
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.25))
                 }
             }
-            Text("AJ does not recommend investments. This is for awareness and education only.")
+
+            // ── Market snapshot card ────────────────────────────────
+            if !cryptoService.cryptos.isEmpty {
+                HStack(spacing: 0) {
+                    // BTC
+                    if let btc = btc {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("BITCOIN")
+                                .font(.system(size: 8, weight: .black))
+                                .foregroundColor(.ajOrange.opacity(0.75))
+                                .tracking(1.5)
+                            Text(btc.priceText)
+                                .font(.system(size: 15, weight: .black))
+                                .foregroundColor(.white)
+                            Text(btc.changeText)
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(btc.changeColor)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Rectangle()
+                            .fill(Color.white.opacity(0.08))
+                            .frame(width: 1, height: 42)
+                            .padding(.horizontal, 12)
+                    }
+
+                    // Market cap
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("TOP 50 CAP")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.38))
+                            .tracking(1.5)
+                        Text(capText)
+                            .font(.system(size: 15, weight: .black))
+                            .foregroundColor(.white)
+                        Text("market cap")
+                            .font(.system(size: 9))
+                            .foregroundColor(.white.opacity(0.28))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Rectangle()
+                        .fill(Color.white.opacity(0.08))
+                        .frame(width: 1, height: 42)
+                        .padding(.horizontal, 12)
+
+                    // Sentiment
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("SENTIMENT")
+                            .font(.system(size: 8, weight: .black))
+                            .foregroundColor(.white.opacity(0.38))
+                            .tracking(1.5)
+                        HStack(spacing: 4) {
+                            Text("▲\(upCount)")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundColor(.ajGreen)
+                            Text("▼\(downCount)")
+                                .font(.system(size: 13, weight: .black))
+                                .foregroundColor(Color(red: 1, green: 0.3, blue: 0.3))
+                        }
+                        Text(upCount > downCount ? "mostly bullish" : "mostly bearish")
+                            .font(.system(size: 9))
+                            .foregroundColor(.white.opacity(0.32))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(14)
+                .background(
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color.white.opacity(0.05))
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(
+                                colors: [Color.ajOrange.opacity(0.10), .clear],
+                                startPoint: .topLeading, endPoint: .bottomTrailing
+                            ))
+                        RoundedRectangle(cornerRadius: 16)
+                            .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
+                    }
+                )
+            }
+
+            Text("AJ does not recommend investments. For awareness and education only.")
                 .font(.system(size: 10))
-                .foregroundColor(.white.opacity(0.32))
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .foregroundColor(.white.opacity(0.22))
         }
         .padding(.horizontal, 18)
         .padding(.top, 16)
