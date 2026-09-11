@@ -88,11 +88,11 @@ struct MyPetView: View {
                         }
 
                         HStack(spacing: 6) {
-                            Text(appState.animalIsAlive ? "❤️" : "💀")
+                            Text("❤️")
                                 .font(.system(size: 13))
                             Text("\(Int(appState.animalHealth))% health")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(appState.animalIsAlive ? .ajGreen : .ajOrangeRed)
+                                .foregroundColor(.ajGreen)
                         }
 
                         HStack(spacing: 6) {
@@ -144,7 +144,6 @@ struct MyPetView: View {
                     ("💎", "Gems", "\(appState.gems)"),
                     ("🔥", "Streak", "\(appState.streak)d"),
                     ("📈", "Best", "\(appState.highestStreak)d"),
-                    ("💀", "Deaths", "\(appState.animalDeathCount)"),
                     ("👑", "Stage", appState.evolutionTitle),
                 ]
 

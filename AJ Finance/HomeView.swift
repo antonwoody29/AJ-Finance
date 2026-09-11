@@ -269,7 +269,7 @@ struct HomeView: View {
                 AnimalWorldBackground(
                     animal: appState.selectedAnimal,
                     health: appState.animalHealth,
-                    isAlive: appState.animalIsAlive,
+                    isAlive: true,
                     parallaxX: roamX,
                     tappedDecor: decorTap,
                     onDecorationTap: { idx in
@@ -297,7 +297,7 @@ struct HomeView: View {
                 // ── Layer 4: Ambient habitat particles ────────────────
                 AmbientParticles(
                     habitat: appState.selectedAnimal.habitat,
-                    isAlive: appState.animalIsAlive,
+                    isAlive: true,
                     isNight: isNight
                 )
 
@@ -553,7 +553,7 @@ struct HomeView: View {
 
     private func scheduleRoam(after delay: Double) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            guard !animalJump, appState.animalIsAlive else {
+            guard !animalJump else {
                 scheduleRoam(after: 1.5); return
             }
             walkToNewSpot()
@@ -624,7 +624,7 @@ struct HomeView: View {
 
     private func scheduleBehavior(after delay: Double) {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            guard !isWalking, appState.animalIsAlive else {
+            guard !isWalking else {
                 scheduleBehavior(after: 1.5); return
             }
             pickAndPlayBehavior()
@@ -894,7 +894,6 @@ struct HomeView: View {
     }
 
     private func handleTap() {
-        guard appState.animalIsAlive else { return }
         UIImpactFeedbackGenerator(style: .soft).impactOccurred()
         appState.earnCoins(1)
         // 40% chance of contextual speech, 60% personality tap pool
@@ -936,7 +935,6 @@ struct HomeView: View {
     }
 
     private func handleLongPress() {
-        guard appState.animalIsAlive else { return }
         UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
         appState.earnCoins(5)
         appState.boostHealth(by: 3)
@@ -1020,7 +1018,7 @@ struct HomeView: View {
             // HP bar section
             Button { showDailyFoodCheck = true } label: {
                 HStack(spacing: 5) {
-                    Text(appState.animalIsAlive ? "❤️" : "💀").font(.system(size: 13))
+                    Text("❤️").font(.system(size: 13))
                     GeometryReader { g in
                         ZStack(alignment: .leading) {
                             Capsule().fill(Color.white.opacity(0.12))

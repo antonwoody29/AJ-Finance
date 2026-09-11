@@ -44,8 +44,6 @@ struct PIPView: View {
                     // Stats card
                     AJCard {
                         HStack(spacing: 0) {
-                            statPill("💀", "\(appState.animalDeathCount)", "deaths")
-                            Divider().background(Color.white.opacity(0.12)).frame(height: 50)
                             statPill("⭐", "L\(appState.level)", "level")
                             Divider().background(Color.white.opacity(0.12)).frame(height: 50)
                             statPill("🔥", "\(appState.streak)", "streak")
@@ -110,7 +108,7 @@ struct PIPView: View {
     }
 
     private var interventionMessage: String {
-        "Your animal has died \(appState.animalDeathCount) time\(appState.animalDeathCount == 1 ? "" : "s"). You reached Level \(appState.level) — you KNOW better than this! We're putting you on a PIP right now. Follow the plan and let's get back on track. I believe in you fr. 💙"
+        "You reached Level \(appState.level) and you KNOW better than this! We're putting you on a PIP right now. Follow the plan and let's get back on track. I believe in you fr. 💙"
     }
 
     private var pipSteps: [String] {

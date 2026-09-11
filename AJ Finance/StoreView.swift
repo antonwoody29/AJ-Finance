@@ -1086,7 +1086,7 @@ struct StoreView: View {
                         gemBuyButton(label: "500 💎", cost: 500) {
                             if appState.gems >= 500 {
                                 appState.gems -= 500; appState.animalHealth = 100
-                                appState.animalIsAlive = true; appState.earnXP(300)
+                                appState.earnXP(300)
                                 appState.animalFood = 100
                                 appState.showToast("💊 Full recovery!", icon: "💊", color: .ajGreen)
                                 appState.saveStoreState()

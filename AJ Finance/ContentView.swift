@@ -180,15 +180,6 @@ struct ContentView: View {
             .environment(storeKit)
         }
         .overlay {
-            if !appState.animalIsAlive {
-                RevivalOverlay()
-                    .environment(appState)
-                    .environment(storeKit)
-                    .transition(.opacity)
-                    .animation(.easeInOut(duration: 0.4), value: appState.animalIsAlive)
-            }
-        }
-        .overlay {
             if appState.isPIPMode {
                 PIPView()
                     .environment(appState)
@@ -1050,121 +1041,6 @@ struct SobrietySetupSheet: View {
                         .foregroundColor(.ajOrange)
                 }
             }
-        }
-    }
-}
-
-// MARK: - Revival Overlay
-
-struct RevivalOverlay: View {
-    @Environment(AppState.self) private var appState
-    @Environment(StoreKitManager.self) private var storeKit
-    @State private var showError = false
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.92).ignoresSafeArea()
-
-            VStack(spacing: 22) {
-                Spacer()
-
-                Text("💀")
-                    .font(.system(size: 80))
-
-                Text("\(appState.selectedAnimal.rawValue) Has Died...")
-                    .font(.system(size: 24, weight: .black))
-                    .foregroundColor(.white)
-                    .multilineTextAlignment(.center)
-
-                Text("You weren't saving enough to keep \(appState.selectedAnimal.rawValue) alive. Time to level up!")
-                    .font(.system(size: 15))
-                    .foregroundColor(.white.opacity(0.65))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 36)
-
-                // Death stats
-                HStack(spacing: 0) {
-                    VStack(spacing: 4) {
-                        Text("\(appState.animalDeathCount)")
-                            .font(.system(size: 36, weight: .black))
-                            .foregroundColor(.ajOrangeRed)
-                        Text("total deaths")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.5))
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Rectangle()
-                        .fill(Color.white.opacity(0.15))
-                        .frame(width: 1, height: 55)
-
-                    VStack(spacing: 4) {
-                        Text(appState.revivalDisplayPrice)
-                            .font(.system(size: 36, weight: .black))
-                            .foregroundColor(.ajGold)
-                        Text("to revive")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.5))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.vertical, 18)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.ajCard)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.ajCardBorder, lineWidth: 1))
-                )
-                .padding(.horizontal, 28)
-
-                if appState.animalDeathCount > 0 {
-                    Text("Price increases after 3 deaths — max $9.99")
-                        .font(.system(size: 11))
-                        .foregroundColor(.white.opacity(0.38))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 30)
-                }
-
-                // Real StoreKit purchase — triggers Apple Pay sheet
-                Button {
-                    Task {
-                        await storeKit.purchase(id: appState.revivalProductID, appState: appState)
-                        if storeKit.lastError != nil { showError = true }
-                    }
-                } label: {
-                    HStack(spacing: 8) {
-                        if storeKit.purchaseInProgress {
-                            ProgressView().tint(.black)
-                        }
-                        Text(storeKit.purchaseInProgress ? "Processing..." : "Revive for \(appState.revivalDisplayPrice) 💳")
-                            .font(.system(size: 17, weight: .black))
-                            .foregroundColor(.black)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(LinearGradient(
-                                colors: [.ajGold, .ajOrange],
-                                startPoint: .leading, endPoint: .trailing
-                            ))
-                            .shadow(color: .ajGold.opacity(0.5), radius: 12, y: 4)
-                    )
-                }
-                .disabled(storeKit.purchaseInProgress)
-                .padding(.horizontal, 28)
-
-                Text("💡 Save money regularly to keep your animal healthy!")
-                    .font(.system(size: 12))
-                    .foregroundColor(.ajOrange)
-                    .multilineTextAlignment(.center)
-
-                Spacer()
-            }
-        }
-        .alert("Payment Unavailable", isPresented: $showError) {
-            Button("OK") { storeKit.lastError = nil }
-        } message: {
-            Text(storeKit.lastError ?? "Something went wrong. Please try again.")
         }
     }
 }

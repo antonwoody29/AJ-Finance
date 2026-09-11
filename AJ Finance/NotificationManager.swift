@@ -624,7 +624,7 @@ private enum AJCopy {
         "It's been a week. AJ filed a missing persons report. Please come back 😭",
         "A whole week?? AJ is not okay. Your goals are not okay. Come back 🥺",
         "Seven days. We're still here. We're always here. Please bestie 💙",
-        "7 days gone. Your pet evolved… into sadness 😔 Come back and revive them!",
+        "7 days gone. Your pet is waiting for you 😔 Come back bestie!",
         "Week 1 of being offline. Your future self is sending a search party 📡",
         "The daily reward is piling up unclaimed. Just saying 🪙🪙🪙 Come back!",
         "A whole week bestie. I'm not judging. I'm just. Here. Waiting. 😔",
@@ -1972,12 +1972,6 @@ struct NotificationManager {
         let suffix = AJCopy.pick(AJCopy.healthCritical)
         let c = content(title: "\(animalName) needs you! 🆘", body: "\(animalName) \(suffix)", badge: 1)
         schedule(id: AJID.health, content: c, trigger: after(seconds: 3600))
-    }
-
-    static func triggerPetDied(animalName: String) {
-        center.removePendingNotificationRequests(withIdentifiers: [AJID.health])
-        let c = content(title: "💀 \(animalName) has died...", body: "We had a moment. Come back and revive them — it's not too late 💙", badge: 1)
-        schedule(id: "aj_death_\(UUID().uuidString)", content: c, trigger: after(seconds: 2))
     }
 
     static func triggerFirstLogin(animalName: String) {

@@ -98,8 +98,6 @@ final class AppState {
     // MARK: - Animal Life System
     var selectedAnimal: AnimalType = .tiger
     var animalHealth: Double = 100
-    var animalIsAlive: Bool = true
-    var animalDeathCount: Int = 0
     var lastHealthDecayDate: Date?
     var animalCoins: Int = 0
     var ownedOutfitIds: [String] = []
@@ -331,18 +329,6 @@ final class AppState {
         for cat in SpendCategory.allCases { result[cat] = 0 }
         for tx in monthlyTransactions { result[tx.category, default: 0] += tx.amount }
         return result
-    }
-
-    var revivalCost: Int {
-        min(1 + (animalDeathCount / 3) * 5, 15)
-    }
-
-    var revivalProductID: String {
-        animalDeathCount < 3 ? SKID.revival1 : SKID.revival2
-    }
-
-    var revivalDisplayPrice: String {
-        animalDeathCount < 3 ? "$4.99" : "$9.99"
     }
 
     // MARK: - Budget Computed
@@ -720,7 +706,6 @@ final class AppState {
     }
 
     var animalMood: AJMood {
-        guard animalIsAlive else { return .sad }
         if animalHealth <= 15 { return .angry }
         if animalHealth <= 35 { return .sad }
         return currentMood
@@ -735,88 +720,6 @@ final class AppState {
         let weekday = cal.component(.weekday, from: now)
         let day     = cal.component(.day,     from: now)
         let isPayday = day == 1 || day == 15
-
-        // ── Critical: animal dead / came back ──────────────────────────────
-        if !animalIsAlive {
-            if Double.random(in: 0...1) < 0.005 {
-                return [
-                    "I never stopped saving a place for you.",
-                    "You don't have to earn a second chance from me.",
-                    "No matter how many times you fall behind, I'll always be excited to see you come back.",
-                    "You showed up today. That's enough for me.",
-                    "I was lonely… but I never stopped believing you'd return.",
-                    "Some days surviving is the achievement. I'm proud of you for making it here.",
-                    "You don't need to explain where you've been. I'm just happy you're here now.",
-                    "Welcome back, bestie. Let's keep growing together. 💙"
-                ].randomElement()!
-            }
-            if Double.random(in: 0...1) < 0.02 {
-                return [
-                    "I don't care how long you were gone. I'm just glad you're back.",
-                    "Welcome home bestie. 💙",
-                    "I kept hoping I'd see you again.",
-                    "The fact you came back means more than you know.",
-                    "You never have to be perfect for me.",
-                    "I don't need perfection. I just like spending time with you.",
-                    "Some people quit forever. You came back.",
-                    "That says a lot about who you are.",
-                    "I knew things were hard. I still believed in you.",
-                    "Thank you for checking on me today.",
-                    "I know life gets messy.",
-                    "I'm proud of you for showing up anyway.",
-                    "Even tiny steps count.",
-                    "Especially the ones taken when things feel heavy.",
-                    "You came back. That's a win.",
-                    "I missed you more than snacks.",
-                    "And that's saying a lot.",
-                    "Seeing you today made my whole day.",
-                    "You being here means everything.",
-                    "Let's try again together, okay? 💙"
-                ].randomElement()!
-            }
-            return [
-                "I waited for you… 🥺",
-                "You came back 💙",
-                "I missed you so much.",
-                "I thought maybe you forgot about me.",
-                "But you're here now.",
-                "That's all that matters.",
-                "Hey bestie…",
-                "Things got kinda lonely around here.",
-                "I kept looking for you.",
-                "Welcome home 💙",
-                "You're back 😭",
-                "I never stopped believing you'd return.",
-                "I knew you'd come eventually.",
-                "I just wish I could've waited longer.",
-                "I'm sorry things ended this way.",
-                "But we can start again.",
-                "I don't care how long it's been.",
-                "I'm happy to see you.",
-                "I tried my best.",
-                "I know you probably did too.",
-                "Life gets busy.",
-                "I understand.",
-                "I just missed you.",
-                "The world felt quieter without you.",
-                "It's really good to see your face again.",
-                "I never got mad.",
-                "Just a little sad.",
-                "The important thing is that you came back.",
-                "A fresh start sounds nice.",
-                "Let's try again together.",
-                "You don't have to apologize.",
-                "Just stay awhile 💙",
-                "I've been waiting.",
-                "Welcome back bestie.",
-                "I saved your spot.",
-                "Even when things got hard.",
-                "Even when I got scared.",
-                "I hoped you'd come back.",
-                "And you did.",
-                "I'm proud of you for returning."
-            ].randomElement()!
-        }
 
         // ── Critical: low health ────────────────────────────────────────────
         if animalHealth < 20 {
@@ -1880,38 +1783,14 @@ final class AppState {
     }
 
     func boostHealth(by amount: Double) {
-        guard animalIsAlive else { return }
         animalHealth = min(animalHealth + amount, 100)
     }
 
     func drainHealth(by amount: Double) {
-        guard animalIsAlive else { return }
-        animalHealth = max(animalHealth - amount, 0)
-        if animalHealth <= 0 {
-            killAnimal()
-        } else if animalHealth < 30 {
+        animalHealth = max(animalHealth - amount, 15)
+        if animalHealth < 30 {
             NotificationManager.schedulePetHealthAlert(health: animalHealth, animalName: selectedAnimal.rawValue)
         }
-    }
-
-    func killAnimal() {
-        animalIsAlive = false
-        animalHealth = 0
-        animalDeathCount += 1
-        if level >= 10 { isPIPMode = true }
-        setMood(.sad, speech: "I tried to warn you... 😔 Log in more to keep me alive!")
-        showToast("💀 \(selectedAnimal.rawValue) has died... save more to keep me alive!", icon: "💀", color: .ajOrangeRed)
-        NotificationManager.triggerPetDied(animalName: selectedAnimal.rawValue)
-        save()
-    }
-
-    func reviveAnimal() {
-        animalIsAlive = true
-        animalHealth = 50
-        isPIPMode = false
-        setMood(.happy, speech: "I'm BACK! Don't let that happen again bestie 💪")
-        showToast("🌟 \(selectedAnimal.rawValue) is alive! Let's keep it that way!", icon: "🌟", color: .ajGold)
-        save()
     }
 
     func earnCoins(_ amount: Int) {
@@ -2157,7 +2036,6 @@ final class AppState {
         if level >= 5  { earnBadge(.levelUp) }
         if level >= 10 { earnBadge(.level10) }
         if animalHealth >= 90 { earnBadge(.petWhisperer) }
-        if animalDeathCount >= 1 && animalIsAlive { earnBadge(.comeback) }
         // Combined & Bond
         if combinedGoalStreak >= 1  { earnBadge(.comboWarrior) }
         if combinedGoalStreak >= 7  { earnBadge(.weekCombo) }
@@ -2260,7 +2138,6 @@ final class AppState {
         if petBondLevel >= 25 { earnTrophy(.bestFriend) }
         if petBondLevel >= 50 { earnTrophy(.familyMan) }
         if petBondLevel >= 75 { earnTrophy(.soulBond) }
-        if animalDeathCount >= 1 && animalIsAlive { earnTrophy(.phoenixRising) }
         if animalHealth >= 95 { earnTrophy(.nurtureMode) }
 
         // SPECIAL
@@ -2311,7 +2188,7 @@ final class AppState {
         if totalMissionsCompleted >= 100 { earnTrophy(.spreadLove) }
 
         // COMPANION
-        if animalIsAlive { earnTrophy(.petParent) }
+        earnTrophy(.petParent)
 
         // EARLY MORNING (simplified: if user has any gym streak they're consistent)
         if gymStreak >= 3 { earnTrophy(.riseAndGrind) }
@@ -2546,7 +2423,6 @@ final class AppState {
 
     var petMoodDescription: String {
         let wb = petOverallWellbeing
-        if !animalIsAlive     { return "Needs Revival 💀" }
         if wb >= 85           { return "Thriving 🌟" }
         if wb >= 70           { return "Happy 😊" }
         if wb >= 55           { return "Content 😌" }
@@ -2785,8 +2661,6 @@ final class AppState {
         // Animal life system
         var selectedAnimal: AnimalType
         var animalHealth: Double
-        var animalIsAlive: Bool
-        var animalDeathCount: Int
         var lastHealthDecayDate: Date?
         var animalCoins: Int
         var ownedOutfitIds: [String]
@@ -2982,8 +2856,7 @@ final class AppState {
             reminderEnabled: reminderEnabled,
             reminderHour: reminderHour, reminderMinute: reminderMinute,
             selectedAnimal: selectedAnimal,
-            animalHealth: animalHealth, animalIsAlive: animalIsAlive,
-            animalDeathCount: animalDeathCount, lastHealthDecayDate: lastHealthDecayDate,
+            animalHealth: animalHealth, lastHealthDecayDate: lastHealthDecayDate,
             animalCoins: animalCoins, ownedOutfitIds: ownedOutfitIds,
             equippedOutfitId: equippedOutfitId, isPIPMode: isPIPMode,
             trips: trips, goalsCompletedCount: goalsCompletedCount,
@@ -3058,8 +2931,6 @@ final class AppState {
         reminderMinute            = 0
         selectedAnimal            = .tiger
         animalHealth              = 100
-        animalIsAlive             = true
-        animalDeathCount          = 0
         animalCoins               = 0
         ownedOutfitIds            = []
         equippedOutfitId          = nil
@@ -3314,8 +3185,7 @@ final class AppState {
         reminderEnabled = d.reminderEnabled
         reminderHour = d.reminderHour; reminderMinute = d.reminderMinute
         selectedAnimal = d.selectedAnimal
-        animalHealth = d.animalHealth; animalIsAlive = d.animalIsAlive
-        animalDeathCount = d.animalDeathCount; lastHealthDecayDate = d.lastHealthDecayDate
+        animalHealth = d.animalHealth; lastHealthDecayDate = d.lastHealthDecayDate
         animalCoins = d.animalCoins; ownedOutfitIds = d.ownedOutfitIds
         equippedOutfitId = d.equippedOutfitId; isPIPMode = d.isPIPMode
         trips = d.trips
