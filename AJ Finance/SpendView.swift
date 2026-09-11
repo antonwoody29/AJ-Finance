@@ -674,101 +674,185 @@ struct SpendView: View {
         let now         = Date()
         let day         = cal.component(.day, from: now)
         let daysInMonth = cal.range(of: .day, in: .month, for: now)?.count ?? 30
+        let daysLeft    = max(0, daysInMonth - day)
         let dailyAvg    = total / Double(max(1, day))
         let projected   = dailyAvg * Double(daysInMonth)
         let budget      = appState.dailyBudget * 30
         let isOver      = budget > 0 && projected > budget
+        let budgetRatio = budget > 0 ? min(total / budget, 1.0) : 0.0
         let projColor: Color = isOver ? .ajOrangeRed : Color(red: 0.18, green: 0.82, blue: 0.44)
+        let burnColor: Color = budget > 0 && dailyAvg > (budget / Double(max(1, daysInMonth))) ? .ajOrangeRed : .ajOrange
 
-        return VStack(alignment: .leading, spacing: 14) {
-                // Header row
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("SPENT THIS MONTH")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundColor(.white.opacity(0.45))
-                            .tracking(2)
-                        Text("$\(String(format: "%.0f", total))")
-                            .font(.system(size: 44, weight: .black))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.white, Color(red:1.0,green:0.88,blue:0.72)],
-                                    startPoint: .top, endPoint: .bottom
-                                )
+        return VStack(alignment: .leading, spacing: 16) {
+
+            // ── Header ──────────────────────────────────────────────
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("SPENT THIS MONTH")
+                        .font(.system(size: 9, weight: .black))
+                        .foregroundColor(.white.opacity(0.40))
+                        .tracking(2.5)
+                    Text("$\(String(format: "%.0f", total))")
+                        .font(.system(size: 48, weight: .black))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.white, Color(red: 1.0, green: 0.88, blue: 0.68)],
+                                startPoint: .top, endPoint: .bottom
                             )
-                        Text("\(appState.monthlyTransactions.count) transaction\(appState.monthlyTransactions.count == 1 ? "" : "s")")
-                            .font(.system(size: 12))
-                            .foregroundColor(.white.opacity(0.4))
-                    }
-                    Spacer()
-                    // Velocity badge
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("~$\(Int(projected))")
-                            .font(.system(size: 18, weight: .black))
-                            .foregroundColor(projColor)
-                        Text("projected")
-                            .font(.system(size: 10))
-                            .foregroundColor(.white.opacity(0.4))
-                        Text(isOver ? "⚠️ over pace" : "✅ on track")
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(projColor.opacity(0.85))
-                    }
-                    .padding(.top, 8)
+                        )
+                        .shadow(color: Color.ajOrange.opacity(0.30), radius: 10, y: 3)
+                    Text("\(appState.monthlyTransactions.count) transaction\(appState.monthlyTransactions.count == 1 ? "" : "s")")
+                        .font(.system(size: 11))
+                        .foregroundColor(.white.opacity(0.35))
                 }
 
-                // Full-width daily bar chart
-                MonthlyTrendChart(transactions: appState.monthlyTransactions)
-                    .frame(height: 96)
+                Spacer()
 
-                // Category color strip + compact legend
-                if !nonZero.isEmpty {
+                VStack(alignment: .trailing, spacing: 8) {
+                    // Status badge
+                    HStack(spacing: 4) {
+                        Text(isOver ? "⚠️" : "✅")
+                            .font(.system(size: 10))
+                        Text(isOver ? "over pace" : "on track")
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundColor(projColor)
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .background(
+                        Capsule()
+                            .fill(projColor.opacity(0.14))
+                            .overlay(Capsule().stroke(projColor.opacity(0.35), lineWidth: 1))
+                    )
+
+                    // Projected
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text("~$\(Int(projected))")
+                            .font(.system(size: 16, weight: .black))
+                            .foregroundColor(.white.opacity(0.78))
+                        Text("projected")
+                            .font(.system(size: 9))
+                            .foregroundColor(.white.opacity(0.35))
+                    }
+
+                    // Burn rate
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text("$\(String(format: "%.0f", dailyAvg))/day")
+                            .font(.system(size: 13, weight: .black))
+                            .foregroundColor(burnColor)
+                        Text("\(daysLeft)d left")
+                            .font(.system(size: 9))
+                            .foregroundColor(.white.opacity(0.35))
+                    }
+                }
+                .padding(.top, 4)
+            }
+
+            // ── Budget progress bar ──────────────────────────────────
+            if budget > 0 {
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack {
+                        Text("Monthly Budget")
+                            .font(.system(size: 9, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.38))
+                        Spacer()
+                        Text("$\(Int(total)) of $\(Int(budget))")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(.white.opacity(0.38))
+                    }
                     GeometryReader { geo in
-                        HStack(spacing: 2) {
+                        ZStack(alignment: .leading) {
+                            Capsule().fill(Color.white.opacity(0.08))
+                            Capsule()
+                                .fill(LinearGradient(
+                                    colors: isOver
+                                        ? [.ajOrangeRed, .ajOrangeRed.opacity(0.70)]
+                                        : [.ajOrange, Color(red: 1, green: 0.65, blue: 0.20)],
+                                    startPoint: .leading, endPoint: .trailing
+                                ))
+                                .frame(width: max(geo.size.width * CGFloat(budgetRatio), budgetRatio > 0 ? 6 : 0))
+                                .shadow(color: isOver ? Color.ajOrangeRed.opacity(0.50) : Color.ajOrange.opacity(0.50), radius: 5)
+                        }
+                    }
+                    .frame(height: 5)
+                }
+            }
+
+            // ── Bar chart ────────────────────────────────────────────
+            MonthlyTrendChart(transactions: appState.monthlyTransactions)
+                .frame(height: 88)
+
+            // ── Category breakdown ───────────────────────────────────
+            if !nonZero.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    GeometryReader { geo in
+                        HStack(spacing: 3) {
                             ForEach(nonZero.prefix(6), id: \.0.id) { cat, amt in
                                 RoundedRectangle(cornerRadius: 3)
                                     .fill(LinearGradient(
                                         colors: [cat.color, cat.color.opacity(0.65)],
                                         startPoint: .leading, endPoint: .trailing
                                     ))
-                                    .frame(width: max(geo.size.width * CGFloat(amt / max(total, 1)) - 2, 5))
+                                    .frame(width: max(geo.size.width * CGFloat(amt / max(total, 1)) - 3, 6))
                             }
                         }
                     }
-                    .frame(height: 6)
+                    .frame(height: 5)
                     .clipShape(Capsule())
 
-                    HStack(spacing: 10) {
+                    HStack(spacing: 6) {
                         ForEach(nonZero.prefix(5), id: \.0.id) { cat, amt in
                             HStack(spacing: 4) {
-                                Circle().fill(cat.color).frame(width: 6, height: 6)
-                                Text("\(cat.icon) \(Int((amt / max(total, 1)) * 100))%")
-                                    .font(.system(size: 10, weight: .semibold))
-                                    .foregroundColor(.white.opacity(0.70))
+                                Circle().fill(cat.color).frame(width: 5, height: 5)
+                                Text(cat.icon).font(.system(size: 11))
+                                Text("\(Int((amt / max(total, 1)) * 100))%")
+                                    .font(.system(size: 10, weight: .black))
+                                    .foregroundColor(.white.opacity(0.75))
                             }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(cat.color.opacity(0.14))
+                                    .overlay(Capsule().stroke(cat.color.opacity(0.30), lineWidth: 0.8))
+                            )
                         }
                         Spacer()
                     }
                 }
             }
-        .padding(16)
+        }
+        .padding(18)
         .background(
             ZStack {
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 22)
                     .fill(LinearGradient(
-                        colors: [Color(red:0.14, green:0.06, blue:0.01), Color(red:0.06, green:0.02, blue:0.005)],
+                        colors: [Color(red: 0.12, green: 0.05, blue: 0.01), Color(red: 0.05, green: 0.015, blue: 0.003)],
                         startPoint: .topLeading, endPoint: .bottomTrailing
                     ))
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(LinearGradient(colors: [Color.ajOrange.opacity(0.16), .clear],
-                                         startPoint: .top, endPoint: .center))
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(RadialGradient(
+                        colors: [Color.ajOrange.opacity(0.24), .clear],
+                        center: UnitPoint(x: 0.1, y: 0.0),
+                        startRadius: 0,
+                        endRadius: 220
+                    ))
+                RoundedRectangle(cornerRadius: 22)
+                    .fill(LinearGradient(
+                        colors: [Color.white.opacity(0.09), .clear],
+                        startPoint: .top, endPoint: .center
+                    ))
+                RoundedRectangle(cornerRadius: 22)
                     .strokeBorder(
-                        LinearGradient(colors: [Color.ajOrange.opacity(0.50), Color.white.opacity(0.05)],
-                                       startPoint: .topLeading, endPoint: .bottomTrailing),
+                        LinearGradient(
+                            colors: [Color.ajOrange.opacity(0.55), Color.ajOrange.opacity(0.12), Color.white.opacity(0.04)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
                         lineWidth: 1.2
                     )
             }
-            .shadow(color: Color.ajOrange.opacity(0.25), radius: 24, y: 8)
+            .shadow(color: Color.ajOrange.opacity(0.22), radius: 28, y: 10)
         )
     }
 
